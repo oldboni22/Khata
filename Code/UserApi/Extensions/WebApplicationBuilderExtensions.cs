@@ -1,3 +1,4 @@
+using Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
 
@@ -17,24 +18,4 @@ public static class WebApplicationBuilderExtensions
         });
     }
     
-    public static void AddExceptionMiddleware(this WebApplication app)
-    {
-        app.UseExceptionHandler(builder => builder.Run(async context =>
-        {
-            var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
-            if (exceptionHandlerFeature != null)
-            {
-                context.Response.StatusCode = exceptionHandlerFeature.Error switch
-                {
-                    // Handle specific exceptions as they get added
-                    
-                    _ => StatusCodes.Status500InternalServerError,
-                };
-                
-                
-            }
-            
-            
-        }));
-    }
 }
