@@ -1,21 +1,18 @@
-using Exceptions;
-using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
 
-namespace UserApi.Extensions;
+namespace UserService.API.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
     public static void ConfigureSerilog(this WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((context, services, configuration) =>
+        builder.Host.UseSerilog((builder, sp, configuration) =>
         {
             configuration
-                .ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services)
+                .ReadFrom.Configuration(builder.Configuration)
+                .ReadFrom.Services(sp)
                 .WriteTo.Console()
                 .WriteTo.File("log.txt");
         });
     }
-    
 }
