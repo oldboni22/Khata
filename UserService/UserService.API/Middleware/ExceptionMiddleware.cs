@@ -18,20 +18,16 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
     
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        var path = context.Request.Path;
-        logger.Error(exception, $"An error occurred while processing the request at {path}.");
+        logger.Error(exception.Message);
 
-        var responseStatusCode = exception switch
+        ExceptionDetails details = exception switch
         {
-            _ => StatusCodes.Status500InternalServerError,
+            _ => new(exception.Message, StatusCodes.Status500InternalServerError),
         };
-        
-        var details = new ExceptionDetails(exception.Message, responseStatusCode);
-        
+
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = responseStatusCode;
-        
-        await context.Response.WriteAsync(details.ToString());
+        context.Response.StatusCode = details.StatusCode;
+        await context.Response.WriteAsJsonAsync(details);
     }
     
 }
