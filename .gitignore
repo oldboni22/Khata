@@ -1,0 +1,7 @@
+**/.idea
+
+*.json
+*.xml
+
+**/obj
+**/bin
