@@ -1,5 +1,5 @@
 using UserService.API.Extensions;
-using UserService.API.Middleware;
+using UserService.API.Middleware;   
 
 namespace UserService.API;
 
@@ -12,6 +12,7 @@ public class Program
         
         // Add services to the container.
         builder.Services.AddAuthorization();
+        
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
