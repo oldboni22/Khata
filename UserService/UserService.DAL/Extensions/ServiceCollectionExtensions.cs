@@ -8,16 +8,20 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDataLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
-        AddContext(services, configuration);
+        services
+            .AddContext(configuration);
 
         return services;
     }
 
-    private static void AddContext(IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddContext(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Postgres");
         
         services.AddDbContext<UserServiceContext>(options =>
             options.UseNpgsql(connectionString));
+        
+        return services;
     }
+    
 }

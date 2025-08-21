@@ -9,4 +9,5 @@ public class User : EntityBase
     public required string Name { get; set; }
     
     public List<UserTopicStatus> TopicStatuses { get; set; } = [];
+    
 }

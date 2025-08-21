@@ -6,4 +6,5 @@ public enum UserTopicRelation
     Moderator = 2,
     Subscribed = 3,
     Banned = 4
+    
 }
