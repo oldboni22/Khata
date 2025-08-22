@@ -28,8 +28,9 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IUserTopicRelationRepository, UserTopicRelationRepository>();
+        services
+            .AddScoped<IUserRepository, UserRepository>()
+            .AddScoped<IUserTopicRelationRepository, UserTopicRelationRepository>();
         
         return services;
     }
