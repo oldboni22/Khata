@@ -26,7 +26,7 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
-public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger? logger) :
+public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger logger) :
     IGenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     where TEntity : EntityBase
     where TModel : ModelBase
@@ -35,7 +35,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGeneri
 {
     protected readonly IGenericRepository<TEntity> Repository = repository;
     protected readonly IMapper Mapper = mapper;
-    protected readonly Serilog.ILogger? Logger = logger;
+    protected readonly Serilog.ILogger Logger = logger;
 
     public async Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default)
     {
@@ -52,7 +52,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGeneri
 
         if (entity == null)
         {
-            Logger?.Warning($"An entity of type {typeof(TEntity).Name} with id {id} was not found.");
+            Logger.Warning($"An entity of type {typeof(TEntity).Name} with id {id} was not found.");
             
             throw new UserNotFoundException(id);
         }
@@ -77,7 +77,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGeneri
     {
         if (! await Repository.ExistsAsync(id, cancellationToken))
         {
-            Logger?.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
+            Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
 
             throw new UserNotFoundException(id);
         }
@@ -96,7 +96,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGeneri
     {
         if (! await Repository.ExistsAsync(id, cancellationToken))
         {
-            Logger?.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
+            Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
             
             throw new UserNotFoundException(id);
         }
