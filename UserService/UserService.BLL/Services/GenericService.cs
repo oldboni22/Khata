@@ -50,7 +50,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGeneri
     {
         var entity = await Repository.FindByIdAsync(id, false, cancellationToken);
 
-        if (entity == null)
+        if (entity is null)
         {
             Logger.Warning($"An entity of type {typeof(TEntity).Name} with id {id} was not found.");
             
