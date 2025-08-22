@@ -8,7 +8,6 @@ using UserService.DAL.Repositories;
 
 namespace UserService.BLL.Services;
 
-
 public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateModel>
     where TEntity : EntityBase
     where TModel : ModelBase
