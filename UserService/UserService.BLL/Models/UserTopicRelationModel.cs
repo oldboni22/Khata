@@ -1,3 +1,4 @@
+using UserService.BLL.Models.User;
 using UserService.DAL.Models.Enums;
 
 namespace UserService.BLL.Models;

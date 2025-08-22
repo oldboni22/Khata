@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using UserService.DAL.Models.Entities;
 
-namespace UserService.BLL.Models;
+namespace UserService.BLL.Models.User;
 
 public class UserModel : ModelBase
 {
