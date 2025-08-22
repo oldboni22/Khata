@@ -29,5 +29,4 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
         context.Response.StatusCode = details.StatusCode;
         await context.Response.WriteAsJsonAsync(details);
     }
-    
 }

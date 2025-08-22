@@ -6,7 +6,7 @@ public static class WebApplicationBuilderExtensions
 {
     public static void ConfigureSerilog(this WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((builder, sp, configuration) =>
+        builder.Host.UseSerilog((_, sp, configuration) =>
         {
             configuration
                 .ReadFrom.Configuration(builder.Configuration)
