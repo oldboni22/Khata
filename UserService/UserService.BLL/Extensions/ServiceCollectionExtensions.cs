@@ -1,6 +1,13 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using UserService.DAL.Extensions;
+
 namespace UserService.BLL.Extensions;
 
-public class ServiceCollectionExtensions
+public static class ServiceCollectionExtensions
 {
-    
+    public static void AddBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDataLayerDependencies(configuration);
+    }
 }
