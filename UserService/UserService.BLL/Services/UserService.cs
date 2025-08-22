@@ -72,7 +72,7 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         {
             Logger.Warning($"A user with id {userId} was not subscribed to topic with id {topicId}.");
             
-            throw new RelationDoesNotExist(userId, topicId, UserTopicRelationStatus.Subscribed);
+            throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Subscribed);
         }
         
         if (IsUserBannedFromTopic(relationModels, out var banRelationId))
@@ -138,7 +138,7 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         {
             Logger.Warning($"A user with id {userId} is not banned from topic with id {topicId}.");
             
-            throw new RelationDoesNotExist(userId, topicId, UserTopicRelationStatus.Banned);
+            throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Banned);
         }
         
         await userTopicRelationRepository.DeleteAsync(banRelationId, cancellationToken);
@@ -195,7 +195,7 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         {
             Logger.Warning($"User with id {userId} is not moderating topic with id {topicId}.");
             
-            throw new RelationDoesNotExist(userId, topicId, UserTopicRelationStatus.Moderator);
+            throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Moderator);
         }
         
         await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
