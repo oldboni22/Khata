@@ -21,11 +21,11 @@ public interface IGenericRepository<T>
 public class GenericRepository<T>(UserServiceContext context) : IGenericRepository<T> 
     where T : EntityBase
 {
-    private readonly UserServiceContext _context = context;
+    protected readonly UserServiceContext Context = context;
     
     public async Task<List<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, bool trackChanges)
     {
-        var query = _context.Set<T>().Where(expression);
+        var query = Context.Set<T>().Where(expression);
         query = trackChanges ? query : query.AsNoTracking();
         
         return await query.ToListAsync();
@@ -33,7 +33,7 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 
     public async Task<T?> FindByIdAsync(Guid id, bool trackChanges)
     {
-        var query = _context.Set<T>().Where(ent => ent.Id == id);
+        var query = Context.Set<T>().Where(ent => ent.Id == id);
         query = trackChanges ? query : query.AsNoTracking();
         
         return await query.SingleOrDefaultAsync();
@@ -41,31 +41,31 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 
     public async Task<T> CreateAsync(T entity)
     {
-        _context.Set<T>().Add(entity);
-        await _context.SaveChangesAsync();
+        Context.Set<T>().Add(entity);
+        await Context.SaveChangesAsync();
 
         return entity;
     }
 
     public async Task<T> UpdateAsync(T entity)
     {
-        _context.Set<T>().Update(entity);
-        await _context.SaveChangesAsync();
+        Context.Set<T>().Update(entity);
+        await Context.SaveChangesAsync();
         
         return entity;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var entity = await _context.Set<T>().FindAsync(id);
+        var entity = await Context.Set<T>().FindAsync(id);
         
         if(entity == null)
         {
             return false;
         }
         
-        _context.Set<T>().Remove(entity);
-        await _context.SaveChangesAsync();
+        Context.Set<T>().Remove(entity);
+        await Context.SaveChangesAsync();
         
         return true;
     }
