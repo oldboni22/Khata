@@ -1,4 +1,4 @@
-namespace UserService.BLL.Exceptions;
+namespace UserService.BLL.Exceptions.User;
 
 public class UserNotFoundException(Guid id) : NotFoundException($"A user with id {id} was not found.")
 {
