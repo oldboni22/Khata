@@ -8,6 +8,5 @@ public class User : EntityBase
     [MaxLength(15)]
     public required string Name { get; set; }
     
-    public List<UserTopicStatus> TopicStatuses { get; set; } = [];
-    
+    public List<UserTopicRelation> TopicStatuses { get; set; } = [];
 }

@@ -2,7 +2,7 @@ using UserService.DAL.Models.Enums;
 
 namespace UserService.DAL.Models.Entities;
 
-public class UserTopicStatus : EntityBase
+public class UserTopicRelation : EntityBase
 {
     public Guid UserId { get; init; }
     
@@ -10,6 +10,5 @@ public class UserTopicStatus : EntityBase
 
     public User User { get; init; } = null!;
 
-    public UserTopicRelation TopicRelation { get; set; } = UserTopicRelation.Subscribed;
-
+    public UserTopicRelationStatus TopicRelationStatus { get; set; } = UserTopicRelationStatus.Subscribed;
 }

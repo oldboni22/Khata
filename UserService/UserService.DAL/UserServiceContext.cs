@@ -7,7 +7,7 @@ public class UserServiceContext : DbContext
 {
     private DbSet<User> Users { get; set; }
     
-    private DbSet<UserTopicStatus> UserTopics { get; set; }
+    private DbSet<UserTopicRelation> UserTopics { get; set; }
 
     public override int SaveChanges()
     {
@@ -50,5 +50,4 @@ public class UserServiceContext : DbContext
             .HasIndex(user => user.Name)
             .IsUnique();
     }
-    
 }

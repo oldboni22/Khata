@@ -15,5 +15,4 @@ public static class WebApplicationBuilderExtensions
                 .WriteTo.File("log.txt");
         });
     }
-    
 }
