@@ -23,7 +23,7 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
     
     Task<TModel?> UpdateAsync(Guid id, TUpdateModel updateModel, CancellationToken cancellationToken = default);
     
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
 public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger logger) :
@@ -89,7 +89,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGeneri
         return mapper.Map<TModel>(updatedEntity);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         if (!await repository.ExistsAsync(id, cancellationToken))
         {
@@ -98,6 +98,6 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGeneri
             throw new UserNotFoundException(id);
         }
         
-        return await repository.DeleteAsync(id, cancellationToken);
+        await repository.DeleteAsync(id, cancellationToken);
     }
 }
