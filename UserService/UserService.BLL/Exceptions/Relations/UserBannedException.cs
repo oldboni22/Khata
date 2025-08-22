@@ -1,6 +1,7 @@
-namespace UserService.BLL.Exceptions;
+namespace UserService.BLL.Exceptions.Relations;
 
-public class UserBannedException(Guid userId, Guid topicId) : Exception($"User with id {userId} is banned from topic with id {topicId}.")
+public class UserBannedException(Guid userId, Guid topicId) : 
+    Exception(ExceptionMessages.GenerateUserBannedMessage(userId, topicId))
 {
     
 }
