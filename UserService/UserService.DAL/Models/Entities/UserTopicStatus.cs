@@ -10,6 +10,6 @@ public class UserTopicStatus : EntityBase
 
     public User User { get; init; } = null!;
 
-    public UserTopicRelation TopicRelation { get; set; } = UserTopicRelation.Absent;
+    public UserTopicRelation TopicRelation { get; set; } = UserTopicRelation.Subscribed;
 
 }
