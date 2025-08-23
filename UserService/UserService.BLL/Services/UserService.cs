@@ -28,23 +28,26 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
 public class UserService(IGenericRepository<User> repository, UserTopicRelationRepository userTopicRelationRepository, IMapper mapper, ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(repository, mapper, logger), IUserService
 {
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger _logger = logger;
+
     public async Task SubscribeUser(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationEntities = await userTopicRelationRepository
             .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
 
-        var relationModels = mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = _mapper.Map<List<UserTopicRelationModel>>(relationEntities);
         
         if (IsUserSubscribedToTopic(relationModels, out var subscriptionRelationId))
         {
-            logger.Warning($"A user with id {userId} is already subscribed to topic with id {topicId}.");
+            _logger.Warning($"A user with id {userId} is already subscribed to topic with id {topicId}.");
             
             throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Subscribed);
         }
         
         if (IsUserBannedFromTopic(relationModels, out var banRelationId))
         {
-            logger.Warning($"A user with id {userId} is banned from topic with id {topicId}.");
+            _logger.Warning($"A user with id {userId} is banned from topic with id {topicId}.");
 
             throw new UserBannedException(userId, topicId);
         }
@@ -56,7 +59,7 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
             TopicRelationStatus = UserTopicRelationStatus.Subscribed
         };
 
-        var relationEntity = mapper.Map<UserTopicRelation>(relation);
+        var relationEntity = _mapper.Map<UserTopicRelation>(relation);
         
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
@@ -66,18 +69,18 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         var relationEntities = await userTopicRelationRepository
             .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
 
-        var relationModels = mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = _mapper.Map<List<UserTopicRelationModel>>(relationEntities);
         
         if (!IsUserSubscribedToTopic(relationModels, out var subscriptionRelationId))
         {
-            logger.Warning($"A user with id {userId} was not subscribed to topic with id {topicId}.");
+            _logger.Warning($"A user with id {userId} was not subscribed to topic with id {topicId}.");
             
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Subscribed);
         }
         
         if (IsUserBannedFromTopic(relationModels, out var banRelationId))
         {
-            logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot unsubscribe.");
+            _logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot unsubscribe.");
             
             throw new UserBannedException(userId, topicId);
         }
@@ -92,25 +95,25 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         var relationEntities = await userTopicRelationRepository
             .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
 
-        var relationModels = mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = _mapper.Map<List<UserTopicRelationModel>>(relationEntities);
 
         if (IsUserSubscribedToTopic(relationModels, out var subscriptionRelationId))
         {
-            logger.Information($"User with id {userId} is subscribed to the topic with id {topicId}, removing subscription before banning.");
+            _logger.Information($"User with id {userId} is subscribed to the topic with id {topicId}, removing subscription before banning.");
             
             await userTopicRelationRepository.DeleteAsync(subscriptionRelationId, cancellationToken);
         }
 
         if (IsUserModeratingTopic(relationModels, out var moderationRelationId))
         {
-            logger.Information($"User with id {userId} is moderating the topic with id {topicId}, removing moderation before banning.");
+            _logger.Information($"User with id {userId} is moderating the topic with id {topicId}, removing moderation before banning.");
             
             await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
         }
         
         if (IsUserBannedFromTopic(relationModels, out var banRelationId))
         {
-            logger.Warning($"User with id {userId} is already banned from topic with id {topicId}.");
+            _logger.Warning($"User with id {userId} is already banned from topic with id {topicId}.");
             
             throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Banned);
         }
@@ -122,7 +125,7 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
             TopicRelationStatus = UserTopicRelationStatus.Banned
         };
         
-        var relationEntity = mapper.Map<UserTopicRelation>(relationModel);
+        var relationEntity = _mapper.Map<UserTopicRelation>(relationModel);
         
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
@@ -132,11 +135,11 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         var relationEntities = await userTopicRelationRepository
             .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
 
-        var relationModels = mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = _mapper.Map<List<UserTopicRelationModel>>(relationEntities);
         
         if (!IsUserBannedFromTopic(relationModels, out var banRelationId))
         {
-            logger.Warning($"A user with id {userId} is not banned from topic with id {topicId}.");
+            _logger.Warning($"A user with id {userId} is not banned from topic with id {topicId}.");
             
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Banned);
         }
@@ -149,18 +152,18 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         var relationEntities = await userTopicRelationRepository
             .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
 
-        var relationModels = mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = _mapper.Map<List<UserTopicRelationModel>>(relationEntities);
 
         if (IsUserBannedFromTopic(relationModels, out var banRelationId))
         {
-            logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot promote to moderator.");
+            _logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot promote to moderator.");
             
             throw new UserBannedException(userId, topicId);
         }
         
         if (IsUserModeratingTopic(relationModels, out var moderationRelationId))
         {
-            logger.Warning($"User with id {userId} is already moderating topic with id {topicId}.");
+            _logger.Warning($"User with id {userId} is already moderating topic with id {topicId}.");
             
             throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Moderator);
         }
@@ -172,7 +175,7 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
             TopicRelationStatus = UserTopicRelationStatus.Moderator
         };
         
-        var relationEntity = mapper.Map<UserTopicRelation>(relationModel);
+        var relationEntity = _mapper.Map<UserTopicRelation>(relationModel);
         
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
@@ -182,18 +185,18 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
         var relationEntities = await userTopicRelationRepository
             .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
 
-        var relationModels = mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = _mapper.Map<List<UserTopicRelationModel>>(relationEntities);
 
         if (IsUserBannedFromTopic(relationModels, out var banRelationId))
         {
-            logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot demote from moderator.");
+            _logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot demote from moderator.");
             
             throw new UserBannedException(userId, topicId);
         }
         
         if (!IsUserModeratingTopic(relationModels, out var moderationRelationId))
         {
-            logger.Warning($"User with id {userId} is not moderating topic with id {topicId}.");
+            _logger.Warning($"User with id {userId} is not moderating topic with id {topicId}.");
             
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Moderator);
         }

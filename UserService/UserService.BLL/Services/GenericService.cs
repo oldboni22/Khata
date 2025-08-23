@@ -25,7 +25,8 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
-public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger logger) :
+public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
+    (IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger logger) :
     IGenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     where TEntity : EntityBase
     where TModel : ModelBase
