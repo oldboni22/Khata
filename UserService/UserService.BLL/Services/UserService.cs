@@ -29,6 +29,7 @@ public class UserService(IGenericRepository<User> repository, UserTopicRelationR
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(repository, mapper, logger), IUserService
 {
     private readonly IMapper _mapper = mapper;
+    
     private readonly ILogger _logger = logger;
 
     public async Task SubscribeUser(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
