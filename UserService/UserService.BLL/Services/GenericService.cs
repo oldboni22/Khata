@@ -26,19 +26,22 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
 }
 
 public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
-    (IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger logger) :
+    (IGenericRepository<TEntity> repository, IMapper Mapper, Serilog.ILogger Logger) :
     IGenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     where TEntity : EntityBase
     where TModel : ModelBase
     where TCreateModel : class
     where TUpdateModel : class
 {
-
+    protected readonly IMapper Mapper = Mapper;
+    
+    protected readonly Serilog.ILogger Logger = Logger;
+    
     public async Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default)
     {
         var entities = await repository.FindByConditionAsync(expression,false, cancellationToken);
         
-        var models = mapper.Map<IList<TModel>>(entities);
+        var models = Mapper.Map<IList<TModel>>(entities);
 
         return models;
     }
@@ -49,51 +52,51 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
 
         if (entity is null)
         {
-            logger.Warning($"An entity of type {typeof(TEntity).Name} with id {id} was not found.");
+            Logger.Warning($"An entity of type {typeof(TEntity).Name} with id {id} was not found.");
             
             throw new UserNotFoundException(id);
         }
         
-        var model = mapper.Map<TModel>(entity);
+        var model = Mapper.Map<TModel>(entity);
 
         return model;
     }
 
     public async Task<TModel> CreateAsync(TCreateModel createModel, CancellationToken cancellationToken = default)
     {
-        var model = mapper.Map<TModel>(createModel);
+        var model = Mapper.Map<TModel>(createModel);
         
-        var entity = mapper.Map<TEntity>(model);
+        var entity = Mapper.Map<TEntity>(model);
         
         var created = await repository.CreateAsync(entity, cancellationToken);
         
-        return mapper.Map<TModel>(created);
+        return Mapper.Map<TModel>(created);
     }
 
     public async Task<TModel?> UpdateAsync(Guid id, TUpdateModel updateModel, CancellationToken cancellationToken = default)
     {
         if (!await repository.ExistsAsync(id, cancellationToken))
         {
-            logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
+            Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
 
             throw new UserNotFoundException(id);
         }
         
-        var model = mapper.Map<TModel>(updateModel);
+        var model = Mapper.Map<TModel>(updateModel);
         model.Id = id;
         
-        var entity = mapper.Map<TEntity>(model);
+        var entity = Mapper.Map<TEntity>(model);
         
         var updatedEntity = await repository.UpdateAsync(entity, cancellationToken);
 
-        return mapper.Map<TModel>(updatedEntity);
+        return Mapper.Map<TModel>(updatedEntity);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         if (!await repository.ExistsAsync(id, cancellationToken))
         {
-            logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
+            Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
             
             throw new UserNotFoundException(id);
         }
