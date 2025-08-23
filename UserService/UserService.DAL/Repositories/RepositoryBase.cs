@@ -63,7 +63,7 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
     {
         var entity = await FindByIdAsync(id, false, cancellationToken);
         
-        if(entity == null)
+        if(entity is null)
         {
             return false;
         }

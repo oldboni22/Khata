@@ -1,6 +1,7 @@
+using UserService.BLL.Exceptions.MessageGenerators;
+
 namespace UserService.BLL.Exceptions.User;
 
-public class UserNotFoundException(Guid id) : NotFoundException($"A user with id {id} was not found.")
+public class UserNotFoundException(Guid id) : NotFoundException(UserNotFoundMessageGenerator.GenerateMessage(id))
 {
-    
 }
