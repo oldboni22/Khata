@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using AutoMapper;
-using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.User;
 using UserService.BLL.Models;
 using UserService.DAL.Models.Entities;
@@ -26,20 +25,22 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
 }
 
 public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
-    (IGenericRepository<TEntity> repository, IMapper Mapper, Serilog.ILogger Logger) :
+    (IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger logger) :
     IGenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     where TEntity : EntityBase
     where TModel : ModelBase
     where TCreateModel : class
     where TUpdateModel : class
 {
-    protected readonly IMapper Mapper = Mapper;
+    protected readonly IGenericRepository<TEntity> Repository = repository;
     
-    protected readonly Serilog.ILogger Logger = Logger;
+    protected readonly IMapper Mapper = mapper;
+    
+    protected readonly Serilog.ILogger Logger = logger;
     
     public async Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default)
     {
-        var entities = await repository.FindByConditionAsync(expression,false, cancellationToken);
+        var entities = await Repository.FindByConditionAsync(expression,false, cancellationToken);
         
         var models = Mapper.Map<IList<TModel>>(entities);
 
@@ -48,7 +49,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
 
     public async Task<TModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await repository.FindByIdAsync(id, false, cancellationToken);
+        var entity = await Repository.FindByIdAsync(id, false, cancellationToken);
 
         if (entity is null)
         {
@@ -68,14 +69,14 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
         
         var entity = Mapper.Map<TEntity>(model);
         
-        var created = await repository.CreateAsync(entity, cancellationToken);
+        var created = await Repository.CreateAsync(entity, cancellationToken);
         
         return Mapper.Map<TModel>(created);
     }
 
     public async Task<TModel?> UpdateAsync(Guid id, TUpdateModel updateModel, CancellationToken cancellationToken = default)
     {
-        if (!await repository.ExistsAsync(id, cancellationToken))
+        if (!await Repository.ExistsAsync(id, cancellationToken))
         {
             Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
 
@@ -87,20 +88,20 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
         
         var entity = Mapper.Map<TEntity>(model);
         
-        var updatedEntity = await repository.UpdateAsync(entity, cancellationToken);
+        var updatedEntity = await Repository.UpdateAsync(entity, cancellationToken);
 
         return Mapper.Map<TModel>(updatedEntity);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        if (!await repository.ExistsAsync(id, cancellationToken))
+        if (!await Repository.ExistsAsync(id, cancellationToken))
         {
             Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
             
             throw new UserNotFoundException(id);
         }
         
-        await repository.DeleteAsync(id, cancellationToken);
+        await Repository.DeleteAsync(id, cancellationToken);
     }
 }
