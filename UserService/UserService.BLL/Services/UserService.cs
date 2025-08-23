@@ -25,7 +25,8 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     Task DemoteUserFromModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
 }
 
-public class UserService(IGenericRepository<User> repository, UserTopicRelationRepository userTopicRelationRepository, IMapper mapper, ILogger logger) : 
+public class UserService(IGenericRepository<User> repository, IUserTopicRelationRepository userTopicRelationRepository,
+    IMapper mapper, ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(repository, mapper, logger), IUserService
 {
     public async Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
