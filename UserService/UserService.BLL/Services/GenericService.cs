@@ -1,7 +1,8 @@
 using System.Linq.Expressions;
 using AutoMapper;
-using UserService.BLL.Exceptions.User;
+using UserService.BLL.Exceptions;
 using UserService.BLL.Models;
+using UserService.BLL.Utilities.MessageGenerators.Logs;
 using UserService.DAL.Models.Entities;
 using UserService.DAL.Repositories;
 
@@ -40,7 +41,8 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     
     public async Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default)
     {
-        var entities = await Repository.FindByConditionAsync(expression,false, cancellationToken);
+        var entities = await Repository
+            .FindByConditionAsync(expression,false, cancellationToken);
         
         var models = Mapper.Map<IList<TModel>>(entities);
 
@@ -49,13 +51,14 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
 
     public async Task<TModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await Repository.FindByIdAsync(id, false, cancellationToken);
+        var entity = await Repository
+            .FindByIdAsync(id, false, cancellationToken);
 
         if (entity is null)
         {
-            Logger.Warning($"An entity of type {typeof(TEntity).Name} with id {id} was not found.");
+            Logger.Warning(EntityNotFoundLogMessageGenerator<TEntity>.GenerateMessage(id));
             
-            throw new UserNotFoundException(id);
+            throw new EntityNotFoundException<TEntity>(id);
         }
         
         var model = Mapper.Map<TModel>(entity);
@@ -78,9 +81,9 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     {
         if (!await Repository.ExistsAsync(id, cancellationToken))
         {
-            Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
+            Logger.Warning(EntityNotFoundLogMessageGenerator<TEntity>.GenerateMessage(id));
 
-            throw new UserNotFoundException(id);
+            throw new EntityNotFoundException<TEntity>(id);
         }
         
         var model = Mapper.Map<TModel>(updateModel);
@@ -97,9 +100,9 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     {
         if (!await Repository.ExistsAsync(id, cancellationToken))
         {
-            Logger.Warning($"No entity of type {typeof(TEntity).Name} with id {id} exists.");
+            Logger.Warning(EntityNotFoundLogMessageGenerator<TEntity>.GenerateMessage(id));
             
-            throw new UserNotFoundException(id);
+            throw new EntityNotFoundException<TEntity>(id);
         }
         
         await Repository.DeleteAsync(id, cancellationToken);

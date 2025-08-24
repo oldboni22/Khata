@@ -43,7 +43,7 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 
     public async Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        Context.Set<T>().Add(entity);
+        await Context.Set<T>().AddAsync(entity, cancellationToken);
         await Context.SaveChangesAsync(cancellationToken);
 
         return entity;

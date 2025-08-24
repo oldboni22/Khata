@@ -18,6 +18,10 @@
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\UserService.BLL\UserService.BLL.csproj" />
+    </ItemGroup>
     
 
 </Project>

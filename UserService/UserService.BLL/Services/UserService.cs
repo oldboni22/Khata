@@ -25,14 +25,14 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     Task DemoteUserFromModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
 }
 
-public class UserService(IGenericRepository<User> repository, IUserTopicRelationRepository userTopicRelationRepository,
+public class UserService(IGenericRepository<User> userRepository, IUserTopicRelationRepository userTopicRelationRepository,
     IMapper mapper, ILogger logger) : 
-    GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(repository, mapper, logger), IUserService
+    GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
 {
     public async Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationEntities = await userTopicRelationRepository
-            .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
+            .FindByConditionAsync(relation => relation.UserId == userId && relation.TopicId == topicId, false, cancellationToken);
 
         var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
         
