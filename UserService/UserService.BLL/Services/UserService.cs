@@ -4,6 +4,7 @@ using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.Relations;
 using UserService.BLL.Models;
 using UserService.BLL.Models.User;
+using UserService.BLL.Utilities.MessageGenerators.Logs;
 using UserService.DAL.Models.Entities;
 using UserService.DAL.Models.Enums;
 using UserService.DAL.Repositories;
@@ -38,14 +39,15 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
         {
-            Logger.Warning($"A user with id {userId} is already subscribed to topic with id {topicId}.");
+            Logger.Warning(UserAlreadyHasRelationLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Subscribed));
             
             throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Subscribed);
         }
         
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
-            Logger.Warning($"A user with id {userId} is banned from topic with id {topicId}.");
+            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
 
             throw new UserBannedException(userId, topicId);
         }
@@ -71,14 +73,15 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         
         if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
         {
-            Logger.Warning($"A user with id {userId} was not subscribed to topic with id {topicId}.");
+            Logger.Warning(RelationDoesNotExistLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Subscribed));
             
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Subscribed);
         }
         
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
-            Logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot unsubscribe.");
+            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
             
             throw new UserBannedException(userId, topicId);
         }
@@ -95,25 +98,28 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
         var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
 
+        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
+        {
+            Logger.Warning(UserAlreadyHasRelationLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Banned));
+            
+            throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Banned);
+        }
+        
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
         {
-            Logger.Information($"User with id {userId} is subscribed to the topic with id {topicId}, removing subscription before banning.");
+            Logger.Information(RemoveBannedUserStatusLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Subscribed));
             
             await userTopicRelationRepository.DeleteAsync(subscriptionRelationId, cancellationToken);
         }
 
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Moderator, out var moderationRelationId))
         {
-            Logger.Information($"User with id {userId} is moderating the topic with id {topicId}, removing moderation before banning.");
+            Logger.Information(RemoveBannedUserStatusLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Moderator));
             
             await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
-        }
-        
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
-        {
-            Logger.Warning($"User with id {userId} is already banned from topic with id {topicId}.");
-            
-            throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Banned);
         }
         
         var relationModel = new UserTopicRelationModel()
@@ -137,7 +143,8 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         
         if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
-            Logger.Warning($"A user with id {userId} is not banned from topic with id {topicId}.");
+            Logger.Warning(RelationDoesNotExistLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Banned));
             
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Banned);
         }
@@ -154,14 +161,15 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
-            Logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot promote to moderator.");
+            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
             
             throw new UserBannedException(userId, topicId);
         }
         
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Moderator, out var moderationRelationId))
         {
-            Logger.Warning($"User with id {userId} is already moderating topic with id {topicId}.");
+            Logger.Warning(UserAlreadyHasRelationLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Moderator));
             
             throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Moderator);
         }
@@ -187,14 +195,15 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
-            Logger.Warning($"User with id {userId} is banned from topic with id {topicId}, cannot demote from moderator.");
+            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
             
             throw new UserBannedException(userId, topicId);
         }
         
         if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Moderator, out var moderationRelationId))
         {
-            Logger.Warning($"User with id {userId} is not moderating topic with id {topicId}.");
+            Logger.Warning(RelationDoesNotExistLogMessageGenerator
+                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Moderator));
             
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Moderator);
         }
