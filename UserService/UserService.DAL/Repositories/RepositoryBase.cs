@@ -23,8 +23,8 @@ public interface IGenericRepository<T>
 public class GenericRepository<T>(UserServiceContext context) : IGenericRepository<T> 
     where T : EntityBase
 {
-    protected readonly UserServiceContext Context = context;
-    
+    protected UserServiceContext Context { get; } = context;
+
     public async Task<List<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, bool trackChanges, CancellationToken cancellationToken = default)
     {
         var query = Context.Set<T>().Where(expression);

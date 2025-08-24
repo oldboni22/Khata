@@ -33,11 +33,11 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     where TCreateModel : class
     where TUpdateModel : class
 {
-    protected readonly IGenericRepository<TEntity> Repository = repository;
-    
-    protected readonly IMapper Mapper = mapper;
-    
-    protected readonly Serilog.ILogger Logger = logger;
+    protected IGenericRepository<TEntity> Repository { get; } = repository;
+
+    protected IMapper Mapper { get; } = mapper;
+
+    protected Serilog.ILogger Logger { get; } = logger;
     
     public async Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default)
     {
