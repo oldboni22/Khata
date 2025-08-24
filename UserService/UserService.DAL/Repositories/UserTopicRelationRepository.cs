@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using UserService.DAL.Models.Entities;
 
 namespace UserService.DAL.Repositories;

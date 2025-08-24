@@ -1,4 +1,5 @@
 using UserService.API.Utilities;
+using UserService.BLL.Exceptions;
 
 namespace UserService.API.Middleware;
 
@@ -22,6 +23,7 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
 
         ExceptionDetails details = exception switch
         {
+            NotFoundException =>  new(exception.Message, StatusCodes.Status404NotFound),
             _ => new(exception.Message, StatusCodes.Status500InternalServerError),
         };
 
