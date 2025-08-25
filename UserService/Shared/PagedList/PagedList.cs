@@ -17,4 +17,10 @@ public class PagedList<T>
         
         Items.AddRange(items);
     }
+    
+    internal PagedList(List<T> items, PagedListMetadata metadata)
+    {
+        Metadata = metadata;
+        Items.AddRange(items);
+    }
 }

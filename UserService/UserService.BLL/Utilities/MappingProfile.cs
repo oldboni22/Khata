@@ -1,4 +1,5 @@
 using AutoMapper;
+using Shared.PagedList;
 using UserService.BLL.Models;
 using UserService.BLL.Models.User;
 using UserService.DAL.Models.Entities;
@@ -30,5 +31,7 @@ public class MappingProfile : Profile
         CreateMap<UserCreateModel, UserModel>();
         
         CreateMap<UserUpdateModel, UserModel>();
+        
+        this.AddPagedListMapping();
     }
 }

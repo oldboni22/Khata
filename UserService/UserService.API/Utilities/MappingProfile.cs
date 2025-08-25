@@ -1,4 +1,5 @@
 using AutoMapper;
+using Shared.PagedList;
 using UserService.API.DTO;
 using UserService.API.Utilities.Validation;
 using UserService.BLL.Models;
@@ -30,5 +31,7 @@ public class MappingProfile : Profile
                     relationDto.User = dto;
                 }
             });
+        
+        this.AddPagedListMapping();
     }
 }
