@@ -33,7 +33,7 @@ public class UserController(IUserService userService, IMapper mapper,
     public async Task<IActionResult> FindUsersByTopicIdAsync(
         [FromQuery] Guid topicId, 
         [FromQuery] string statusString,
-        [FromBody] PagedListQueryParameters pagedParameters, 
+        [FromBody] PaginationParameters pagedParameters, 
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<UserTopicRelationStatus>(statusString, out var status))

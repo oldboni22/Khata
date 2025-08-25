@@ -1,26 +1,8 @@
 namespace Shared.PagedList;
 
-public class PagedList<T>
+public record PagedList<T>(List<T> Items, int PageNumber, int PageSize, int PageCount, int TotalCount)
 {
-    public List<T> Items { get; } = [];
-    public PagedListMetadata Metadata { get; }
+    public bool HasPrevious => PageNumber > 1;
     
-    internal PagedList(List<T> items, int pageSize, int pageNumber)
-    {
-        Metadata = new PagedListMetadata
-        (
-            PageNumber:  pageNumber,
-            PageSize:  pageSize,
-            PageCount:  (int)Math.Ceiling(items.Count / (double)pageSize),
-            TotalCount:  items.Count
-        );
-        
-        Items.AddRange(items);
-    }
-    
-    internal PagedList(List<T> items, PagedListMetadata metadata)
-    {
-        Metadata = metadata;
-        Items.AddRange(items);
-    }
+    public bool HasNext => PageNumber < TotalCount;
 }

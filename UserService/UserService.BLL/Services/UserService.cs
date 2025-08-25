@@ -14,7 +14,7 @@ namespace UserService.BLL.Services;
 
 public interface IUserService : IGenericService<User, UserModel, UserCreateModel, UserUpdateModel>
 {
-    Task<PagedList<UserModel>> FindUsersByTopicIdAsync(Guid topicId, UserTopicRelationStatus status, PagedListQueryParameters pagedParameters,
+    Task<PagedList<UserModel>> FindUsersByTopicIdAsync(Guid topicId, UserTopicRelationStatus status, PaginationParameters pagedParameters,
         CancellationToken cancellationToken = default);
     
     Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
@@ -34,7 +34,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
     IMapper mapper, ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
 {
-    public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(Guid topicId, UserTopicRelationStatus status, PagedListQueryParameters pagedParameters,
+    public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(Guid topicId, UserTopicRelationStatus status, PaginationParameters pagedParameters,
         CancellationToken cancellationToken = default)
     {
         var pagedRelations = await userTopicRelationRepository.FindByConditionAsync
@@ -223,7 +223,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
             .FindByConditionAsync
                 (
                     ent => ent.UserId == userId && ent.TopicId == topicId,
-                    new PagedListQueryParameters(1,5),
+                    new PaginationParameters(1,5),
                     false,
                     cancellationToken
                 );

@@ -11,27 +11,13 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<User, UserModel>()
-            .AfterMap((_, model) =>
-            {
-                foreach (var status in model.TopicStatuses)
-                {
-                    status.User = model;
-                }
-            })
-            .ReverseMap();
-        
+            .PreserveReferences();
+
         CreateMap<UserTopicRelation, UserTopicRelationModel>()
-            .ForMember
-                (
-                    relation => relation.User,
-                    opt => opt.Ignore()
-                )
-            .ReverseMap();
+            .PreserveReferences();
 
         CreateMap<UserCreateModel, UserModel>();
         
         CreateMap<UserUpdateModel, UserModel>();
-        
-        this.AddPagedListMapping();
     }
 }

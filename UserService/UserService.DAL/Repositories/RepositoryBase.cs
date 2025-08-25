@@ -8,7 +8,7 @@ namespace UserService.DAL.Repositories;
 public interface IGenericRepository<T>
     where T : EntityBase
 {
-    Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PagedListQueryParameters pagedParameters,
+    Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PaginationParameters pagedParameters,
         bool trackChanges = false, CancellationToken cancellationToken = default);
     
     Task<T?> FindByIdAsync(Guid id, bool trackChanges = true, CancellationToken cancellationToken = default);
@@ -27,7 +27,7 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 {
     protected UserServiceContext Context { get; } = context;
 
-    public async Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PagedListQueryParameters pagedParameters,
+    public async Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PaginationParameters pagedParameters,
         bool trackChanges = false, CancellationToken cancellationToken = default)
     {
         var query = Context.Set<T>()

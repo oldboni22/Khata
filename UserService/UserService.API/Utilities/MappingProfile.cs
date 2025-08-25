@@ -14,24 +14,11 @@ public class MappingProfile : Profile
         CreateMap<UserCreateDto, UserCreateModel>();
 
         CreateMap<UserTopicRelationModel, UserTopicRelationDto>()
-            .ForMember
-            (
-                model => model.User,
-                opt => opt.Ignore()
-            )
-            .ReverseMap();
+            .PreserveReferences();
         
         CreateMap<UserUpdateDto, UserUpdateModel>();
 
         CreateMap<UserModel, UserReadDto>()
-            .AfterMap((_, dto) =>
-            {
-                foreach (var relationDto in dto.TopicStatuses)
-                {
-                    relationDto.User = dto;
-                }
-            });
-        
-        this.AddPagedListMapping();
+            .PreserveReferences();
     }
 }
