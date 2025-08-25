@@ -14,6 +14,9 @@ namespace UserService.BLL.Services;
 
 public interface IUserService : IGenericService<User, UserModel, UserCreateModel, UserUpdateModel>
 {
+    Task<PagedList<UserModel>> FindUsersByTopicIdAsync(Guid topicId, UserTopicRelationStatus status, PagedListQueryParameters pagedParameters,
+        CancellationToken cancellationToken = default);
+    
     Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
     Task UnsubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
@@ -31,6 +34,25 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
     IMapper mapper, ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
 {
+    public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(Guid topicId, UserTopicRelationStatus status, PagedListQueryParameters pagedParameters,
+        CancellationToken cancellationToken = default)
+    {
+        var pagedRelations = await userTopicRelationRepository.FindByConditionAsync
+            (
+                relation => relation.TopicId == topicId && relation.TopicRelationStatus == status,
+                pagedParameters,
+                false,
+                cancellationToken
+            );
+        
+        var pagedUsers = pagedRelations.Items
+            .Select(relation => relation.User)
+            .ToList()
+            .ToPagedList(pagedParameters.PageNumber, pagedParameters.PageSize);
+        
+        return Mapper.Map<PagedList<UserModel>>(pagedUsers);
+    }
+
     public async Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
