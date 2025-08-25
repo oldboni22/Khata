@@ -1,12 +1,12 @@
 using AutoMapper;
 using Serilog;
+using Shared.Enums;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.Relations;
 using UserService.BLL.Models;
 using UserService.BLL.Models.User;
 using UserService.BLL.Utilities.MessageGenerators.Logs;
 using UserService.DAL.Models.Entities;
-using UserService.DAL.Models.Enums;
 using UserService.DAL.Repositories;
 
 namespace UserService.BLL.Services;

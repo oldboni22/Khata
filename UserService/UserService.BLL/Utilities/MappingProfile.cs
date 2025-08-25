@@ -10,12 +10,25 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<User, UserModel>()
+            .AfterMap((_, model) =>
+            {
+                foreach (var status in model.TopicStatuses)
+                {
+                    status.User = model;
+                }
+            })
             .ReverseMap();
         
         CreateMap<UserTopicRelation, UserTopicRelationModel>()
+            .ForMember
+                (
+                    relation => relation.User,
+                    opt => opt.Ignore()
+                )
             .ReverseMap();
 
         CreateMap<UserCreateModel, UserModel>();
+        
         CreateMap<UserUpdateModel, UserModel>();
     }
 }

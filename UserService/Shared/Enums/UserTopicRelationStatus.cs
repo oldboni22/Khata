@@ -1,4 +1,4 @@
-namespace UserService.DAL.Models.Enums;
+namespace Shared.Enums;
 
 public enum UserTopicRelationStatus 
 {
