@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using UserService.DAL.Models.Entities;
 using UserService.DAL.Repositories;
 
 namespace UserService.DAL.Extensions;
@@ -30,6 +31,7 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddScoped<IUserRepository, UserRepository>()
+            .AddScoped<IGenericRepository<User>>(sp => sp.GetRequiredService<IUserRepository>())
             .AddScoped<IUserTopicRelationRepository, UserTopicRelationRepository>();
         
         return services;

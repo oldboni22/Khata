@@ -8,7 +8,7 @@ namespace UserService.API.Utilities;
 
 public class MappingProfile : Profile
 {
-    protected MappingProfile()
+    public MappingProfile()
     {
         CreateMap<UserCreateDto, UserCreateModel>();
 
