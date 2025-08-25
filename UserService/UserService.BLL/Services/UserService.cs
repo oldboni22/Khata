@@ -45,7 +45,8 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
                 cancellationToken
             );
         
-        var pagedUsers = pagedRelations.Items
+        var pagedUsers = pagedRelations
+            .Items
             .Select(relation => relation.User)
             .ToList()
             .ToPagedList(pagedParameters.PageNumber, pagedParameters.PageSize);
