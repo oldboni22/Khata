@@ -1,6 +1,7 @@
 using AutoMapper;
 using Serilog;
 using Shared.Enums;
+using Shared.PagedList;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.Relations;
 using UserService.BLL.Models;
@@ -32,10 +33,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 {
     public async Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var relationEntities = await userTopicRelationRepository
-            .FindByConditionAsync(relation => relation.UserId == userId && relation.TopicId == topicId, false, cancellationToken);
-
-        var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
         
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
         {
@@ -66,10 +64,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
     public async Task UnsubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var relationEntities = await userTopicRelationRepository
-            .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
-
-        var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
         
         if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
         {
@@ -93,10 +88,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
     public async Task BanUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var relationEntities = await userTopicRelationRepository
-            .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
-
-        var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
@@ -136,10 +128,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
     public async Task UnbanUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var relationEntities = await userTopicRelationRepository
-            .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
-
-        var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
         
         if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
@@ -154,10 +143,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
     public async Task PromoteUserToModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var relationEntities = await userTopicRelationRepository
-            .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
-
-        var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
@@ -188,10 +174,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
     public async Task DemoteUserFromModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var relationEntities = await userTopicRelationRepository
-            .FindByConditionAsync(ent => ent.UserId == userId && ent.TopicId == topicId, false, cancellationToken);
-
-        var relationModels = Mapper.Map<List<UserTopicRelationModel>>(relationEntities);
+        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
         {
@@ -211,6 +194,20 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
     }
 
+    private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    {
+        var pagedList = await userTopicRelationRepository
+            .FindByConditionAsync
+                (
+                    ent => ent.UserId == userId && ent.TopicId == topicId,
+                    new PagedListQueryParameters(1,5),
+                    false,
+                    cancellationToken
+                );
+
+        return Mapper.Map<List<UserTopicRelationModel>>(pagedList.Items);
+    }
+    
     private bool DoesUserHaveRelationStatus
         (List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
     {

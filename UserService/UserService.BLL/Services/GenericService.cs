@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Shared.PagedList;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Models;
 using UserService.BLL.Utilities.MessageGenerators.Logs;
@@ -14,7 +15,8 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
     where TCreateModel : class
     where TUpdateModel : class
 {
-    Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default);
+    Task<PagedList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, PagedListQueryParameters pagedParameters,
+        CancellationToken cancellationToken = default);
     
     Task<TModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     
@@ -39,12 +41,13 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
 
     protected Serilog.ILogger Logger { get; } = logger;
     
-    public async Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default)
+    public async Task<PagedList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, PagedListQueryParameters pagedParameters, 
+        CancellationToken cancellationToken = default)
     {
         var entities = await Repository
-            .FindByConditionAsync(expression,false, cancellationToken);
+            .FindByConditionAsync(expression, pagedParameters,false, cancellationToken);
         
-        var models = Mapper.Map<IList<TModel>>(entities);
+        var models = Mapper.Map<PagedList<TModel>>(entities);
 
         return models;
     }

@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Shared.PagedList;
 using UserService.DAL.Models.Entities;
 
 namespace UserService.DAL.Repositories;
@@ -7,7 +8,8 @@ namespace UserService.DAL.Repositories;
 public interface IGenericRepository<T>
     where T : EntityBase
 {
-    Task<List<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, bool trackChanges = false, CancellationToken cancellationToken = default);
+    Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PagedListQueryParameters pagedParameters,
+        bool trackChanges = false, CancellationToken cancellationToken = default);
     
     Task<T?> FindByIdAsync(Guid id, bool trackChanges = true, CancellationToken cancellationToken = default);
     
@@ -25,12 +27,19 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 {
     protected UserServiceContext Context { get; } = context;
 
-    public async Task<List<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, bool trackChanges, CancellationToken cancellationToken = default)
+    public async Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PagedListQueryParameters pagedParameters,
+        bool trackChanges = false, CancellationToken cancellationToken = default)
     {
-        var query = Context.Set<T>().Where(expression);
-        query = trackChanges ? query : query.AsNoTracking();
+        var query = Context.Set<T>()
+            .Where(expression)
+            .Skip((pagedParameters.PageNumber -1) * pagedParameters.PageSize)
+            .Take(pagedParameters.PageSize);
         
-        return await query.ToListAsync(cancellationToken);
+        query = trackChanges ? query : query.AsNoTracking();
+
+        var list = await query.ToListAsync(cancellationToken);
+
+        return list.ToPagedList(pagedParameters.PageNumber, pagedParameters.PageSize);
     }
 
     public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)
