@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using UserService.API.Utilities;
 using UserService.BLL.Exceptions;
 
@@ -23,6 +24,7 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
 
         ExceptionDetails details = exception switch
         {
+            ValidationException => new ExceptionDetails(exception.Message, StatusCodes.Status400BadRequest),
             NotFoundException =>  new(exception.Message, StatusCodes.Status404NotFound),
             _ => new(exception.Message, StatusCodes.Status500InternalServerError),
         };

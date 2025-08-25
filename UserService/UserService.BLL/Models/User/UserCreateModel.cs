@@ -4,5 +4,5 @@ namespace UserService.BLL.Models.User;
 
 public class UserCreateModel
 {
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 }

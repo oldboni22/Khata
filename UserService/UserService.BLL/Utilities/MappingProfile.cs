@@ -1,4 +1,5 @@
 using AutoMapper;
+using Shared.PagedList;
 using UserService.BLL.Models;
 using UserService.BLL.Models.User;
 using UserService.DAL.Models.Entities;
@@ -10,12 +11,13 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<User, UserModel>()
-            .ReverseMap();
-        
+            .PreserveReferences();
+
         CreateMap<UserTopicRelation, UserTopicRelationModel>()
-            .ReverseMap();
+            .PreserveReferences();
 
         CreateMap<UserCreateModel, UserModel>();
+        
         CreateMap<UserUpdateModel, UserModel>();
     }
 }

@@ -1,14 +1,15 @@
 using Shared.Enums;
+using UserService.API.Utilities.Validation;
 
-namespace UserService.DAL.Models.Entities;
+namespace UserService.API.DTO;
 
-public class UserTopicRelation : EntityBase
+public class UserTopicRelationDto
 {
     public Guid UserId { get; init; }
     
     public Guid TopicId { get; init; }
 
-    public User User { get; init; } = null!;
+    public UserReadDto User { get; set; } = null!;
 
     public UserTopicRelationStatus TopicRelationStatus { get; set; } = UserTopicRelationStatus.Subscribed;
 }

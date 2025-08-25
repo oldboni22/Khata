@@ -1,5 +1,3 @@
-using UserService.DAL.Models.Enums;
-
 namespace UserService.BLL.Utilities.MessageGenerators.Logs;
 
 public static class UserBannedLogMessageGenerator
