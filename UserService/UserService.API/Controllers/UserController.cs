@@ -14,11 +14,15 @@ namespace UserService.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController(IUserService userService, IMapper mapper, 
-    IValidator<UserCreateDto> createDtoValidator, IValidator<UserUpdateDto> updateDtoValidator) : ControllerBase
+public class UserController(
+    IUserService userService,
+    IMapper mapper, 
+    IValidator<UserCreateDto> createDtoValidator,
+    IValidator<UserUpdateDto> updateDtoValidator) : ControllerBase
 {
     [HttpPost]
-    public async Task<UserReadDto> CreateUserAsync([FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
+    public async Task<UserReadDto> CreateUserAsync(
+        [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {
         await createDtoValidator.ValidateAndThrowAsync(userCreateDto,cancellationToken);
         
