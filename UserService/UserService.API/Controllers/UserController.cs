@@ -86,7 +86,7 @@ public class UserController(IUserService userService, IMapper mapper,
     
     #region Relations
     
-    [HttpPost("{userId}/topics/subscribe")]
+    [HttpPost("{userId}/topics{topicId}/subscribe")]
     public async Task<IActionResult> AddSubscriptionAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
@@ -95,7 +95,7 @@ public class UserController(IUserService userService, IMapper mapper,
         return Ok();
     }
     
-    [HttpPost("{userId}/topics/unsubscribe")]
+    [HttpPost("{userId}/topics{topicId}/unsubscribe")]
     public async Task<IActionResult> RemoveSubscriptionAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
@@ -104,7 +104,7 @@ public class UserController(IUserService userService, IMapper mapper,
         return Ok();
     }
     
-    [HttpPost("{userId}/topics/ban")]
+    [HttpPost("{userId}/topics{topicId}/ban")]
     public async Task<IActionResult> AddBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
@@ -118,7 +118,7 @@ public class UserController(IUserService userService, IMapper mapper,
         return Ok();
     }
 
-    [HttpPost("{userId}/topics/unban")]
+    [HttpPost("{userId}/topics{topicId}/unban")]
     public async Task<IActionResult> RemoveBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
@@ -132,7 +132,7 @@ public class UserController(IUserService userService, IMapper mapper,
         return Ok();
     }
     
-    [HttpPost("{userId}/topics/mod")]
+    [HttpPost("{userId}/topics{topicId}/mod")]
     public async Task<IActionResult> AddModerationStatusAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
@@ -141,7 +141,7 @@ public class UserController(IUserService userService, IMapper mapper,
         return Ok();
     }
     
-    [HttpPost("{userId}/topics/unmod")]
+    [HttpPost("{userId}/topics{topicId}/unmod")]
     public async Task<IActionResult> RemoveModerationStatusAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {

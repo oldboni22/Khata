@@ -148,7 +148,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
         if (moderId == userId)
         {
-            throw new BadRequestException(SelfBanExceptionMessageGenerator.GenerateMessage());
+            throw new BadRequestException(SelfBanExceptionMessage.Message);
         }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
@@ -201,11 +201,6 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
             Logger.Warning(ForbiddenLogMessageGenerator.GenerateMessage(moderId));
 
             throw new ForbiddenException(moderId);
-        }
-        
-        if (moderId == userId)
-        {
-            throw new BadRequestException(SelfBanExceptionMessageGenerator.GenerateMessage());
         }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
