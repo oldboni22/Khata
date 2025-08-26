@@ -1,8 +1,10 @@
-using System.ComponentModel.DataAnnotations;
+using FluentValidation;
+using FluentValidation.Results;
 using UserService.API.Utilities.MessageGenerators.Exceptions;
 
 namespace UserService.API.Exceptions;
 
-public class GenericValidationException<T>() : ValidationException(GenericValidationExceptionMessageGenerator.GenerateMessage<T>())
+public class GenericValidationException<T>(ValidationResult result) : 
+    ValidationException(GenericValidationExceptionMessageGenerator.GenerateMessage<T>(result))
 {
 }

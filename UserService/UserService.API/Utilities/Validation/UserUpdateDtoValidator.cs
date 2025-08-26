@@ -3,6 +3,7 @@ using FluentValidation.Results;
 using UserService.API.DTO;
 using UserService.API.Exceptions;
 
+
 namespace UserService.API.Utilities.Validation;
 
 public class UserUpdateDtoValidator : AbstractValidator<UserUpdateDto>
@@ -17,6 +18,6 @@ public class UserUpdateDtoValidator : AbstractValidator<UserUpdateDto>
 
     protected override void RaiseValidationException(ValidationContext<UserUpdateDto> context, ValidationResult result)
     {
-        throw new GenericValidationException<UserUpdateDto>();
+        throw new GenericValidationException<UserUpdateDto>(result);
     }
 }

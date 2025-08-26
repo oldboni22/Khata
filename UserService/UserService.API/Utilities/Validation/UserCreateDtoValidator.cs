@@ -17,6 +17,6 @@ public class UserCreateDtoValidator : AbstractValidator<UserCreateDto>
 
     protected override void RaiseValidationException(ValidationContext<UserCreateDto> context, ValidationResult result)
     {
-        throw new GenericValidationException<UserCreateDto>();
+        throw new GenericValidationException<UserCreateDto>(result);
     }
 }

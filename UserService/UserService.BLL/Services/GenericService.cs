@@ -18,7 +18,7 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
     Task<PagedList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, PaginationParameters pagedParameters,
         CancellationToken cancellationToken = default);
     
-    Task<TModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<TModel?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
     
     Task<TModel> CreateAsync(TCreateModel createModel, CancellationToken cancellationToken = default);
     
@@ -52,7 +52,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
         return models;
     }
 
-    public async Task<TModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<TModel?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await Repository
             .FindByIdAsync(id, false, cancellationToken);

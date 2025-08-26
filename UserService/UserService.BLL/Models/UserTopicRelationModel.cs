@@ -8,8 +8,7 @@ public class UserTopicRelationModel : ModelBase
     public Guid UserId { get; init; }
     
     public Guid TopicId { get; init; }
-
-    public UserModel User { get; set; } = null!;
-
+    
+    public required UserModel User { get; set; }
     public UserTopicRelationStatus TopicRelationStatus { get; set; } = UserTopicRelationStatus.Subscribed;
 }

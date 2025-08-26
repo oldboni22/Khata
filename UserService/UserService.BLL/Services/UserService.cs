@@ -69,7 +69,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
                     cancellationToken
                 );
         
-        return mapper.Map<PagedList<UserTopicRelationModel>>(relationEntities);
+        return Mapper.Map<PagedList<UserTopicRelationModel>>(relationEntities);
     }
 
     public async Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
@@ -91,11 +91,14 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
             throw new UserBannedException(userId, topicId);
         }
 
+        var userModel = await FindByIdAsync(userId, cancellationToken);
+        
         var relation = new UserTopicRelationModel()
         {
             UserId = userId,
             TopicId = topicId,
-            TopicRelationStatus = UserTopicRelationStatus.Subscribed
+            TopicRelationStatus = UserTopicRelationStatus.Subscribed,
+            User = userModel!
         };
 
         var relationEntity = Mapper.Map<UserTopicRelation>(relation);
@@ -155,11 +158,14 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
             await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
         }
         
+        var userModel = await FindByIdAsync(userId, cancellationToken);
+        
         var relationModel = new UserTopicRelationModel()
         {
             UserId = userId,
             TopicId = topicId,
-            TopicRelationStatus = UserTopicRelationStatus.Banned
+            TopicRelationStatus = UserTopicRelationStatus.Banned,
+            User = userModel!
         };
         
         var relationEntity = Mapper.Map<UserTopicRelation>(relationModel);
@@ -201,11 +207,14 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
             throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Moderator);
         }
         
+        var userModel = await FindByIdAsync(userId, cancellationToken);
+        
         var relationModel = new UserTopicRelationModel()
         {
             UserId = userId,
             TopicId = topicId,
-            TopicRelationStatus = UserTopicRelationStatus.Moderator
+            TopicRelationStatus = UserTopicRelationStatus.Banned,
+            User = userModel!
         };
         
         var relationEntity = Mapper.Map<UserTopicRelation>(relationModel);
@@ -237,6 +246,11 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
 
     private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
+        if (!await Repository.ExistsAsync(userId, cancellationToken))
+        {
+            throw new EntityNotFoundException<User>(userId);
+        }
+        
         var pagedList = await userTopicRelationRepository
             .FindByConditionAsync
                 (

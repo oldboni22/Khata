@@ -9,7 +9,7 @@ public class UserTopicRelationDto
     
     public Guid TopicId { get; init; }
 
-    public UserReadDto User { get; set; } = null!;
+    public required UserReadDto User { get; set; }
 
     public UserTopicRelationStatus TopicRelationStatus { get; set; } = UserTopicRelationStatus.Subscribed;
 }

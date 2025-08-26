@@ -49,7 +49,7 @@ public class UserController(IUserService userService, IMapper mapper,
     [HttpGet("/{id}")]
     public async Task<IActionResult> FindUserByIdAsync([FromQuery] Guid id, CancellationToken cancellationToken)
     {
-        var user = await userService.GetByIdAsync(id, cancellationToken);
+        var user = await userService.FindByIdAsync(id, cancellationToken);
         
         return Ok(mapper.Map<UserReadDto>(user));
     }
