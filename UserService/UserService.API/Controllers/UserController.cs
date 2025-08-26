@@ -1,14 +1,13 @@
+using System.Security.Claims;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Enums;
 using Shared.PagedList;
 using UserService.API.DTO;
-using UserService.API.Exceptions;
 using UserService.API.Utilities.MessageGenerators.Exceptions;
 using UserService.BLL.Models.User;
 using UserService.BLL.Services;
-using UserService.DAL.Models.Entities;
 
 namespace UserService.API.Controllers;
 
@@ -108,7 +107,12 @@ public class UserController(IUserService userService, IMapper mapper,
     public async Task<IActionResult> AddBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.AddBanAsync(userId, topicId, cancellationToken);
+        if(!TryGetSenderUserId(out var moderId))
+        {
+            return Unauthorized();
+        }
+        
+        await userService.AddBanAsync(moderId ,userId, topicId, cancellationToken);
         
         return Ok();
     }
@@ -117,7 +121,12 @@ public class UserController(IUserService userService, IMapper mapper,
     public async Task<IActionResult> RemoveBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.RemoveBanAsync(userId, topicId, cancellationToken);
+        if (!TryGetSenderUserId(out var moderId))
+        {
+            return Unauthorized();
+        }
+        
+        await userService.RemoveBanAsync(moderId , userId, topicId, cancellationToken);
 
         return Ok();
     }
@@ -141,4 +150,13 @@ public class UserController(IUserService userService, IMapper mapper,
     }
     
     #endregion
+
+    private bool TryGetSenderUserId(out Guid moderId)
+    {
+        var moderIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        moderId = Guid.Empty;
+
+        return string.IsNullOrEmpty(moderIdString) && !Guid.TryParse(moderIdString, out moderId);
+    }
 }
