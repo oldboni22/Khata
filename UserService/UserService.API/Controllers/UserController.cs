@@ -151,12 +151,12 @@ public class UserController(IUserService userService, IMapper mapper,
     
     #endregion
 
-    private bool TryGetSenderUserId(out Guid moderId)
+    private bool TryGetSenderUserId(out Guid senderId)
     {
         var moderIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        moderId = Guid.Empty;
+        senderId = Guid.Empty;
 
-        return string.IsNullOrEmpty(moderIdString) && !Guid.TryParse(moderIdString, out moderId);
+        return string.IsNullOrEmpty(moderIdString) && !Guid.TryParse(moderIdString, out senderId);
     }
 }
