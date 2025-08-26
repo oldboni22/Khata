@@ -5,5 +5,4 @@ namespace UserService.BLL.Exceptions;
 public class ForbiddenException(Guid id) 
     : Exception(ForbiddenExceptionMessageGenerator.GenerateMessage(id))
 {
-    
 }
