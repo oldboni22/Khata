@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Shared.PagedList;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Models;
 using UserService.BLL.Utilities.MessageGenerators.Logs;
@@ -14,9 +15,10 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
     where TCreateModel : class
     where TUpdateModel : class
 {
-    Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default);
+    Task<PagedList<TModel>> FindByConditionAsync(
+        Expression<Func<TEntity, bool>> expression, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
     
-    Task<TModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<TModel?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
     
     Task<TModel> CreateAsync(TCreateModel createModel, CancellationToken cancellationToken = default);
     
@@ -25,8 +27,10 @@ public interface IGenericService<TEntity, TModel, in TCreateModel, in TUpdateMod
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
-public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
-    (IGenericRepository<TEntity> repository, IMapper mapper, Serilog.ILogger logger) :
+public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
+    IGenericRepository<TEntity> repository, 
+    IMapper mapper, 
+    Serilog.ILogger logger) :
     IGenericService<TEntity, TModel, TCreateModel, TUpdateModel>
     where TEntity : EntityBase
     where TModel : ModelBase
@@ -39,17 +43,18 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
 
     protected Serilog.ILogger Logger { get; } = logger;
     
-    public async Task<IList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken = default)
+    public async Task<PagedList<TModel>> FindByConditionAsync(
+        Expression<Func<TEntity, bool>> expression, PaginationParameters paginationParameters, CancellationToken cancellationToken = default)
     {
         var entities = await Repository
-            .FindByConditionAsync(expression,false, cancellationToken);
+            .FindByConditionAsync(expression, paginationParameters,false, cancellationToken);
         
-        var models = Mapper.Map<IList<TModel>>(entities);
+        var models = Mapper.Map<PagedList<TModel>>(entities);
 
         return models;
     }
 
-    public async Task<TModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<TModel?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await Repository
             .FindByIdAsync(id, false, cancellationToken);

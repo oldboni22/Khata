@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using UserService.DAL.Models.Entities;
 using UserService.DAL.Repositories;
 
 namespace UserService.DAL.Extensions;
@@ -20,18 +21,15 @@ public static class ServiceCollectionExtensions
     {
         var connectionString = configuration.GetConnectionString("Postgres");
         
-        services.AddDbContext<UserServiceContext>(options =>
+        return services.AddDbContext<UserServiceContext>(options =>
             options.UseNpgsql(connectionString));
-        
-        return services;
     }
 
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services
-            .AddScoped<IUserRepository, UserRepository>()
-            .AddScoped<IUserTopicRelationRepository, UserTopicRelationRepository>();
-        
-        return services;
+        return services
+                .AddScoped<IUserRepository, UserRepository>()
+                .AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>))
+                .AddScoped<IUserTopicRelationRepository, UserTopicRelationRepository>();
     }
 }

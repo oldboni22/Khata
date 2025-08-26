@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using UserService.BLL.Services;
 using UserService.BLL.Utilities;
 using UserService.DAL.Extensions;
 
@@ -7,20 +8,26 @@ namespace UserService.BLL.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddDataLayerDependencies(configuration)
-            .AddMapping();
+            .AddMapping()
+            .AddServices();
+        
+        return services;
     }
     
     private static IServiceCollection AddMapping(this IServiceCollection services)
     {
-        services.AddAutoMapper(cfg =>
+        return services.AddAutoMapper(cfg =>
         {
             cfg.AddProfile<MappingProfile>();
         });
-        
-        return services;
+    }
+
+    private static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        return services.AddScoped<IUserService, Services.UserService>();
     }
 }

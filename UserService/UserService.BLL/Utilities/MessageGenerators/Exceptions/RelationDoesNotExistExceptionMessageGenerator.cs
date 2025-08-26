@@ -1,4 +1,4 @@
-using UserService.DAL.Models.Enums;
+using Shared.Enums;
 
 namespace UserService.BLL.Utilities.MessageGenerators.Exceptions;
 

@@ -7,5 +7,5 @@ public class UserModel : ModelBase
 {
     public required string Name { get; set; }
     
-    public List<UserTopicRelation> TopicStatuses { get; set; } = [];
+    public List<UserTopicRelationModel> TopicStatuses { get; init; } = [];
 }

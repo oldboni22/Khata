@@ -1,5 +1,5 @@
+using Shared.Enums;
 using UserService.BLL.Utilities.MessageGenerators.Exceptions;
-using UserService.DAL.Models.Enums;
 
 namespace UserService.BLL.Exceptions.Relations;
 
