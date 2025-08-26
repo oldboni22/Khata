@@ -5,5 +5,4 @@ namespace UserService.API.Exceptions;
 
 public class GenericValidationException<T>() : ValidationException(GenericValidationExceptionMessageGenerator.GenerateMessage<T>())
 {
-    
 }

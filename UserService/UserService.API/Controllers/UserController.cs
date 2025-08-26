@@ -31,9 +31,9 @@ public class UserController(IUserService userService, IMapper mapper,
     
     [HttpGet]
     public async Task<IActionResult> FindUsersByTopicIdAsync(
+        [FromBody] PaginationParameters pagedParameters, 
         [FromQuery] Guid topicId, 
         [FromQuery] string statusString,
-        [FromBody] PaginationParameters pagedParameters, 
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<UserTopicRelationStatus>(statusString, out var status))
@@ -55,7 +55,7 @@ public class UserController(IUserService userService, IMapper mapper,
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateUserAsync([FromQuery] Guid id, [FromBody] UserUpdateDto userUpdateDto,
+    public async Task<IActionResult> UpdateUserAsync([FromBody] UserUpdateDto userUpdateDto, [FromQuery] Guid id, 
         CancellationToken cancellationToken)
     {
         await updateDtoValidator.ValidateAndThrowAsync(userUpdateDto, cancellationToken);

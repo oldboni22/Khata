@@ -41,8 +41,8 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>
 
     protected Serilog.ILogger Logger { get; } = logger;
     
-    public async Task<PagedList<TModel>> FindByConditionAsync(Expression<Func<TEntity, bool>> expression, PaginationParameters pagedParameters, 
-        CancellationToken cancellationToken = default)
+    public async Task<PagedList<TModel>> FindByConditionAsync
+        (Expression<Func<TEntity, bool>> expression, PaginationParameters pagedParameters, CancellationToken cancellationToken = default)
     {
         var entities = await Repository
             .FindByConditionAsync(expression, pagedParameters,false, cancellationToken);

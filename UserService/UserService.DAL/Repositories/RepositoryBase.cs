@@ -8,8 +8,11 @@ namespace UserService.DAL.Repositories;
 public interface IGenericRepository<T>
     where T : EntityBase
 {
-    Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PaginationParameters pagedParameters,
-        bool trackChanges = false, CancellationToken cancellationToken = default);
+    Task<PagedList<T>> FindByConditionAsync(
+        Expression<Func<T, bool>> expression, 
+        PaginationParameters paginationParameters,
+        bool trackChanges = false, 
+        CancellationToken cancellationToken = default);
     
     Task<T?> FindByIdAsync(Guid id, bool trackChanges = true, CancellationToken cancellationToken = default);
     
@@ -27,19 +30,22 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 {
     protected UserServiceContext Context { get; } = context;
 
-    public async Task<PagedList<T>> FindByConditionAsync(Expression<Func<T, bool>> expression, PaginationParameters pagedParameters,
-        bool trackChanges = false, CancellationToken cancellationToken = default)
+    public async Task<PagedList<T>> FindByConditionAsync(
+        Expression<Func<T, bool>> expression, 
+        PaginationParameters paginationParameters, 
+        bool trackChanges = false, 
+        CancellationToken cancellationToken = default)
     {
         var query = Context.Set<T>()
             .Where(expression)
-            .Skip((pagedParameters.PageNumber -1) * pagedParameters.PageSize)
-            .Take(pagedParameters.PageSize);
+            .Skip((paginationParameters.PageNumber -1) * paginationParameters.PageSize)
+            .Take(paginationParameters.PageSize);
         
         query = trackChanges ? query : query.AsNoTracking();
 
         var list = await query.ToListAsync(cancellationToken);
 
-        return list.ToPagedList(pagedParameters.PageNumber, pagedParameters.PageSize);
+        return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize);
     }
 
     public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)
