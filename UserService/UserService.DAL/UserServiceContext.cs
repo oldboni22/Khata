@@ -3,7 +3,7 @@ using UserService.DAL.Models.Entities;
 
 namespace UserService.DAL;
 
-public class UserServiceContext : DbContext
+public class UserServiceContext(DbContextOptions options) : DbContext(options)
 {
     private DbSet<User> Users { get; set; }
     
