@@ -272,7 +272,8 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
     }
 
-    private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(
+        Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         if (!await Repository.ExistsAsync(userId, cancellationToken))
         {
@@ -291,8 +292,8 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         return Mapper.Map<List<UserTopicRelationModel>>(pagedList.Items);
     }
     
-    private bool DoesUserHaveRelationStatus
-        (List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
+    private bool DoesUserHaveRelationStatus(
+        List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
     {
         var subRelation = relations
             .FirstOrDefault(relation => relation.TopicRelationStatus == targetStatus);
