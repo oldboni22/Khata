@@ -12,7 +12,7 @@ using UserService.DAL.Models.Entities;
 namespace UserService.API.Controllers;
 
 [ApiController]
-[Route("api/user")]
+[Route("api/users")]
 public class UserController(IUserService userService, IMapper mapper, 
     IValidator<UserCreateDto> createDtoValidator, IValidator<UserUpdateDto> updateDtoValidator) : ControllerBase
 {
@@ -46,12 +46,21 @@ public class UserController(IUserService userService, IMapper mapper,
         return Ok(mapper.Map<PagedList<UserReadDto>>(models));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> FindUserByIdAsync([FromQuery] Guid id, CancellationToken cancellationToken = default)
+    [HttpGet("/{id}")]
+    public async Task<IActionResult> FindUserByIdAsync([FromQuery] Guid id, CancellationToken cancellationToken)
     {
         var user = await userService.GetByIdAsync(id, cancellationToken);
         
         return Ok(mapper.Map<UserReadDto>(user));
+    }
+
+    [HttpGet("{id}/relations")]
+    public async Task<IActionResult> GetUserRelationsAsync
+        ([FromBody] PaginationParameters paginationParameters ,[FromQuery] Guid id, CancellationToken cancellationToken)
+    {
+        var relations = await userService.FindUserRelationsAsync(id, paginationParameters, cancellationToken);
+        
+        return Ok(relations);
     }
 
     [HttpPut]
