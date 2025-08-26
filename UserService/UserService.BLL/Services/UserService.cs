@@ -1,6 +1,7 @@
 using AutoMapper;
 using Serilog;
 using Shared.Enums;
+using Shared.Extensions;
 using Shared.PagedList;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.Relations;

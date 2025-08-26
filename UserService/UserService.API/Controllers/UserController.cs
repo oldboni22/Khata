@@ -3,6 +3,7 @@ using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Enums;
+using Shared.Extensions;
 using Shared.PagedList;
 using UserService.API.DTO;
 using UserService.API.Utilities.MessageGenerators.Exceptions;
@@ -107,7 +108,7 @@ public class UserController(IUserService userService, IMapper mapper,
     public async Task<IActionResult> AddBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        if(!TryGetSenderUserId(out var moderId))
+        if(!User.TryGetSenderUserId(out var moderId))
         {
             return Unauthorized();
         }
@@ -121,7 +122,7 @@ public class UserController(IUserService userService, IMapper mapper,
     public async Task<IActionResult> RemoveBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        if (!TryGetSenderUserId(out var moderId))
+        if (!User.TryGetSenderUserId(out var moderId))
         {
             return Unauthorized();
         }
