@@ -20,18 +20,14 @@ public static class ServiceCollectionExtensions
     
     private static IServiceCollection AddMapping(this IServiceCollection services)
     {
-        services.AddAutoMapper(cfg =>
+        return services.AddAutoMapper(cfg =>
         {
             cfg.AddProfile<MappingProfile>();
         });
-        
-        return services;
     }
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddScoped<IUserService, Services.UserService>();
-        
-        return services;
+        return services.AddScoped<IUserService, Services.UserService>();
     }
 }

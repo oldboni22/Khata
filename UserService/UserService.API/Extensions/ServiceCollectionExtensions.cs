@@ -1,3 +1,4 @@
+using System.Reflection;
 using FluentValidation;
 using UserService.API.Utilities;
 using UserService.BLL.Extensions;
@@ -11,17 +12,15 @@ public static class ServiceCollectionExtensions
         services
             .AddBusinessLayerDependencies(configuration)
             .AddMapping()
-            .AddValidatorsFromAssembly(typeof(Program).Assembly)
+            .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
             .AddControllers();
     }
 
     private static IServiceCollection AddMapping(this IServiceCollection services)
     {
-        services.AddAutoMapper(cfg =>
+        return services.AddAutoMapper(cfg =>
         {
             cfg.AddProfile<MappingProfile>();
         });
-        
-        return services;
     }
 }
