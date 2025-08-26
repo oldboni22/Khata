@@ -87,55 +87,55 @@ public class UserController(IUserService userService, IMapper mapper,
     #region Relations
     
     [HttpPost("{userId}/topics/subscribe")]
-    public async Task<IActionResult> SubscribeToTopicAsync
-        ([FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddSubscriptionAsync(
+        [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.SubscribeUserAsync(userId, topicId, cancellationToken);
+        await userService.AddSubscriptionAsync(userId, topicId, cancellationToken);
         
         return Ok();
     }
     
     [HttpPost("{userId}/topics/unsubscribe")]
-    public async Task<IActionResult> UnsubscribeFromTopicAsync
-        ([FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
+    public async Task<IActionResult> RemoveSubscriptionAsync(
+        [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.UnsubscribeUserAsync(userId, topicId, cancellationToken);
+        await userService.RemoveSubscriptionAsync(userId, topicId, cancellationToken);
         
         return Ok();
     }
     
     [HttpPost("{userId}/topics/ban")]
-    public async Task<IActionResult> BanUserFromTopicAsync(
+    public async Task<IActionResult> AddBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.BanUserAsync(userId, topicId, cancellationToken);
+        await userService.AddBanAsync(userId, topicId, cancellationToken);
         
         return Ok();
     }
 
     [HttpPost("{userId}/topics/unban")]
-    public async Task<IActionResult> UnbanUserFromTopicAsync(
+    public async Task<IActionResult> RemoveBanAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.UnbanUserAsync(userId, topicId, cancellationToken);
+        await userService.RemoveBanAsync(userId, topicId, cancellationToken);
 
         return Ok();
     }
     
     [HttpPost("{userId}/topics/mod")]
-    public async Task<IActionResult> PromoteUserToModeratorAsync(
+    public async Task<IActionResult> AddModerationStatusAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.PromoteUserToModeratorAsync(userId, topicId, cancellationToken);
+        await userService.AddModerationStatusAsync(userId, topicId, cancellationToken);
 
         return Ok();
     }
     
     [HttpPost("{userId}/topics/unmod")]
-    public async Task<IActionResult> DemoteUserFromModeratorAsync(
+    public async Task<IActionResult> RemoveModerationStatusAsync(
         [FromQuery] Guid userId, [FromQuery] Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.DemoteUserFromModeratorAsync(userId, topicId, cancellationToken);
+        await userService.RemoveModerationStatusAsync(userId, topicId, cancellationToken);
 
         return Ok();
     }

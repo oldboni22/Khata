@@ -20,17 +20,17 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     Task<PagedList<UserTopicRelationModel>> FindUserRelationsAsync(
         Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
     
-    Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task AddSubscriptionAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task UnsubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task RemoveSubscriptionAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task BanUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task AddBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task UnbanUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task RemoveBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task PromoteUserToModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task AddModerationStatusAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task DemoteUserFromModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task RemoveModerationStatusAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
 }
 
 public class UserService(IGenericRepository<User> userRepository, IUserTopicRelationRepository userTopicRelationRepository,
@@ -75,7 +75,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         return Mapper.Map<PagedList<UserTopicRelationModel>>(relationEntities);
     }
 
-    public async Task SubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task AddSubscriptionAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
         
@@ -109,7 +109,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
 
-    public async Task UnsubscribeUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task RemoveSubscriptionAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
         
@@ -133,7 +133,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.DeleteAsync(relationModel.Id, cancellationToken);
     }
 
-    public async Task BanUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task AddBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
@@ -176,7 +176,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
 
-    public async Task UnbanUserAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task RemoveBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
         
@@ -191,7 +191,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.DeleteAsync(banRelationId, cancellationToken);
     }
 
-    public async Task PromoteUserToModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task AddModerationStatusAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
@@ -225,7 +225,7 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
 
-    public async Task DemoteUserFromModeratorAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task RemoveModerationStatusAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
