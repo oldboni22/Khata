@@ -45,7 +45,9 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 
         var list = await query.ToListAsync(cancellationToken);
 
-        return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize);
+        var pageCount = (int)Math.Ceiling(Context.Set<T>().Count()/(double)paginationParameters.PageSize);
+        
+        return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
     }
 
     public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)

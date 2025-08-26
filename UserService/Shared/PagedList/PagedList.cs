@@ -4,5 +4,5 @@ public record PagedList<T>(List<T> Items, int PageNumber, int PageSize, int Page
 {
     public bool HasPrevious => PageNumber > 1;
     
-    public bool HasNext => PageNumber < TotalCount;
+    public bool HasNext => PageNumber < PageCount;
 }

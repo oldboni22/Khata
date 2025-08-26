@@ -12,7 +12,7 @@ using UserService.DAL.Models.Entities;
 namespace UserService.API.Controllers;
 
 [ApiController]
-[Route("api/users")]
+[Route("api/[controller]")]
 public class UserController(IUserService userService, IMapper mapper, 
     IValidator<UserCreateDto> createDtoValidator, IValidator<UserUpdateDto> updateDtoValidator) : ControllerBase
 {
@@ -29,16 +29,16 @@ public class UserController(IUserService userService, IMapper mapper,
         return Ok(mapper.Map<UserReadDto>(created));
     }
     
-    [HttpGet]
+    [HttpGet("/topics/{topicId}")]
     public async Task<IActionResult> FindUsersByTopicIdAsync(
         [FromBody] PaginationParameters pagedParameters, 
         [FromQuery] Guid topicId, 
-        [FromQuery] string statusString,
+        [FromQuery] string statusLiteral,
         CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<UserTopicRelationStatus>(statusString, out var status))
+        if (!Enum.TryParse<UserTopicRelationStatus>(statusLiteral, out var status))
         {
-            throw new InvalidRelationStringLiteralException(statusString);
+            throw new InvalidRelationStringLiteralException(statusLiteral);
         }
 
         var models = await userService.FindUsersByTopicIdAsync(topicId, status, pagedParameters, cancellationToken);
