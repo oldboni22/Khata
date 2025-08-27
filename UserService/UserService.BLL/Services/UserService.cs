@@ -1,6 +1,7 @@
 using AutoMapper;
 using Serilog;
 using Shared.Enums;
+using Shared.Extensions;
 using Shared.PagedList;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.Relations;
@@ -9,6 +10,7 @@ using UserService.BLL.Models.User;
 using UserService.BLL.Utilities.MessageGenerators.Logs;
 using UserService.DAL.Models.Entities;
 using UserService.DAL.Repositories;
+using UserService.BLL.Utilities.MessageGenerators.Exceptions;
 
 namespace UserService.BLL.Services;
 
@@ -24,17 +26,20 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     
     Task RemoveSubscriptionAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task AddBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task AddBanAsync(Guid moderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task RemoveBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
+    Task RemoveBanAsync(Guid moderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
     Task AddModerationStatusAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
     Task RemoveModerationStatusAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default);
 }
 
-public class UserService(IGenericRepository<User> userRepository, IUserTopicRelationRepository userTopicRelationRepository,
-    IMapper mapper, ILogger logger) : 
+public class UserService(
+    IGenericRepository<User> userRepository,
+    IUserTopicRelationRepository userTopicRelationRepository,
+    IMapper mapper, 
+    ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
 {
     public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
@@ -133,8 +138,22 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.DeleteAsync(relationModel.Id, cancellationToken);
     }
 
-    public async Task AddBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task AddBanAsync(Guid moderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
+        var moderRelationModels = await FindUserTopicRelationsAsync(moderId, topicId, cancellationToken);
+        
+        if(!DoesUserHaveRelationStatus(moderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId))
+        {
+            Logger.Warning(ForbiddenLogMessageGenerator.GenerateMessage(moderId));
+
+            throw new ForbiddenException(moderId);
+        }
+
+        if (moderId == userId)
+        {
+            throw new BadRequestException(SelfBanExceptionMessage.Message);
+        }
+        
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
         if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
@@ -176,8 +195,17 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
 
-    public async Task RemoveBanAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task RemoveBanAsync(Guid moderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
+        var moderRelationModels = await FindUserTopicRelationsAsync(moderId, topicId, cancellationToken);
+        
+        if(!DoesUserHaveRelationStatus(moderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId))
+        {
+            Logger.Warning(ForbiddenLogMessageGenerator.GenerateMessage(moderId));
+
+            throw new ForbiddenException(moderId);
+        }
+        
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
         
         if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
@@ -247,7 +275,8 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
     }
 
-    private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(
+        Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         if (!await Repository.ExistsAsync(userId, cancellationToken))
         {
@@ -266,8 +295,8 @@ public class UserService(IGenericRepository<User> userRepository, IUserTopicRela
         return Mapper.Map<List<UserTopicRelationModel>>(pagedList.Items);
     }
     
-    private bool DoesUserHaveRelationStatus
-        (List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
+    private bool DoesUserHaveRelationStatus(
+        List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
     {
         var subRelation = relations
             .FirstOrDefault(relation => relation.TopicRelationStatus == targetStatus);

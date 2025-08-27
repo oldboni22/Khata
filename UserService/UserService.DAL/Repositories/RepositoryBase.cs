@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Shared.Extensions;
 using Shared.PagedList;
 using UserService.DAL.Models.Entities;
 

@@ -1,4 +1,6 @@
-namespace Shared.PagedList;
+using Shared.PagedList;
+
+namespace Shared.Extensions;
 
 public static class ListExtensions
 {
