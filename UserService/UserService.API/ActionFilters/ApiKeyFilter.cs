@@ -4,6 +4,7 @@ using UserService.API.Utilities.ApiKeys;
 
 namespace UserService.API.ActionFilters;
 
+[AttributeUsage(AttributeTargets.Method)]
 public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter 
 {
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
