@@ -27,7 +27,7 @@ public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter
     {
         return apiType switch
         {
-            ApiType.Auth0 => (LocalApiKeyPath.Auth0),
+            ApiType.Auth0 => (LocalApiKeyPaths.Auth0),
             _ => throw new ArgumentException(),
         };
     }
