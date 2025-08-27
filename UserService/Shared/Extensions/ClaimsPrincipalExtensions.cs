@@ -5,13 +5,11 @@ namespace Shared.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static bool TryGetSenderUserId(this ClaimsPrincipal principal, out Guid senderId)
+        public static Guid? GetSenderUserId(this ClaimsPrincipal principal)
         {
-            var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
             
-            senderId = Guid.Empty;
-            
-            return !string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out senderId);
+            return userIdClaim is null ? null : Guid.Parse(userIdClaim.Value);
         }
     }
 }
