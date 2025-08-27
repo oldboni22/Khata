@@ -11,7 +11,6 @@ using UserService.API.Utilities.MessageGenerators.Exceptions;
 using UserService.BLL.Models.User;
 using UserService.BLL.Services;
 using UserService.API.ActionFilters;
-using UserService.API.Utilities;
 using UserService.API.Utilities.ApiKeys;
 
 namespace UserService.API.Controllers;
