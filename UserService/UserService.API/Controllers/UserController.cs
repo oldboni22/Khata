@@ -7,10 +7,12 @@ using Shared.Enums;
 using Shared.Extensions;
 using Shared.PagedList;
 using UserService.API.DTO;
-using UserService.API.Exceptions;
 using UserService.API.Utilities.MessageGenerators.Exceptions;
 using UserService.BLL.Models.User;
 using UserService.BLL.Services;
+using UserService.API.ActionFilters;
+using UserService.API.Utilities;
+using UserService.API.Utilities.ApiKeys;
 
 namespace UserService.API.Controllers;
 
@@ -28,6 +30,7 @@ public class UserController(
     
     [HttpPost]
     [EnableCors("Auth0")]
+    [TypeFilter(typeof(ApiKeyFilter), Arguments = [ApiType.Auth0])]
     public async Task<UserReadDto> CreateUserAsync(
         [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {

@@ -1,6 +1,8 @@
 using System.Reflection;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using UserService.API.ActionFilters;
 using UserService.API.Utilities;
 using UserService.BLL.Extensions;
 
@@ -14,12 +16,15 @@ public static class ServiceCollectionExtensions
             .AddBusinessLayerDependencies(configuration)
             .AddMapping()
             .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
-            .AddControllers();
+            .AddControllers(options =>
+            {
+                options.Filters.Add<ApiKeyFilter>();
+            });
     }
-
-    public static void AddCorsPolicies(this IServiceCollection services, IConfiguration configuration)
+    
+    public static IServiceCollection AddCorsPolicies(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddCors(options =>
+        return services.AddCors(options =>
         {
             options.AddPolicy("Auth0",
                 builder =>

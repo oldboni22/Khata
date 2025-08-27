@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using UserService.API.Exceptions;
+using UserService.API.Exceptions.Unauthorized;
 using UserService.API.Utilities;
 using UserService.BLL.Exceptions;
 
