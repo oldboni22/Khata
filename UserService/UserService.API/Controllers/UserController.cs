@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Enums;
 using Shared.Extensions;
@@ -26,6 +27,7 @@ public class UserController(
     private const string UserIdRoute = "{userId}";
     
     [HttpPost]
+    [EnableCors("Auth0")]
     public async Task<UserReadDto> CreateUserAsync(
         [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {

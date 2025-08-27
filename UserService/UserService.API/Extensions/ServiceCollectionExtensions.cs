@@ -17,6 +17,20 @@ public static class ServiceCollectionExtensions
             .AddControllers();
     }
 
+    public static void AddCorsPolicies(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("Auth0",
+                builder =>
+                {
+                    builder.WithOrigins(configuration["Auth0:Domain"]!)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+        });
+    }
+    
     public static void AddAuthenticationBearer(this IServiceCollection services, IConfiguration configuration)
     {
         services

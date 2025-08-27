@@ -13,6 +13,10 @@ public class Program
         
         builder.Services.AddAuthorization();
         
+        builder.Services.AddAuthenticationBearer(builder.Configuration);
+        
+        builder.Services.AddCorsPolicies(builder.Configuration);
+        
         builder.Services.AddOpenApi();
 
         builder.Services.AddApiDependencies(builder.Configuration);
