@@ -1,5 +1,6 @@
 using System.Reflection;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using UserService.API.Utilities;
 using UserService.BLL.Extensions;
 
@@ -16,6 +17,17 @@ public static class ServiceCollectionExtensions
             .AddControllers();
     }
 
+    public static void AddAuthenticationBearer(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.Audience = configuration["Auth0:Audience"];
+                options.Authority = configuration["Auth0:Domain"];
+            });
+    }
+    
     private static IServiceCollection AddMapping(this IServiceCollection services)
     {
         return services.AddAutoMapper(cfg =>

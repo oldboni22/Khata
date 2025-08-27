@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Enums;
 using Shared.Extensions;
@@ -72,6 +73,7 @@ public class UserController(
         return mapper.Map<PagedList<UserTopicRelationDto>>(relations);
     }
 
+    [Authorize]
     [HttpPut(UserIdRoute)]
     public async Task<UserReadDto> UpdateUserAsync([FromBody] UserUpdateDto userUpdateDto,  Guid userId, CancellationToken cancellationToken)
     {
@@ -84,6 +86,7 @@ public class UserController(
         return mapper.Map<UserReadDto>(updatedUser);
     }
 
+    [Authorize]
     [HttpDelete(UserIdRoute)]
     public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -92,12 +95,14 @@ public class UserController(
     
     #region Relations
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/subscribe")]
     public async Task AddSubscriptionAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
         await userService.AddSubscriptionAsync(userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unsubscribe")]
     public async Task RemoveSubscriptionAsync(
          Guid userId,  Guid topicId, CancellationToken cancellationToken)
@@ -105,6 +110,7 @@ public class UserController(
         await userService.RemoveSubscriptionAsync(userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/ban")]
     public async Task AddBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
@@ -113,6 +119,7 @@ public class UserController(
         await userService.AddBanAsync(moderId ,userId, topicId, cancellationToken);
     }
 
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unban")]
     public async Task RemoveBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
@@ -121,12 +128,14 @@ public class UserController(
         await userService.RemoveBanAsync(moderId , userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/mod")]
     public async Task AddModerationStatusAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
         await userService.AddModerationStatusAsync(userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unmod")]
     public async Task RemoveModerationStatusAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
