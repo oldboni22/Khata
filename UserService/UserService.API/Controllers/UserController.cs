@@ -20,6 +20,8 @@ public class UserController(
     IValidator<UserCreateDto> createDtoValidator,
     IValidator<UserUpdateDto> updateDtoValidator) : ControllerBase
 {
+    private const string UserTopicRelationControlRoute = "{userId}/topics/{topicId}";
+    
     [HttpPost]
     public async Task<UserReadDto> CreateUserAsync(
         [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
@@ -89,21 +91,21 @@ public class UserController(
     
     #region Relations
     
-    [HttpPost("{userId}/topics/{topicId}/subscribe")]
+    [HttpPost(UserTopicRelationControlRoute + "/subscribe")]
     public async Task AddSubscriptionAsync(
         [FromRoute] Guid userId, [FromRoute] Guid topicId, CancellationToken cancellationToken)
     {
         await userService.AddSubscriptionAsync(userId, topicId, cancellationToken);
     }
     
-    [HttpPost("{userId}/topics/{topicId}/unsubscribe")]
+    [HttpPost(UserTopicRelationControlRoute + "/unsubscribe")]
     public async Task RemoveSubscriptionAsync(
         [FromRoute] Guid userId, [FromRoute] Guid topicId, CancellationToken cancellationToken)
     {
         await userService.RemoveSubscriptionAsync(userId, topicId, cancellationToken);
     }
     
-    [HttpPost("{userId}/topics/{topicId}/ban")]
+    [HttpPost(UserTopicRelationControlRoute + "/ban")]
     public async Task AddBanAsync(
         [FromRoute] Guid userId, [FromRoute] Guid topicId, CancellationToken cancellationToken)
     {
@@ -115,7 +117,7 @@ public class UserController(
         await userService.AddBanAsync(moderId ,userId, topicId, cancellationToken);
     }
 
-    [HttpPost("{userId}/topics/{topicId}/unban")]
+    [HttpPost(UserTopicRelationControlRoute + "/unban")]
     public async Task RemoveBanAsync(
         [FromRoute] Guid userId, [FromRoute] Guid topicId, CancellationToken cancellationToken)
     {
@@ -127,14 +129,14 @@ public class UserController(
         await userService.RemoveBanAsync(moderId , userId, topicId, cancellationToken);
     }
     
-    [HttpPost("{userId}/topics/{topicId}/mod")]
+    [HttpPost(UserTopicRelationControlRoute + "/mod")]
     public async Task AddModerationStatusAsync(
         [FromRoute] Guid userId, [FromRoute] Guid topicId, CancellationToken cancellationToken)
     {
         await userService.AddModerationStatusAsync(userId, topicId, cancellationToken);
     }
     
-    [HttpPost("{userId}/topics/{topicId}/unmod")]
+    [HttpPost(UserTopicRelationControlRoute + "/unmod")]
     public async Task RemoveModerationStatusAsync(
         [FromRoute] Guid userId, [FromRoute] Guid topicId, CancellationToken cancellationToken)
     {
