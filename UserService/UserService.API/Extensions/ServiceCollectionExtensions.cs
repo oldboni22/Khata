@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,13 @@ public static class ServiceCollectionExtensions
             {
                 options.Audience = configuration["Auth0:Audience"];
                 options.Authority = configuration["Auth0:Domain"];
+                
+                options.TokenValidationParameters = new()
+                {
+                    NameClaimType = ClaimTypes.NameIdentifier,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                };
             });
     }
     
