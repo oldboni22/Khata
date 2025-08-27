@@ -11,9 +11,8 @@ public class Program
         
         builder.ConfigureSerilog();
         
-        builder.Services.AddAuthorization();
-        
         builder.Services.AddAuthenticationBearer(builder.Configuration);
+        builder.Services.AddAuthorization();
         
         builder.Services.AddCorsPolicies(builder.Configuration);
         
@@ -32,8 +31,9 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
-
+        
         app.Run();
     }
 }
