@@ -29,7 +29,7 @@ public class UserController(
     
     [HttpPost]
     [EnableCors("Auth0")]
-    [TypeFilter(typeof(ApiKeyFilter), Arguments = [ApiType.Auth0])]
+    [ApiKeyFilter(ApiType.Auth0)]
     public async Task<UserReadDto> CreateUserAsync(
         [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {
