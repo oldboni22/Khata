@@ -12,6 +12,7 @@ using UserService.BLL.Models.User;
 using UserService.BLL.Services;
 using UserService.API.ActionFilters;
 using UserService.API.Utilities.ApiKeys;
+using UserService.DAL.Models.Entities;
 
 namespace UserService.API.Controllers;
 
@@ -21,7 +22,8 @@ public class UserController(
     IUserService userService,
     IMapper mapper, 
     IValidator<UserCreateDto> createDtoValidator,
-    IValidator<UserUpdateDto> updateDtoValidator) : ControllerBase
+    IValidator<UserUpdateDto> updateDtoValidator,
+    IValidator<UserTopicRelationStatus> statusValidator) : ControllerBase
 {
     private const string UserTopicRelationControlRoute = "{userId}/topics/{topicId}";
     
@@ -30,8 +32,7 @@ public class UserController(
     [HttpPost]
     [EnableCors("Auth0")]
     [ApiKeyFilter(ApiType.Auth0)]
-    public async Task<UserReadDto> CreateUserAsync(
-        [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
+    public async Task<UserReadDto> CreateUserAsync([FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {
         await createDtoValidator.ValidateAndThrowAsync(userCreateDto,cancellationToken);
         
@@ -45,16 +46,14 @@ public class UserController(
     [HttpGet("topics/{topicId}")]
     public async Task<PagedList<UserReadDto>> FindUsersAsync(
         [FromBody] PaginationParameters pagedParameters, 
-        [FromQuery] string status,
+        [FromQuery] UserTopicRelationStatus status,
         Guid topicId,
         CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<UserTopicRelationStatus>(status, out var relationStatus))
-        {
-            throw new BadHttpRequestException(InvalidStringLiteralExceptionMessageGenerator.GenerateMessage(status));
-        }
-
-        var models = await userService.FindUsersByTopicIdAsync(topicId, relationStatus, pagedParameters, cancellationToken);
+        await statusValidator.ValidateAndThrowAsync(status, cancellationToken);
+        
+        var models = 
+            await userService.FindUsersByTopicIdAsync(topicId, status, pagedParameters, cancellationToken);
         
         return mapper.Map<PagedList<UserReadDto>>(models);
     }

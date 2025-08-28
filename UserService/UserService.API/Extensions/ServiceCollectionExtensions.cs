@@ -17,10 +17,7 @@ public static class ServiceCollectionExtensions
             .AddBusinessLayerDependencies(configuration)
             .AddMapping()
             .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
-            .AddControllers(options =>
-            {
-                options.Filters.Add<ApiKeyFilter>();
-            });
+            .AddControllers();
     }
     
     public static IServiceCollection AddCorsPolicies(this IServiceCollection services, IConfiguration configuration)
