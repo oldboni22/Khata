@@ -18,6 +18,8 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
 {
     Task<UserModel?> UpdateAsync(Guid senderId, Guid userId, UserUpdateModel updateModel, CancellationToken cancellationToken = default);
     
+    Task DeleteAsync(Guid senderId ,Guid userId, CancellationToken cancellationToken = default);
+    
     Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
         Guid topicId, UserTopicRelationStatus status, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
     
@@ -56,6 +58,16 @@ public class UserService(
         }
         
         return await UpdateAsync(userId, updateModel, cancellationToken);
+    }
+
+    public Task DeleteAsync(Guid senderId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        if (senderId != userId)
+        {
+            throw new ForbiddenException(senderId);
+        }
+        
+        return DeleteAsync(userId, cancellationToken);
     }
 
     public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(

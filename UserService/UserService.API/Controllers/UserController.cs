@@ -96,7 +96,9 @@ public class UserController(
     [HttpDelete(UserIdRoute)]
     public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken)
     {
-        await userService.DeleteAsync(userId, cancellationToken);
+        var senderId = User.GetSenderUserId()!.Value;
+        
+        await userService.DeleteAsync(senderId ,userId, cancellationToken);
     }
     
     #region Relations
