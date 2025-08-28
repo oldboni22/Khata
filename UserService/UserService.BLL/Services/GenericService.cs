@@ -37,8 +37,6 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
     where TCreateModel : class
     where TUpdateModel : class
 {
-    protected IGenericRepository<TEntity> Repository { get; } = repository;
-
     protected IMapper Mapper { get; } = mapper;
 
     protected Serilog.ILogger Logger { get; } = logger;
@@ -46,7 +44,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
     public async Task<PagedList<TModel>> FindByConditionAsync(
         Expression<Func<TEntity, bool>> expression, PaginationParameters paginationParameters, CancellationToken cancellationToken = default)
     {
-        var entities = await Repository
+        var entities = await repository
             .FindByConditionAsync(expression, paginationParameters,false, cancellationToken);
         
         var models = Mapper.Map<PagedList<TModel>>(entities);
@@ -56,7 +54,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
 
     public async Task<TModel?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await Repository
+        var entity = await repository
             .FindByIdAsync(id, false, cancellationToken);
 
         if (entity is null)
@@ -77,14 +75,14 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
         
         var entity = Mapper.Map<TEntity>(model);
         
-        var created = await Repository.CreateAsync(entity, cancellationToken);
+        var created = await repository.CreateAsync(entity, cancellationToken);
         
         return Mapper.Map<TModel>(created);
     }
 
     public async Task<TModel?> UpdateAsync(Guid id, TUpdateModel updateModel, CancellationToken cancellationToken = default)
     {
-        if (!await Repository.ExistsAsync(id, cancellationToken))
+        if (!await repository.ExistsAsync(id, cancellationToken))
         {
             Logger.Warning(EntityNotFoundLogMessageGenerator<TEntity>.GenerateMessage(id));
 
@@ -96,20 +94,20 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
         
         var entity = Mapper.Map<TEntity>(model);
         
-        var updatedEntity = await Repository.UpdateAsync(entity, cancellationToken);
+        var updatedEntity = await repository.UpdateAsync(entity, cancellationToken);
 
         return Mapper.Map<TModel>(updatedEntity);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        if (!await Repository.ExistsAsync(id, cancellationToken))
+        if (!await repository.ExistsAsync(id, cancellationToken))
         {
             Logger.Warning(EntityNotFoundLogMessageGenerator<TEntity>.GenerateMessage(id));
             
             throw new EntityNotFoundException<TEntity>(id);
         }
         
-        await Repository.DeleteAsync(id, cancellationToken);
+        await repository.DeleteAsync(id, cancellationToken);
     }
 }

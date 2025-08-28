@@ -40,7 +40,7 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
 }
 
 public class UserService(
-    IGenericRepository<User> userRepository,
+    IUserRepository userRepository,
     IUserTopicRelationRepository userTopicRelationRepository,
     IMapper mapper, 
     ILogger logger) : 
@@ -314,7 +314,7 @@ public class UserService(
     private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(
         Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        if (!await Repository.ExistsAsync(userId, cancellationToken))
+        if (!await userRepository.ExistsAsync(userId, cancellationToken))
         {
             throw new EntityNotFoundException<User>(userId);
         }
@@ -344,10 +344,7 @@ public class UserService(
 
     private async Task<User> GetUserByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken)
     {
-        var userEntityPaged = await Repository
-            .FindByConditionAsync(user => user.Auth0Id == auth0Id, new(), false, cancellationToken);
-        
-        var userEntity = userEntityPaged.Items.FirstOrDefault();
+        var userEntity = await userRepository.FindUserByAuth0IdAsync(auth0Id, cancellationToken);
 
         if (userEntity is null)
         {
