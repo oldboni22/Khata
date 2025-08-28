@@ -1,18 +1,16 @@
+using System.Text.Json.Serialization;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Enums;
 using Shared.Extensions;
 using Shared.PagedList;
 using UserService.API.DTO;
-using UserService.API.Utilities.MessageGenerators.Exceptions;
 using UserService.BLL.Models.User;
 using UserService.BLL.Services;
 using UserService.API.ActionFilters;
 using UserService.API.Utilities.ApiKeys;
-using UserService.DAL.Models.Entities;
 
 namespace UserService.API.Controllers;
 
@@ -22,15 +20,13 @@ public class UserController(
     IUserService userService,
     IMapper mapper, 
     IValidator<UserCreateDto> createDtoValidator,
-    IValidator<UserUpdateDto> updateDtoValidator,
-    IValidator<UserTopicRelationStatus> statusValidator) : ControllerBase
+    IValidator<UserUpdateDto> updateDtoValidator) : ControllerBase
 {
     private const string UserTopicRelationControlRoute = "{userId}/topics/{topicId}";
     
     private const string UserIdRoute = "{userId}";
     
     [HttpPost]
-    [EnableCors("Auth0")]
     [ApiKeyFilter(ApiType.Auth0)]
     public async Task<UserReadDto> CreateUserAsync([FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {
@@ -50,8 +46,6 @@ public class UserController(
         Guid topicId,
         CancellationToken cancellationToken)
     {
-        await statusValidator.ValidateAndThrowAsync(status, cancellationToken);
-        
         var models = 
             await userService.FindUsersByTopicIdAsync(topicId, status, pagedParameters, cancellationToken);
         
@@ -85,7 +79,7 @@ public class UserController(
         
         var model = mapper.Map<UserUpdateModel>(userUpdateDto);
         
-        var senderId = User.GetSenderUserId()!.Value;
+        var senderId = User.GetId()!.Value;
         
         var updatedUser = await userService.UpdateAsync(senderId, userId, model, cancellationToken);
         
@@ -96,7 +90,7 @@ public class UserController(
     [HttpDelete(UserIdRoute)]
     public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var senderId = User.GetSenderUserId()!.Value;
+        var senderId = User.GetId()!.Value;
         
         await userService.DeleteAsync(senderId ,userId, cancellationToken);
     }
@@ -122,7 +116,7 @@ public class UserController(
     [HttpPost($"{UserTopicRelationControlRoute}/ban")]
     public async Task AddBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        var moderId = User.GetSenderUserId()!.Value;
+        var moderId = User.GetId()!.Value;
         
         await userService.AddBanAsync(moderId ,userId, topicId, cancellationToken);
     }
@@ -131,7 +125,7 @@ public class UserController(
     [HttpPost($"{UserTopicRelationControlRoute}/unban")]
     public async Task RemoveBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        var moderId = User.GetSenderUserId()!.Value;
+        var moderId = User.GetId()!.Value;
         
         await userService.RemoveBanAsync(moderId , userId, topicId, cancellationToken);
     }

@@ -14,8 +14,6 @@ public class Program
         builder.Services.AddAuthenticationBearer(builder.Configuration);
         builder.Services.AddAuthorization();
         
-        builder.Services.AddCorsPolicies(builder.Configuration);
-        
         builder.Services.AddOpenApi();
 
         builder.Services.AddApiDependencies(builder.Configuration);

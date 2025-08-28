@@ -5,7 +5,7 @@ namespace Shared.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static Guid? GetSenderUserId(this ClaimsPrincipal principal)
+        public static Guid? GetId(this ClaimsPrincipal principal)
         {
             var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
             

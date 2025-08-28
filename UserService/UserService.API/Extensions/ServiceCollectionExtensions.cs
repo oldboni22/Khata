@@ -3,6 +3,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 using UserService.API.ActionFilters;
 using UserService.API.Utilities;
 using UserService.BLL.Extensions;
@@ -20,19 +21,6 @@ public static class ServiceCollectionExtensions
             .AddControllers();
     }
     
-    public static IServiceCollection AddCorsPolicies(this IServiceCollection services, IConfiguration configuration)
-    {
-        return services.AddCors(options =>
-        {
-            options.AddPolicy("Auth0",
-                builder =>
-                {
-                    builder.WithOrigins(configuration["Auth0:Domain"]!)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
-                });
-        });
-    }
     
     public static void AddAuthenticationBearer(this IServiceCollection services, IConfiguration configuration)
     {
@@ -40,8 +28,8 @@ public static class ServiceCollectionExtensions
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Audience = configuration["Auth0:Audience"];
-                options.Authority = configuration["Auth0:Domain"];
+                options.Audience = configuration[ConfigurationKeys.Auth0Audience];
+                options.Authority = configuration[ConfigurationKeys.Auth0Domain];
                 
                 options.TokenValidationParameters = new()
                 {
