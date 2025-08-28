@@ -78,13 +78,16 @@ public class UserController(
 
     [Authorize]
     [HttpPut(UserIdRoute)]
-    public async Task<UserReadDto> UpdateUserAsync([FromBody] UserUpdateDto userUpdateDto,  Guid userId, CancellationToken cancellationToken)
+    public async Task<UserReadDto> UpdateUserAsync(
+        [FromBody] UserUpdateDto userUpdateDto, Guid userId, CancellationToken cancellationToken)
     {
         await updateDtoValidator.ValidateAndThrowAsync(userUpdateDto, cancellationToken);
         
         var model = mapper.Map<UserUpdateModel>(userUpdateDto);
         
-        var updatedUser = await userService.UpdateAsync(userId, model, cancellationToken);
+        var senderId = User.GetSenderUserId()!.Value;
+        
+        var updatedUser = await userService.UpdateAsync(senderId, userId, model, cancellationToken);
         
         return mapper.Map<UserReadDto>(updatedUser);
     }

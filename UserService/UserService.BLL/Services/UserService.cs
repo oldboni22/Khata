@@ -16,6 +16,8 @@ namespace UserService.BLL.Services;
 
 public interface IUserService : IGenericService<User, UserModel, UserCreateModel, UserUpdateModel>
 {
+    Task<UserModel?> UpdateAsync(Guid senderId, Guid userId, UserUpdateModel updateModel, CancellationToken cancellationToken = default);
+    
     Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
         Guid topicId, UserTopicRelationStatus status, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
     
@@ -42,6 +44,20 @@ public class UserService(
     ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
 {
+    public async Task<UserModel?> UpdateAsync(
+        Guid senderId, 
+        Guid userId, 
+        UserUpdateModel updateModel,
+        CancellationToken cancellationToken = default)
+    {
+        if (senderId != userId)
+        {
+            throw new ForbiddenException(senderId);
+        }
+        
+        return await UpdateAsync(userId, updateModel, cancellationToken);
+    }
+
     public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
         Guid topicId, 
         UserTopicRelationStatus status, 
