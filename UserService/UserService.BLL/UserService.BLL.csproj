@@ -17,7 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Exceptions\User\" />
       <Folder Include="Models\Enums\" />
     </ItemGroup>
 

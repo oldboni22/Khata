@@ -78,10 +78,10 @@ public class UserController(
         await updateDtoValidator.ValidateAndThrowAsync(userUpdateDto, cancellationToken);
         
         var model = mapper.Map<UserUpdateModel>(userUpdateDto);
+
+        var senderId = User.GeAuth0Id();
         
-        var senderId = User.GetId()!.Value;
-        
-        var updatedUser = await userService.UpdateAsync(senderId, userId, model, cancellationToken);
+        var updatedUser = await userService.UpdateAsync(senderId!, userId, model, cancellationToken);
         
         return mapper.Map<UserReadDto>(updatedUser);
     }
@@ -90,9 +90,9 @@ public class UserController(
     [HttpDelete(UserIdRoute)]
     public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var senderId = User.GetId()!.Value;
+        var senderId = User.GeAuth0Id();
         
-        await userService.DeleteAsync(senderId ,userId, cancellationToken);
+        await userService.DeleteAsync(senderId! ,userId, cancellationToken);
     }
     
     #region Relations
@@ -101,7 +101,9 @@ public class UserController(
     [HttpPost($"{UserTopicRelationControlRoute}/subscribe")]
     public async Task AddSubscriptionAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.AddSubscriptionAsync(userId, topicId, cancellationToken);
+        var senderId = User.GeAuth0Id();
+        
+        await userService.AddSubscriptionAsync(senderId!, userId, topicId, cancellationToken);
     }
     
     [Authorize]
@@ -109,39 +111,45 @@ public class UserController(
     public async Task RemoveSubscriptionAsync(
          Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.RemoveSubscriptionAsync(userId, topicId, cancellationToken);
+        var senderId = User.GeAuth0Id();
+        
+        await userService.RemoveSubscriptionAsync(senderId!, userId, topicId, cancellationToken);
     }
     
     [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/ban")]
     public async Task AddBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        var moderId = User.GetId()!.Value;
+        var senderId = User.GeAuth0Id();
         
-        await userService.AddBanAsync(moderId ,userId, topicId, cancellationToken);
+        await userService.AddBanAsync(senderId!, userId, topicId, cancellationToken);
     }
 
     [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unban")]
     public async Task RemoveBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        var moderId = User.GetId()!.Value;
+        var senderId = User.GeAuth0Id();
         
-        await userService.RemoveBanAsync(moderId , userId, topicId, cancellationToken);
+        await userService.RemoveBanAsync(senderId!, userId, topicId, cancellationToken);
     }
     
     [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/mod")]
     public async Task AddModerationStatusAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.AddModerationStatusAsync(userId, topicId, cancellationToken);
+        var senderId = User.GeAuth0Id();
+        
+        await userService.AddModerationStatusAsync(senderId!, userId, topicId, cancellationToken);
     }
     
     [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unmod")]
     public async Task RemoveModerationStatusAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.RemoveModerationStatusAsync(userId, topicId, cancellationToken);
+        var senderId = User.GeAuth0Id();
+        
+        await userService.RemoveModerationStatusAsync(senderId!, userId, topicId, cancellationToken);
     }
     
     #endregion

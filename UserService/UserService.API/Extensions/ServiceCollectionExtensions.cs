@@ -21,7 +21,6 @@ public static class ServiceCollectionExtensions
             .AddControllers();
     }
     
-    
     public static void AddAuthenticationBearer(this IServiceCollection services, IConfiguration configuration)
     {
         services
