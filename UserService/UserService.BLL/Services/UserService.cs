@@ -181,7 +181,7 @@ public class UserService(
 
         if (senderUser.Id == userId)
         {
-            throw new BadRequestException(SelfBanExceptionMessage.Message);
+            throw new BadRequestException(SelfBanExceptionMessages.DefaultMessage);
         }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);

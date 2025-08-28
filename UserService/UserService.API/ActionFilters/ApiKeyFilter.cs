@@ -9,7 +9,7 @@ namespace UserService.API.ActionFilters;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
 public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter 
 {
-    private string HeaderPath => "X-API-KEY";
+    private const string HeaderPath = "X-API-KEY";
     
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
@@ -29,7 +29,7 @@ public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter
     {
         var path = apiType switch
         {
-            ApiType.Auth0 => (ConfigurationKeys.Auth0ApiKey),
+            ApiType.Auth0 => ConfigurationKeys.Auth0ApiKey,
             _ => throw new ArgumentException(),
         };
         
