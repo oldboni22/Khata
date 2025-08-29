@@ -28,7 +28,8 @@ public class UserController(
     
     [HttpPost]
     [ApiKeyFilter(ApiType.Auth0)]
-    public async Task<UserReadDto> CreateUserAsync([FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
+    public async Task<UserReadDto> CreateUserAsync(
+        [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {
         await createDtoValidator.ValidateAndThrowAsync(userCreateDto,cancellationToken);
         

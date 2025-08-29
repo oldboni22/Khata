@@ -71,9 +71,7 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
 
     public async Task<TModel> CreateAsync(TCreateModel createModel, CancellationToken cancellationToken = default)
     {
-        var model = Mapper.Map<TModel>(createModel);
-        
-        var entity = Mapper.Map<TEntity>(model);
+        var entity = Mapper.Map<TEntity>(createModel);
         
         var created = await repository.CreateAsync(entity, cancellationToken);
         
@@ -89,10 +87,8 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
             throw new EntityNotFoundException<TEntity>(id);
         }
         
-        var model = Mapper.Map<TModel>(updateModel);
-        model.Id = id;
-        
-        var entity = Mapper.Map<TEntity>(model);
+        var entity = Mapper.Map<TEntity>(updateModel);
+        entity.Id = id;
         
         var updatedEntity = await repository.UpdateAsync(entity, cancellationToken);
 

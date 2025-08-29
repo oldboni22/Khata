@@ -15,9 +15,9 @@ public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter
     {
         var configuration = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
         
-        context.HttpContext.Request.Headers.TryGetValue(HeaderPath, out var headerKey);
+        var headerKey = context.HttpContext.Request.Headers[HeaderPath];
         
-        if(headerKey.ToString() != GetApiKey(configuration))
+        if(headerKey != GetConfigApiKey(configuration))
         {
             throw new UnauthorizedException();
         }
@@ -25,7 +25,7 @@ public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter
         await next();
     }
 
-    private string GetApiKey(IConfiguration configuration)
+    private string GetConfigApiKey(IConfiguration configuration)
     {
         var path = apiType switch
         {

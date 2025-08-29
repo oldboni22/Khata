@@ -53,6 +53,8 @@ public class UserService(
         CancellationToken cancellationToken = default)
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
+
+        updateModel.Auth0Id = senderId;
         
         return await UpdateAsync(userId, updateModel, cancellationToken);
     }
