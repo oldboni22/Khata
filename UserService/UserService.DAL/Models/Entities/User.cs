@@ -9,4 +9,7 @@ public class User : EntityBase
     public required string Name { get; set; }
     
     public List<UserTopicRelation> TopicStatuses { get; set; } = [];
+
+    [MaxLength(50)]
+    public required string Auth0Id { get; set; }
 }

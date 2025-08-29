@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <UserSecretsId>8a20b58a-8a89-492f-a0a8-75383329558c</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,7 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Exceptions\User\" />
       <Folder Include="Models\Enums\" />
     </ItemGroup>
 

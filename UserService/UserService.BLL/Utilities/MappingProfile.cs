@@ -11,13 +11,15 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<User, UserModel>()
-            .PreserveReferences();
+            .PreserveReferences()
+            .ReverseMap();
 
         CreateMap<UserTopicRelation, UserTopicRelationModel>()
-            .PreserveReferences();
+            .PreserveReferences()
+            .ReverseMap();
 
-        CreateMap<UserCreateModel, UserModel>();
+        CreateMap<UserCreateModel, User>();
         
-        CreateMap<UserUpdateModel, UserModel>();
+        CreateMap<UserUpdateModel, User>();
     }
 }

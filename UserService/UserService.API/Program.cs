@@ -11,10 +11,12 @@ public class Program
         
         builder.ConfigureSerilog();
         
+        builder.Services.AddAuthenticationBearer(builder.Configuration);
         builder.Services.AddAuthorization();
         
         builder.Services.AddOpenApi();
-
+        builder.Services.AddSwaggerGen();
+        
         builder.Services.AddApiDependencies(builder.Configuration);
         
         var app = builder.Build();
@@ -24,12 +26,18 @@ public class Program
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
+            
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
-
+        
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
-
+        
+        app.MapControllers();
+        
         app.Run();
     }
 }

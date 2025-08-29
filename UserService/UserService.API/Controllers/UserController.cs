@@ -1,14 +1,16 @@
+using System.Text.Json.Serialization;
 using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Enums;
 using Shared.Extensions;
 using Shared.PagedList;
 using UserService.API.DTO;
-using UserService.API.Exceptions;
-using UserService.API.Utilities.MessageGenerators.Exceptions;
 using UserService.BLL.Models.User;
 using UserService.BLL.Services;
+using UserService.API.ActionFilters;
+using UserService.API.Utilities.ApiKeys;
 
 namespace UserService.API.Controllers;
 
@@ -25,6 +27,7 @@ public class UserController(
     private const string UserIdRoute = "{userId}";
     
     [HttpPost]
+    [ApiKeyFilter(ApiType.Auth0)]
     public async Task<UserReadDto> CreateUserAsync(
         [FromBody] UserCreateDto userCreateDto, CancellationToken cancellationToken)
     {
@@ -40,16 +43,12 @@ public class UserController(
     [HttpGet("topics/{topicId}")]
     public async Task<PagedList<UserReadDto>> FindUsersAsync(
         [FromBody] PaginationParameters pagedParameters, 
-        [FromQuery] string status,
+        [FromQuery] UserTopicRelationStatus status,
         Guid topicId,
         CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<UserTopicRelationStatus>(status, out var relationStatus))
-        {
-            throw new BadHttpRequestException(InvalidStringLiteralExceptionMessageGenerator.GenerateMessage(status));
-        }
-
-        var models = await userService.FindUsersByTopicIdAsync(topicId, relationStatus, pagedParameters, cancellationToken);
+        var models = 
+            await userService.FindUsersByTopicIdAsync(topicId, status, pagedParameters, cancellationToken);
         
         return mapper.Map<PagedList<UserReadDto>>(models);
     }
@@ -72,65 +71,86 @@ public class UserController(
         return mapper.Map<PagedList<UserTopicRelationDto>>(relations);
     }
 
+    [Authorize]
     [HttpPut(UserIdRoute)]
-    public async Task<UserReadDto> UpdateUserAsync([FromBody] UserUpdateDto userUpdateDto,  Guid userId, CancellationToken cancellationToken)
+    public async Task<UserReadDto> UpdateUserAsync(
+        [FromBody] UserUpdateDto userUpdateDto, Guid userId, CancellationToken cancellationToken)
     {
         await updateDtoValidator.ValidateAndThrowAsync(userUpdateDto, cancellationToken);
         
         var model = mapper.Map<UserUpdateModel>(userUpdateDto);
+
+        var senderId = User.GetAuth0Id();
         
-        var updatedUser = await userService.UpdateAsync(userId, model, cancellationToken);
+        var updatedUser = await userService.UpdateAsync(senderId!, userId, model, cancellationToken);
         
         return mapper.Map<UserReadDto>(updatedUser);
     }
 
+    [Authorize]
     [HttpDelete(UserIdRoute)]
     public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken)
     {
-        await userService.DeleteAsync(userId, cancellationToken);
+        var senderId = User.GetAuth0Id();
+        
+        await userService.DeleteAsync(senderId! ,userId, cancellationToken);
     }
     
     #region Relations
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/subscribe")]
     public async Task AddSubscriptionAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.AddSubscriptionAsync(userId, topicId, cancellationToken);
+        var senderId = User.GetAuth0Id();
+        
+        await userService.AddSubscriptionAsync(senderId!, userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unsubscribe")]
     public async Task RemoveSubscriptionAsync(
          Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.RemoveSubscriptionAsync(userId, topicId, cancellationToken);
+        var senderId = User.GetAuth0Id();
+        
+        await userService.RemoveSubscriptionAsync(senderId!, userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/ban")]
     public async Task AddBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        var moderId = User.GetSenderUserId()!.Value;
+        var senderId = User.GetAuth0Id();
         
-        await userService.AddBanAsync(moderId ,userId, topicId, cancellationToken);
+        await userService.AddBanAsync(senderId!, userId, topicId, cancellationToken);
     }
 
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unban")]
     public async Task RemoveBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        var moderId = User.GetSenderUserId()!.Value;
+        var senderId = User.GetAuth0Id();
         
-        await userService.RemoveBanAsync(moderId , userId, topicId, cancellationToken);
+        await userService.RemoveBanAsync(senderId!, userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/mod")]
     public async Task AddModerationStatusAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.AddModerationStatusAsync(userId, topicId, cancellationToken);
+        var senderId = User.GetAuth0Id();
+        
+        await userService.AddModerationStatusAsync(senderId!, userId, topicId, cancellationToken);
     }
     
+    [Authorize]
     [HttpPost($"{UserTopicRelationControlRoute}/unmod")]
     public async Task RemoveModerationStatusAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
-        await userService.RemoveModerationStatusAsync(userId, topicId, cancellationToken);
+        var senderId = User.GetAuth0Id();
+        
+        await userService.RemoveModerationStatusAsync(senderId!, userId, topicId, cancellationToken);
     }
     
     #endregion
