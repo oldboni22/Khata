@@ -4,3 +4,4 @@ public class UserUpdateDto
 {
     public required string Name { get; init; }
 }
+    
