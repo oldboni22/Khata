@@ -91,7 +91,7 @@ public class Post : EntityWithTimestamps
     {
         if (userId == AuthorId)
         {
-            //throw smth
+            throw new SelfInteractionException();
         }
         
         var integration = PostInteraction.Create(Id, userId, rating);

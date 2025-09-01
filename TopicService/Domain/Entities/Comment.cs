@@ -50,7 +50,7 @@ public class Comment : EntityWithTimestamps
     {
         if (userId == UserId)
         {
-            //throw smth
+            throw new SelfInteractionException();
         }
         
         var integration = CommentInteraction.Create(Id, userId, rating);
