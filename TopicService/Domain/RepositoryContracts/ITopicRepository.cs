@@ -4,5 +4,4 @@ namespace Domain.RepositoryContracts;
 
 public interface ITopicRepository : IGenericRepository<Topic>
 {
-    
 }
