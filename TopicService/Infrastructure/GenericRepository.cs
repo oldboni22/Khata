@@ -49,18 +49,7 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
 
         return entity;
     }
-
-    public async Task<T?> UpdateAsync(T entity, CancellationToken cancellationToken = default)
-    {
-        Context.Set<T>().Update(entity);
-        
-        await Context.SaveChangesAsync(cancellationToken);
-
-        await Context.Entry(entity).ReloadAsync(cancellationToken);
-        
-        return entity;
-    }
-
+    
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await FindByIdAsync(id, false, cancellationToken)
@@ -70,10 +59,5 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
         await Context.SaveChangesAsync(cancellationToken);
         
         return true;
-    }
-
-    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return Context.Set<T>().AnyAsync(ent => ent.Id == id, cancellationToken);
     }
 }

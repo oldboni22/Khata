@@ -17,9 +17,5 @@ public interface IGenericRepository<T>
     
     Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default);
     
-    Task<T?> UpdateAsync(T entity, CancellationToken cancellationToken = default);
-    
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-    
-    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
 }
