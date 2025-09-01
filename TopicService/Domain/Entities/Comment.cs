@@ -46,7 +46,7 @@ public class Comment : EntityWithTimestamps
         Text = text;
     }
 
-    public CommentInteraction AddInteraction(Guid userId, PublicationRating rating)
+    public CommentInteraction AddInteraction(Guid userId, InteractionType rating)
     {
         if (userId == UserId)
         {

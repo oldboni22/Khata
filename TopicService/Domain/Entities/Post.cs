@@ -85,7 +85,7 @@ public class Post : EntityWithTimestamps
         _comments.Remove(comment);
     }
 
-    public PostInteraction AddInteraction(Guid userId, PublicationRating rating)
+    public PostInteraction AddInteraction(Guid userId, InteractionType rating)
     {
         if (userId == AuthorId)
         {

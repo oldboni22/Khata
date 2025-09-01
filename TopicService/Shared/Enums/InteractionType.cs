@@ -1,6 +1,6 @@
 namespace Shared.Enums;
 
-public enum PublicationRating
+public enum InteractionType
 {
     Undefined = 0,
     Like = 1,

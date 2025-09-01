@@ -8,17 +8,17 @@ public class PostInteraction : EntityBase
     
     public Guid UserId { get; init; }
 
-    public PublicationRating Rating { get; private set; }
+    public InteractionType Rating { get; private set; }
     
-    private PostInteraction(Guid postId, Guid userId, PublicationRating rating)
+    private PostInteraction(Guid postId, Guid userId, InteractionType rating)
     {
         PostId = postId;
         UserId = userId;
         Rating = rating;
     }
 
-    public static PostInteraction Create(Guid postId, Guid userId, PublicationRating rating) =>
+    public static PostInteraction Create(Guid postId, Guid userId, InteractionType rating) =>
         new PostInteraction(postId, userId, rating);
     
-    public void Update(PublicationRating rating) => Rating = rating;
+    public void Update(InteractionType rating) => Rating = rating;
 }
