@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities;
+﻿using Domain.Exceptions;
+
+namespace Domain.Entities;
 
 public class Topic : EntityWithTimestamps
 {
@@ -57,6 +59,18 @@ public class Topic : EntityWithTimestamps
         _posts.Add(post);
 
         return post;
+    }
+
+    public void RemovePost(Guid postId, Guid senderId)
+    {
+        var post = _posts.FirstOrDefault(p => p.Id == postId);
+
+        if (post is null)
+        {
+            throw new EntityNotFoundException<Post>(postId);
+        }
+
+        _posts.Remove(post);
     }
 
     public void Update(Guid ownerId) => OwnerId = ownerId;

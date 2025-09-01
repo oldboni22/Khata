@@ -1,5 +1,7 @@
 using Domain.Entities.Interactions;
+using Domain.Exceptions;
 using Shared.Enums;
+using Shared.Exceptions;
 
 namespace Domain.Entities;
 
@@ -19,14 +21,14 @@ public class Comment : EntityWithTimestamps
     
     public Guid PostId { get; init; }
     
-    public Guid AuthorId { get; init; }
+    public Guid UserId { get; init; }
     
     public string Text { get; private set; }
 
-    private Comment(string text, Guid postId, Guid authorId)
+    private Comment(string text, Guid postId, Guid userId)
     {
         PostId = postId;
-        AuthorId = authorId;
+        UserId = userId;
         Text = text;
     }
 
@@ -46,11 +48,33 @@ public class Comment : EntityWithTimestamps
 
     public CommentInteraction AddInteraction(Guid userId, PublicationRating rating)
     {
+        if (userId == UserId)
+        {
+            //throw smth
+        }
+        
         var integration = CommentInteraction.Create(Id, userId, rating);
         
         _interactions.Add(integration);
 
         return integration;
+    }
+
+    public void RemoveInteraction(Guid interactionId, Guid senderId)
+    {
+        var interaction = _interactions.FirstOrDefault(x => x.Id == interactionId);
+        
+        if (interaction is null)
+        {
+            throw new EntityNotFoundException<CommentInteraction>(interactionId);
+        }
+        else if(senderId != interaction.UserId)
+        {
+            throw new ForbiddenException();
+        }
+        
+
+        _interactions.Remove(interaction);
     }
     
     private static void ValidateText(string text)

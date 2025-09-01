@@ -71,6 +71,22 @@ public class Post : EntityWithTimestamps
         return comment;
     }
 
+    public void RemoveComment(Guid commentId, Guid senderId)
+    {
+        var comment = _comments.FirstOrDefault(x => x.Id == commentId);
+
+        if (comment is null)
+        {
+            throw new EntityNotFoundException<Comment>(commentId);
+        }
+        else if(senderId != comment.UserId)
+        {
+            throw new ForbiddenException();
+        }
+
+        _comments.Remove(comment);
+    }
+
     public PostInteraction AddInteraction(Guid userId, PublicationRating rating)
     {
         if (userId == AuthorId)
@@ -83,6 +99,22 @@ public class Post : EntityWithTimestamps
         _interactions.Add(integration);
 
         return integration;
+    }
+    
+    public void RemoveInteraction(Guid interactionId, Guid senderId)
+    {
+        var interaction = _interactions.FirstOrDefault(x => x.Id == interactionId);
+        
+        if (interaction is null)
+        {
+            throw new EntityNotFoundException<CommentInteraction>(interactionId);
+        }
+        else if(senderId != interaction.UserId)
+        {
+            throw new ForbiddenException();
+        }
+
+        _interactions.Remove(interaction);
     }
 
     private static void ValidateText(string text)
