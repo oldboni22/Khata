@@ -1,5 +1,6 @@
 using Domain.Entities.Interactions;
 using Domain.Exceptions;
+using Microsoft.VisualBasic;
 using Shared.Enums;
 using Shared.Exceptions;
 
@@ -73,13 +74,10 @@ public class Post : EntityWithTimestamps
 
     public void RemoveComment(Guid commentId, Guid senderId)
     {
-        var comment = _comments.FirstOrDefault(x => x.Id == commentId);
-
-        if (comment is null)
-        {
-            throw new EntityNotFoundException<Comment>(commentId);
-        }
-        else if(senderId != comment.UserId)
+        var comment = _comments.FirstOrDefault(x => x.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
+        
+        if(senderId != comment.UserId)
         {
             throw new ForbiddenException();
         }
@@ -103,13 +101,10 @@ public class Post : EntityWithTimestamps
     
     public void RemoveInteraction(Guid interactionId, Guid senderId)
     {
-        var interaction = _interactions.FirstOrDefault(x => x.Id == interactionId);
+        var interaction = _interactions.FirstOrDefault(x => x.Id == interactionId) 
+                          ?? throw new EntityNotFoundException<PostInteraction>(interactionId);
         
-        if (interaction is null)
-        {
-            throw new EntityNotFoundException<CommentInteraction>(interactionId);
-        }
-        else if(senderId != interaction.UserId)
+        if(senderId != interaction.UserId)
         {
             throw new ForbiddenException();
         }

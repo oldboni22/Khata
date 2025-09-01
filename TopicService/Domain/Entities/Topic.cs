@@ -63,12 +63,8 @@ public class Topic : EntityWithTimestamps
 
     public void RemovePost(Guid postId, Guid senderId)
     {
-        var post = _posts.FirstOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
+        var post = _posts.FirstOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
 
         _posts.Remove(post);
     }

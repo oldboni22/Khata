@@ -62,18 +62,14 @@ public class Comment : EntityWithTimestamps
 
     public void RemoveInteraction(Guid interactionId, Guid senderId)
     {
-        var interaction = _interactions.FirstOrDefault(x => x.Id == interactionId);
+        var interaction = _interactions.FirstOrDefault(x => x.Id == interactionId) 
+                          ?? throw new EntityNotFoundException<CommentInteraction>(interactionId);
         
-        if (interaction is null)
-        {
-            throw new EntityNotFoundException<CommentInteraction>(interactionId);
-        }
-        else if(senderId != interaction.UserId)
+        if(senderId != interaction.UserId)
         {
             throw new ForbiddenException();
         }
         
-
         _interactions.Remove(interaction);
     }
     
