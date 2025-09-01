@@ -6,5 +6,9 @@ public class UserReadDto
 {
     public required string Name { get; init; }
     
-     public List<UserTopicRelationDto> TopicStatuses { get; init; } = [];
+    public List<UserTopicRelationDto> TopicStatuses { get; init; } = [];
+
+    public DateTime CreatedAt { get; init; }
+    
+    public DateTime UpdatedAt { get; init; }
 }

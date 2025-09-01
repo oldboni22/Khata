@@ -24,18 +24,27 @@ public class UserServiceContext(DbContextOptions options) : DbContext(options)
     private void AddTimestamp()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.State is EntityState.Added or EntityState.Modified);
+            .Where(e => e is
+            {
+                Entity: EntityBase, 
+                State: EntityState.Added or EntityState.Modified 
+            });
 
         foreach (var entry in entries)
         {
-            if (entry.Entity is EntityBase entity)
+            var entity =(EntityBase)entry.Entity; 
+            
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            if (entry.State == EntityState.Added)
             {
-                entity.UpdatedAt = DateTime.UtcNow;
-                if (entry.State == EntityState.Added)
-                {
-                    entity.CreatedAt = DateTime.UtcNow;
-                }
+                entity.CreatedAt = DateTime.UtcNow;
             }
+            else
+            {
+                entry.Property(nameof(EntityBase.CreatedAt)).IsModified = false;
+            }
+            
         }
     }
     
