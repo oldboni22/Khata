@@ -17,49 +17,16 @@ public class TopicServiceContext : DbContext
     
     public DbSet<PostInteraction> PostInteractions { get; init; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        AddInterceptors(optionsBuilder);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureTopic(modelBuilder);
         ConfigurePost(modelBuilder);
         ConfigureComment(modelBuilder);
-    }
-    
-    public override int SaveChanges()
-    {
-        AddTimestamp();
-        return base.SaveChanges();
-    }
-    
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        AddTimestamp();
-        return base.SaveChangesAsync(cancellationToken);
-    }
-    
-    private void AddTimestamp()
-    {
-        var entries = ChangeTracker.Entries()
-            .Where(e => e is
-            {
-                Entity: EntityWithTimestamps, 
-                State: EntityState.Added or EntityState.Modified 
-            });
-
-        foreach (var entry in entries)
-        {
-            var entity = (EntityWithTimestamps)entry.Entity; 
-            
-            entity.UpdatedAt = DateTime.UtcNow;
-
-            if (entry.State == EntityState.Added)
-            {
-                entity.CreatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                entry.Property(nameof(EntityWithTimestamps.CreatedAt)).IsModified = false;
-            }
-        }
     }
 
     private void ConfigureTopic(ModelBuilder builder)
@@ -110,5 +77,10 @@ public class TopicServiceContext : DbContext
             .WithOne()
             .HasForeignKey(interaction => interaction.CommentId)
             .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private void AddInterceptors(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.AddInterceptors(new TimeStampsInterceptor());
     }
 }
