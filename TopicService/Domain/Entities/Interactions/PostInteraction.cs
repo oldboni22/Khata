@@ -20,5 +20,5 @@ public class PostInteraction : EntityBase
     public static PostInteraction Create(Guid postId, Guid userId, InteractionType rating) =>
         new PostInteraction(postId, userId, rating);
     
-    public void Update(InteractionType rating) => Rating = rating;
+    public void SetRating(InteractionType rating) => Rating = rating;
 }

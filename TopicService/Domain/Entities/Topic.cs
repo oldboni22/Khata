@@ -69,5 +69,5 @@ public class Topic : EntityWithTimestamps
         _posts.Remove(post);
     }
 
-    public void Update(Guid ownerId) => OwnerId = ownerId;
+    public void SetOwner(Guid ownerId) => OwnerId = ownerId;
 }

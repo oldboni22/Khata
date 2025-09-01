@@ -56,7 +56,7 @@ public class Post : EntityWithTimestamps
         return new Post(title, text, topicId, authorId);
     }
 
-    public void Update(string text)
+    public void SetText(string text)
     {
         ValidateText(text);
 

@@ -20,5 +20,5 @@ public class CommentInteraction : EntityBase
     public static CommentInteraction Create(Guid commentId, Guid userId, InteractionType rating) =>
         new CommentInteraction(commentId, userId, rating);
     
-    public void Update(InteractionType rating) => Rating = rating;
+    public void SetRating(InteractionType rating) => Rating = rating;
 }

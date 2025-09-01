@@ -39,7 +39,7 @@ public class Comment : EntityWithTimestamps
         return new Comment(text, postId, authorId);
     }
 
-    public void Update(string text)
+    public void SetText(string text)
     {
         ValidateText(text);
 
