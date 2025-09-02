@@ -26,7 +26,9 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     Task<PagedList<UserTopicRelationModel>> FindUserRelationsAsync(
         Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
     
-    Task<List<Guid>> FindBannedTopicsIds(Guid userId, CancellationToken cancellationToken = default);
+    Task<List<Guid>> FindBannedTopicsIdsAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken = default);
     
     Task<bool> DoesUserHaveTopicStatusAsync(Guid userId, Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default);
     
@@ -108,7 +110,7 @@ public class UserService(
         return Mapper.Map<PagedList<UserTopicRelationModel>>(relationEntities);
     }
 
-    public async Task<List<Guid>> FindBannedTopicsIds(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<List<Guid>> FindBannedTopicsIdsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var relations = await userTopicRelationRepository
             .FindAllByConditionAsync
@@ -119,6 +121,13 @@ public class UserService(
             );
         
         return relations.Select(r => r.TopicId).ToList();
+    }
+
+    public async Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken = default)
+    {
+        var user = await FindUserByAuth0IdAsync(auth0Id, cancellationToken);
+
+        return user.Id;
     }
 
     public async Task<bool> DoesUserHaveTopicStatusAsync(
@@ -195,7 +204,7 @@ public class UserService(
 
     public async Task AddBanAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var senderUser = await GetUserByAuth0IdAsync(senderId, cancellationToken);
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
         
         var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
         
@@ -254,7 +263,7 @@ public class UserService(
 
     public async Task RemoveBanAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var senderUser = await GetUserByAuth0IdAsync(senderId, cancellationToken);
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
         
         var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
         
@@ -369,7 +378,7 @@ public class UserService(
         return relationId != Guid.Empty;
     }
 
-    private async Task<User> GetUserByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken)
+    private async Task<User> FindUserByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken)
     {
         var userEntity = await userRepository.FindUserByAuth0IdAsync(auth0Id, cancellationToken);
 
@@ -383,7 +392,7 @@ public class UserService(
     
     private async Task ValidateSenderIdAsync(string senderId, Guid userId, CancellationToken cancellationToken)
     {
-        var userEntity = await GetUserByAuth0IdAsync(senderId, cancellationToken);
+        var userEntity = await FindUserByAuth0IdAsync(senderId, cancellationToken);
 
         if (userEntity.Id != userId)
         {

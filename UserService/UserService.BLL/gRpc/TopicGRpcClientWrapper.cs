@@ -1,3 +1,4 @@
+/*
 using Infrastructure.gRpc;
 
 namespace UserService.BLL.gRpc;
@@ -22,3 +23,4 @@ public class TopicGRpcClientWrapper(TopicGRpcApi.TopicGRpcApiClient client) : IT
         return response.Result;
     }
 }
+*/
