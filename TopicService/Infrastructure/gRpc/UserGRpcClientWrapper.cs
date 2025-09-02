@@ -1,6 +1,4 @@
-using Infrastructure.gRpc;
-
-namespace Infrastructure;
+namespace Infrastructure.gRpc;
 
 public interface IUserGRpcClient
 {

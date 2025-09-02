@@ -20,13 +20,13 @@ public static class ServiceCollectionExtensions
         
         return services;
     }
-
+    
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
     {
-        var port = new Uri(configuration[ConfigurationKeys.GRpcPort]!);
+        var port = new Uri(configuration[ConfigurationKeys.TopicGRpcPort]!);
         
         services.AddGrpc();
-        services.AddGrpcClient<UserGRpcApi.UserGRpcApiClient>(options =>
+        services.AddGrpcClient<TopicGRpcApi.TopicGRpcApiClient>(options =>
         {
             options.Address = port;
         });
