@@ -3,7 +3,7 @@ using Grpc.Core;
 
 namespace Infrastructure.gRpc;
 
-public class GRpcService(ITopicRepository topicRepository) : TopicPermissions.TopicPermissionsBase
+public class GRpcService(ITopicRepository topicRepository) : TopicGRpcApi.TopicGRpcApiBase
 {
     public override async Task<TopicUserResponse> IsOwner(TopicUserRequest request, ServerCallContext context)
     {

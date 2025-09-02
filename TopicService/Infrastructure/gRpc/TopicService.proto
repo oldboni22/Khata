@@ -25,11 +25,15 @@ message BannedUserTopicsResponse{
     repeated string topic_ids = 1;
 }
 
-service TopicPermissions {
+service TopicGRpcApi {
 
     rpc IsOwner(TopicUserRequest) returns (TopicUserResponse);
+}
+
+service UserGRpcApi {
 
     rpc IsModerator(TopicUserRequest) returns (TopicUserResponse);
 
     rpc GetBannedTopicsId(BannedUserTopicsRequest) returns (BannedUserTopicsResponse);
 }
+

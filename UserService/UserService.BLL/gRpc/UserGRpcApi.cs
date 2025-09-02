@@ -5,7 +5,7 @@ using UserService.BLL.Services;
 
 namespace UserService.BLL.gRpc;
 
-public class GRpcService(IUserService userService) : TopicPermissions.TopicPermissionsBase
+public class UserGRpcApi(IUserService userService) : Infrastructure.gRpc.UserGRpcApi.UserGRpcApiBase 
 {
     public override async Task<TopicUserResponse> IsModerator(TopicUserRequest request, ServerCallContext context)
     {
