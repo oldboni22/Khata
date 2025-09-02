@@ -22,6 +22,8 @@ public static class ServiceCollectinExtensions
         {
             options.Address = port;
         });
+        
+        services.AddScoped<IUserGRpcClient, UserGRpcClientWrapper>();
 
         return services;
     }
