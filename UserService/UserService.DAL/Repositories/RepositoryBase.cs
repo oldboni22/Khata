@@ -14,6 +14,8 @@ public interface IGenericRepository<T>
         PaginationParameters paginationParameters,
         bool trackChanges = false, 
         CancellationToken cancellationToken = default);
+
+    Task<List<T>> FindAllByConditionAsync(Expression<Func<T, bool>> expression, bool trackChanges = false, CancellationToken cancellationToken = default);
     
     Task<T?> FindByIdAsync(Guid id, bool trackChanges = true, CancellationToken cancellationToken = default);
     
@@ -49,6 +51,15 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
         var pageCount = (int)Math.Ceiling(Context.Set<T>().Count()/(double)paginationParameters.PageSize);
         
         return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
+    }
+
+    public async Task<List<T>> FindAllByConditionAsync(
+        Expression<Func<T, bool>> expression, bool trackChanges = false, CancellationToken cancellationToken = default)
+    {
+        return await Context
+            .Set<T>()
+            .Where(expression)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)

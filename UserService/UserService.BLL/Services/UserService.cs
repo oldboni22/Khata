@@ -26,6 +26,10 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     Task<PagedList<UserTopicRelationModel>> FindUserRelationsAsync(
         Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
     
+    Task<List<Guid>> FindBannedTopicsIds(Guid userId, CancellationToken cancellationToken = default);
+    
+    Task<bool> DoesUserHaveTopicStatusAsync(Guid userId, Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default);
+    
     Task AddSubscriptionAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
     Task RemoveSubscriptionAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
@@ -102,6 +106,27 @@ public class UserService(
                 );
         
         return Mapper.Map<PagedList<UserTopicRelationModel>>(relationEntities);
+    }
+
+    public async Task<List<Guid>> FindBannedTopicsIds(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var relations = await userTopicRelationRepository
+            .FindAllByConditionAsync
+            (
+                relation => relation.UserId == userId && relation.TopicRelationStatus == UserTopicRelationStatus.Banned,
+                false,
+                cancellationToken
+            );
+        
+        return relations.Select(r => r.TopicId).ToList();
+    }
+
+    public async Task<bool> DoesUserHaveTopicStatusAsync(
+        Guid userId, Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default)
+    {
+        var relations = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
+        
+        return DoesUserHaveRelationStatus(relations, status, out var relationId);
     }
 
     public async Task AddSubscriptionAsync(
@@ -336,10 +361,10 @@ public class UserService(
     private bool DoesUserHaveRelationStatus(
         List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
     {
-        var subRelation = relations
+        var relation = relations
             .FirstOrDefault(relation => relation.TopicRelationStatus == targetStatus);
 
-        relationId = subRelation?.Id ?? Guid.Empty;
+        relationId = relation?.Id ?? Guid.Empty;
 
         return relationId != Guid.Empty;
     }
