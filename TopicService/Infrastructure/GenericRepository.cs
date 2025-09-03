@@ -4,6 +4,7 @@ using Domain.Exceptions;
 using Domain.RepositoryContracts;
 using Microsoft.EntityFrameworkCore;
 using Shared;
+using Shared.Extensions;
 using Shared.PagedList;
 
 namespace Infrastructure;
@@ -63,5 +64,10 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
         await Context.SaveChangesAsync(cancellationToken);
         
         return true;
+    }
+    
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await Context.SaveChangesAsync(cancellationToken);
     }
 }
