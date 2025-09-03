@@ -9,11 +9,7 @@ public class MappingProfile : Profile
 {
     protected MappingProfile()
     {
-        CreateMap<TopicCreateDto, Topic>();
-
         CreateMap<Topic, TopicReadDto>();
-        
-        CreateMap<PostCreateDto, Post>();
         
         CreateMap<Post, PostReadDto>();
     }

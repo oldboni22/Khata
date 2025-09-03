@@ -10,7 +10,7 @@ using TopicService.API.Utilities.LogMessages;
 
 namespace TopicService.API;
 
-public interface IApplicationService
+public interface ITopicApplicationService
 {
     Task<TopicReadDto> CreateHeadTopicAsync(string senderId, TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default);
 
@@ -26,8 +26,8 @@ public interface IApplicationService
     Task RemovePostAsync(string senderId, Guid postId, Guid topicId, CancellationToken cancellationToken = default);
 }
 
-public class ApplicationService(
-    ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : IApplicationService
+public class TopicTopicApplicationService(
+    ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ITopicApplicationService
 {
     public async Task<TopicReadDto> CreateHeadTopicAsync(string senderId, TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
     {

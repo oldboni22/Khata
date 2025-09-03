@@ -10,7 +10,7 @@ namespace TopicService.API;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TopicController(IApplicationService applicationService) : ControllerBase
+public class TopicController(ITopicApplicationService topicApplicationService) : ControllerBase
 {
     [HttpPost]
     [Authorize]
@@ -18,7 +18,7 @@ public class TopicController(IApplicationService applicationService) : Controlle
     {
         var senderId = User.GetAuth0Id();
         
-        return await applicationService.CreateHeadTopicAsync(senderId!, topicCreateDto, cancellationToken);
+        return await topicApplicationService.CreateHeadTopicAsync(senderId!, topicCreateDto, cancellationToken);
     }
     
     [Authorize]
@@ -28,6 +28,6 @@ public class TopicController(IApplicationService applicationService) : Controlle
     {
         var senderId = User.GetAuth0Id();   
         
-        return await applicationService.CreateSubTopicAsync(senderId!, topicCreateDto, parentTopicId, cancellationToken);
+        return await topicApplicationService.CreateSubTopicAsync(senderId!, topicCreateDto, parentTopicId, cancellationToken);
     }
 }
