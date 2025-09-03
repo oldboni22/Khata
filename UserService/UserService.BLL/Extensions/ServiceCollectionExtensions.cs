@@ -2,6 +2,7 @@ using Infrastructure.gRpc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared;
+using UserService.BLL.gRpc;
 using UserService.BLL.Services;
 using UserService.BLL.Utilities;
 using UserService.DAL.Extensions;
@@ -31,7 +32,7 @@ public static class ServiceCollectionExtensions
             options.Address = port;
         });
 
-        //
+        services.AddScoped<ITopicGRpcClient,TopicGRpcClientWrapper>();
         
         return services;
     }

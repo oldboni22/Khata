@@ -5,6 +5,7 @@ using Shared.Extensions;
 using Shared.PagedList;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.Relations;
+using UserService.BLL.gRpc;
 using UserService.BLL.Models;
 using UserService.BLL.Models.User;
 using UserService.BLL.Utilities.MessageGenerators.Logs;
@@ -48,6 +49,7 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
 public class UserService(
     IUserRepository userRepository,
     IUserTopicRelationRepository userTopicRelationRepository,
+    ITopicGRpcClient topicGRpcClient,
     IMapper mapper, 
     ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
@@ -289,7 +291,12 @@ public class UserService(
 
     public async Task AddModerationStatusAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        //TODO When topic service will be ready check is sender a topic owner
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
+
+        if (!await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId))
+        {
+            throw new ForbiddenException(senderUser.Id);
+        }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
@@ -325,7 +332,12 @@ public class UserService(
 
     public async Task RemoveModerationStatusAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        //TODO When topic service will be ready check is sender a topic owner
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
+
+        if (!await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId))
+        {
+             throw new ForbiddenException(senderUser.Id);
+        }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 

@@ -1,4 +1,3 @@
-/*
 using Infrastructure.gRpc;
 
 namespace UserService.BLL.gRpc;
@@ -12,7 +11,7 @@ public class TopicGRpcClientWrapper(TopicGRpcApi.TopicGRpcApiClient client) : IT
 {
     public async Task<bool> IsOwnerAsync(Guid userId, Guid topicId)
     {
-        var request = new TopicUserRequest
+        var request = new TopicUserStatusRequest
         {
             UserId = userId.ToString(),
             TopicId = topicId.ToString()
@@ -23,4 +22,3 @@ public class TopicGRpcClientWrapper(TopicGRpcApi.TopicGRpcApiClient client) : IT
         return response.Result;
     }
 }
-*/
