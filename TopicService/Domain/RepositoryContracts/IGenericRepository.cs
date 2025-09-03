@@ -15,8 +15,7 @@ public interface IGenericRepository<T>
     
     Task<PagedList<T>> FindByConditionWithFilterAsync(
         Expression<Func<T, bool>> expression,
-        Expression<Func<T, object>> keySelector, 
-        bool ascending,
+        (Expression<Func<T, object>> predicate, bool isAscending)[] keySelectors, 
         PaginationParameters paginationParameters,
         bool trackChanges = false, 
         CancellationToken cancellationToken = default);

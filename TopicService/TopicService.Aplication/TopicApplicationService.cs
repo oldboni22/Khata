@@ -32,13 +32,13 @@ public interface ITopicApplicationService
     //
     
     Task<PagedList<Topic>> FindHeadTopics(
-        TopicSearchFilter filter, 
+        TopicSearchParameters parameters, 
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default);
     
     Task<PagedList<Topic>> FindChildTopics(
         Guid parentTopicId,
-        TopicSearchFilter filter, 
+        TopicSearchParameters parameters, 
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default);
 }
@@ -161,31 +161,25 @@ public class TopicTopicApplicationService(
     }
 
     public async Task<PagedList<Topic>> FindHeadTopics(
-        TopicSearchFilter filter, 
+        TopicSearchParameters parameters, 
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
         Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == null;
 
-        if (!string.IsNullOrEmpty(filter.SearchTerm))
+        if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
             expression = expression.And(t =>
-                t.Name.Contains(filter.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
+                t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        Expression<Func<Topic, object>> keySelector = filter.SortOptions switch
-        {
-            TopicSortOptions.CreateDate => t => t.CreatedAt,
-            TopicSortOptions.PostCount => t => t.Posts.Count,
-            _ => t => t.Name
-        };
-        
+        var selectors = ParseFilters(parameters);
+
         return await topicRepository
             .FindByConditionWithFilterAsync
             (
                 expression,
-                keySelector,
-                filter.Ascending,
+                selectors,
                 paginationParameters,
                 false,
                 cancellationToken
@@ -194,7 +188,7 @@ public class TopicTopicApplicationService(
 
     public async Task<PagedList<Topic>> FindChildTopics(
         Guid parentTopicId,
-        TopicSearchFilter filter,
+        TopicSearchParameters parameters,
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
@@ -205,32 +199,58 @@ public class TopicTopicApplicationService(
         
         Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == parentTopicId;
 
-        if (!string.IsNullOrEmpty(filter.SearchTerm))
+        if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
             expression = expression.And(t =>
-                t.Name.Contains(filter.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
+                t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
-        Expression<Func<Topic, object>> keySelector = filter.SortOptions switch
-        {
-            TopicSortOptions.CreateDate => t => t.CreatedAt,
-            TopicSortOptions.PostCount => t => t.Posts.Count,
-            _ => t => t.Name
-        };
+        var selectors = ParseFilters(parameters);
         
         return await topicRepository
             .FindByConditionWithFilterAsync
             (
                 expression,
-                keySelector,
-                filter.Ascending,
+                selectors,
                 paginationParameters,
                 false,
                 cancellationToken
             );
     }
 
+    private (Expression<Func<Topic, object>>, bool)[] ParseFilters(TopicSearchParameters parameters)
+    {
+        (Expression<Func<Topic, object>>, bool)[] selectors;
 
+        var filters = parameters.Filters;
+        
+        if (filters.Count == 0)
+        {
+            selectors = [ (topic => topic.Name, true) ];
+        }
+        else
+        {
+            selectors = new (Expression<Func<Topic, object>>, bool)[filters.Count];
+            
+            for (int i = 0; i < filters.Count; i++)
+            {
+                selectors[i] = (ParseSortOptions(filters[i].SortOptions), filters[i].Ascending);
+            }
+        }
+
+        return selectors;
+    }
+
+    private Expression<Func<Topic, object>> ParseSortOptions(TopicSortOptions option)
+    {
+        return option switch
+        {
+            TopicSortOptions.CreateDate => t => t.CreatedAt,
+            TopicSortOptions.PostCount => t => t.Posts.Count,
+            _ => t => t.Name
+        };
+    }
+    
     private void ThrowNotFoundException<T>(Guid id) where T : EntityBase
     {
         logger.Information(EntityNotFoundLogMessage<T>.Generate(id));

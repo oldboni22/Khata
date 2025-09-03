@@ -2,7 +2,6 @@ namespace Shared.Filters;
 
 public enum TopicSortOptions
 {
-    None = 0,
-    CreateDate = 1,
+    CreateDate = 0,
     PostCount = 2,
 }

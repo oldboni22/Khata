@@ -37,8 +37,7 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
     
     public async Task<PagedList<T>> FindByConditionWithFilterAsync(
         Expression<Func<T, bool>> expression,
-        Expression<Func<T,object>> keySelector, 
-        bool ascending,
+        (Expression<Func<T, object>> predicate, bool isAscending)[] keySelectors, 
         PaginationParameters paginationParameters,
         bool trackChanges = false, 
         CancellationToken cancellationToken = default)
@@ -48,7 +47,7 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
 
         var totalCount = await query.CountAsync(cancellationToken);
         
-        query = ascending? query.OrderBy(keySelector) :  query.OrderByDescending(keySelector);
+        query = ApplyKeySelectors(query, keySelectors);
         
         query = trackChanges ? query : query.AsNoTracking();
 
@@ -102,5 +101,34 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
     public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return Context.Set<T>().AnyAsync(ent => ent.Id == id, cancellationToken);
+    }
+
+    private IQueryable<T> ApplyKeySelectors(
+        IQueryable<T> query, (Expression<Func<T, object>> predicate, bool isAscending)[] selectors)
+    {
+        var ordered = ApplyPrimarySelector(query, selectors[0]);
+        
+        for (int i = 1; i < selectors.Length; i++)
+        {
+            ordered = ApplySelector(ordered, selectors[i]);
+        }
+        
+        return ordered;
+    }
+
+    private IOrderedQueryable<T> ApplyPrimarySelector(
+        IQueryable<T> query ,(Expression<Func<T, object>> predicate, bool isAscending) selector)
+    {
+        return selector.isAscending ?
+            query.OrderBy(selector.predicate) : 
+            query.OrderByDescending(selector.predicate);
+    }
+    
+    private IOrderedQueryable<T> ApplySelector(
+        IOrderedQueryable<T> query ,(Expression<Func<T, object>> predicate, bool isAscending) selector)
+    {
+        return selector.isAscending ?
+            query.ThenBy(selector.predicate) : 
+            query.ThenByDescending(selector.predicate);
     }
 }
