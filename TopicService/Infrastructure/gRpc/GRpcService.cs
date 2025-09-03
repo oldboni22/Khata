@@ -5,13 +5,18 @@ namespace Infrastructure.gRpc;
 
 public class GRpcService(ITopicRepository topicRepository) : TopicGRpcApi.TopicGRpcApiBase
 {
-    /*public override async Task<TopicUserResponse> IsOwner(TopicUserRequest request, ServerCallContext context)
+    public override async Task<TopicUserResponse> IsOwner(TopicUserStatusRequest request, ServerCallContext context)
     {
         var userId = Guid.Parse(request.UserId);
         var topicId = Guid.Parse(request.TopicId);
 
-        var result = await topicRepository.DoesUserOwnTopic(topicId, userId, CancellationToken.None);
+        var topic = await topicRepository.FindByIdAsync(topicId);
 
-        return new TopicUserResponse { Result = result };
-    }*/
+        if (topic is null)
+        {
+            return new TopicUserResponse { Result = false };
+        }
+
+        return new TopicUserResponse { Result = topic.OwnerId == userId };
+    }
 }
