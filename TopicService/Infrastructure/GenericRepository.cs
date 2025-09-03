@@ -29,7 +29,8 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
 
         var list = await query.ToListAsync(cancellationToken);
 
-        var pageCount = (int)Math.Ceiling(Context.Set<T>().Count()/(double)paginationParameters.PageSize);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var pageCount = (int)Math.Ceiling(totalCount / (double)paginationParameters.PageSize);
         
         return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
     }
@@ -69,5 +70,10 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return Context.Set<T>().AnyAsync(ent => ent.Id == id, cancellationToken);
     }
 }
