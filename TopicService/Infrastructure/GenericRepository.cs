@@ -34,7 +34,34 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
         
         return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
     }
+    
+    public async Task<PagedList<T>> FindByConditionWithFilterAsync(
+        Expression<Func<T, bool>> expression,
+        Expression<Func<T,object>> keySelector, 
+        bool ascending,
+        PaginationParameters paginationParameters,
+        bool trackChanges = false, 
+        CancellationToken cancellationToken = default)
+    {
+        var query = Context.Set<T>()
+            .Where(expression);
 
+        var totalCount = await query.CountAsync(cancellationToken);
+        
+        query = ascending? query.OrderBy(keySelector) :  query.OrderByDescending(keySelector);
+        
+        query = trackChanges ? query : query.AsNoTracking();
+
+        var list = await query
+            .Skip((paginationParameters.PageNumber - 1) * paginationParameters.PageSize)
+            .Take(paginationParameters.PageSize)
+            .ToListAsync(cancellationToken);
+        
+        var pageCount = (int)Math.Ceiling(totalCount / (double)paginationParameters.PageSize);
+        
+        return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
+    }
+    
     public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)
     {
         var query = Context.Set<T>().Where(ent => ent.Id == id);

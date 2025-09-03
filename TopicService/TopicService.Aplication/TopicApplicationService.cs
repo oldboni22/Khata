@@ -172,12 +172,19 @@ public class TopicTopicApplicationService(
             expression = expression.And(t =>
                 t.Name.Contains(filter.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
+
+        Expression<Func<Topic, object>> keySelector = filter.SortOptions switch
+        {
+            TopicSortOptions.CreateDate => t => t.CreatedAt,
+            TopicSortOptions.PostCount => t => t.Posts.Count,
+            _ => t => t.Name
+        };
         
         return await topicRepository
-            .FindByConditionAsync
+            .FindByConditionWithFilterAsync
             (
                 expression,
-                filter.SortOptions,
+                keySelector,
                 filter.Ascending,
                 paginationParameters,
                 false,
@@ -204,11 +211,18 @@ public class TopicTopicApplicationService(
                 t.Name.Contains(filter.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
+        Expression<Func<Topic, object>> keySelector = filter.SortOptions switch
+        {
+            TopicSortOptions.CreateDate => t => t.CreatedAt,
+            TopicSortOptions.PostCount => t => t.Posts.Count,
+            _ => t => t.Name
+        };
+        
         return await topicRepository
-            .FindByConditionAsync
+            .FindByConditionWithFilterAsync
             (
                 expression,
-                filter.SortOptions,
+                keySelector,
                 filter.Ascending,
                 paginationParameters,
                 false,

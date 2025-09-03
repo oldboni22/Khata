@@ -13,6 +13,14 @@ public interface IGenericRepository<T>
         bool trackChanges = false, 
         CancellationToken cancellationToken = default);
     
+    Task<PagedList<T>> FindByConditionWithFilterAsync(
+        Expression<Func<T, bool>> expression,
+        Expression<Func<T, object>> keySelector, 
+        bool ascending,
+        PaginationParameters paginationParameters,
+        bool trackChanges = false, 
+        CancellationToken cancellationToken = default);
+    
     Task<T?> FindByIdAsync(Guid id, bool trackChanges = true, CancellationToken cancellationToken = default);
     
     Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default);
