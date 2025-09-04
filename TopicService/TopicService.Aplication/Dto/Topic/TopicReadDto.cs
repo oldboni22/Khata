@@ -7,7 +7,7 @@ public class TopicReadDto
 {
     public required string Name { get; set; }
 
-    public List<Domain.Entities.Topic> SubTopics { get; set; } = [];
+    public List<Domain.Entities.TopicReadDto> SubTopics { get; set; } = [];
 
     public List<Domain.Entities.Post> Posts { get; set; } = [];
 }

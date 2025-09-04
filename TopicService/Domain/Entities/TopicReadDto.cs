@@ -3,7 +3,7 @@ using Shared.Exceptions;
 
 namespace Domain.Entities;
 
-public class Topic : EntityWithTimestamps
+public class TopicReadDto : EntityWithTimestamps
 {
     #region Consts
     
@@ -13,11 +13,11 @@ public class Topic : EntityWithTimestamps
         
     #endregion
     
-    private readonly List<Topic> _subTopics = [];
+    private readonly List<TopicReadDto> _subTopics = [];
 
     private readonly List<Post> _posts = [];
     
-    public IReadOnlyCollection<Topic> SubTopics => _subTopics;
+    public IReadOnlyCollection<TopicReadDto> SubTopics => _subTopics;
     
     public IReadOnlyCollection<Post> Posts => _posts;
 
@@ -27,24 +27,24 @@ public class Topic : EntityWithTimestamps
 
     public Guid OwnerId { get; private set; }
     
-    private Topic(string name, Guid creatorId, Guid? parentTopicId = null)
+    private TopicReadDto(string name, Guid creatorId, Guid? parentTopicId = null)
     {
         Name = name;
         ParentTopicId = parentTopicId;
         OwnerId = creatorId;
     }
     
-    public static Topic Create(string name, Guid creatorId, Guid? parentTopic = null)
+    public static TopicReadDto Create(string name, Guid creatorId, Guid? parentTopic = null)
     {
         if (string.IsNullOrEmpty(name) || name.Length is < NameMinLength or > NameMaxLength)
         {
             throw new Exception(); //TODO Custom exception
         }
 
-        return new Topic(name, creatorId, parentTopic);
+        return new TopicReadDto(name, creatorId, parentTopic);
     }
 
-    public Topic AddSubTopic(string subTopicName, Guid creatorId)
+    public TopicReadDto AddSubTopic(string subTopicName, Guid creatorId)
     {
         var subTopic = Create(subTopicName, creatorId, Id);
         
@@ -56,7 +56,7 @@ public class Topic : EntityWithTimestamps
     public void RemoveSubTopic(Guid subTopicId, Guid senderId)
     {
         var subTopic = _subTopics.FirstOrDefault(p => p.Id == subTopicId)
-                       ?? throw new EntityNotFoundException<Topic>(subTopicId);
+                       ?? throw new EntityNotFoundException<TopicReadDto>(subTopicId);
 
         if (senderId != OwnerId && senderId != subTopic.OwnerId)
         {

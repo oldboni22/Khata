@@ -1,13 +1,11 @@
 using System.Linq.Expressions;
 using Domain.Entities;
-using Domain.Exceptions;
 using Domain.RepositoryContracts;
 using Microsoft.EntityFrameworkCore;
-using Shared;
 using Shared.Extensions;
 using Shared.PagedList;
 
-namespace Infrastructure;
+namespace Infrastructure.Repositories;
 
 public class GenericRepository<T>(TopicServiceContext context) : IGenericRepository<T> 
     where T : EntityBase

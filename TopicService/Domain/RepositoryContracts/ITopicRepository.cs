@@ -5,6 +5,6 @@ using Shared.PagedList;
 
 namespace Domain.RepositoryContracts;
 
-public interface ITopicRepository : IGenericRepository<Topic>
+public interface ITopicRepository : IGenericRepository<TopicReadDto>
 {
 }

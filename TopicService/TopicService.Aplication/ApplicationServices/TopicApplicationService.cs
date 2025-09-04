@@ -12,32 +12,40 @@ using TopicService.API.Dto.Post;
 using TopicService.API.Dto.Topic;
 using TopicService.API.Utilities.LogMessages;
 using ILogger = Serilog.ILogger;
+using TopicReadDto = Domain.Entities.TopicReadDto;
 
 namespace TopicService.API.ApplicationServices;
 
 public interface ITopicApplicationService
 {
-    Task<TopicReadDto> CreateHeadTopicAsync(string senderId, TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default);
+    Task<Dto.Topic.TopicReadDto> CreateHeadTopicAsync(
+        string senderId, TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default);
 
     Task RemoveHeadTopicAsync(string senderId, Guid topicId, CancellationToken cancellationToken = default);
 
-    Task<TopicReadDto> CreateSubTopicAsync(
+    Task<Dto.Topic.TopicReadDto> CreateSubTopicAsync(
        string senderId, TopicCreateDto topicCreateDto, Guid parentTopicId, CancellationToken cancellationToken = default);
     
-    Task RemoveSubTopicAsync(string senderId, Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default); 
+    Task RemoveSubTopicAsync(
+        string senderId, Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default); 
+    
+    Task<TopicReadDto> UpdateTopicOwnerAsync(
+        string senderId, Guid topicId, Guid userId, CancellationToken cancellationToken = default);
     
     //перенести в сервис постов
-    Task<PostReadDto> CreatePostAsync(string senderId, PostCreateDto postCreateDto, Guid topicId, CancellationToken cancellationToken = default);
+    Task<PostReadDto> CreatePostAsync(
+        string senderId, PostCreateDto postCreateDto, Guid topicId, CancellationToken cancellationToken = default);
     
-    Task RemovePostAsync(string senderId, Guid postId, Guid topicId, CancellationToken cancellationToken = default);
+    Task RemovePostAsync(
+        string senderId, Guid postId, Guid topicId, CancellationToken cancellationToken = default);
     //
     
-    Task<PagedList<Topic>> FindHeadTopics(
+    Task<PagedList<TopicReadDto>> FindHeadTopics(
         TopicSearchParameters parameters, 
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default);
     
-    Task<PagedList<Topic>> FindChildTopics(
+    Task<PagedList<TopicReadDto>> FindChildTopics(
         Guid parentTopicId,
         TopicSearchParameters parameters, 
         PaginationParameters paginationParameters,
@@ -46,17 +54,17 @@ public interface ITopicApplicationService
 
 public class TopicTopicApplicationService(
     ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
-    ApplicationServiceBase<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger),ITopicApplicationService
+    ApplicationServiceBase<TopicReadDto, TopicSortOptions>(repository, userGRpcClient, mapper, logger),ITopicApplicationService
 {
-    public async Task<TopicReadDto> CreateHeadTopicAsync(string senderId, TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
+    public async Task<Dto.Topic.TopicReadDto> CreateHeadTopicAsync(string senderId, TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
     {
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
         
-        var topicEntity = Topic.Create(topicCreateDto.Name, senderUserId);
+        var topicEntity = TopicReadDto.Create(topicCreateDto.Name, senderUserId);
         
         var createdTopic = await Repository.CreateAsync(topicEntity, cancellationToken);
         
-        return Mapper.Map<TopicReadDto>(createdTopic);
+        return Mapper.Map<Dto.Topic.TopicReadDto>(createdTopic);
     }
 
     public async Task RemoveHeadTopicAsync(string senderId, Guid topicId, CancellationToken cancellationToken = default)
@@ -67,7 +75,7 @@ public class TopicTopicApplicationService(
 
         if (topic is null)
         {
-            ThrowNotFoundException<Topic>(topicId);
+            ThrowNotFoundException<TopicReadDto>(topicId);
         }
 
         if (senderUserId != topic!.OwnerId)
@@ -78,7 +86,7 @@ public class TopicTopicApplicationService(
         await Repository.DeleteAsync(topicId, cancellationToken);
     }
 
-    public async Task<TopicReadDto> CreateSubTopicAsync(
+    public async Task<Dto.Topic.TopicReadDto> CreateSubTopicAsync(
         string senderId, TopicCreateDto topicCreateDto, Guid parentTopicId, CancellationToken cancellationToken = default)
     {
         var parentTopic = await Repository
@@ -86,7 +94,7 @@ public class TopicTopicApplicationService(
 
         if (parentTopic is null)
         {
-            ThrowNotFoundException<Topic>(parentTopicId);    
+            ThrowNotFoundException<TopicReadDto>(parentTopicId);    
         }
 
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
@@ -95,7 +103,7 @@ public class TopicTopicApplicationService(
 
         await Repository.SaveChangesAsync(cancellationToken);
         
-        return Mapper.Map<TopicReadDto>(createdTopic);
+        return Mapper.Map<Dto.Topic.TopicReadDto>(createdTopic);
     }
 
     public async Task RemoveSubTopicAsync(
@@ -103,11 +111,10 @@ public class TopicTopicApplicationService(
     {
         var topic = await Repository
             .FindByIdAsync(topicId, true, cancellationToken);
-
-
+        
         if(topic is null)
         {
-            ThrowNotFoundException<Topic>(topicId);
+            ThrowNotFoundException<TopicReadDto>(topicId);
         }
 
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
@@ -122,6 +129,29 @@ public class TopicTopicApplicationService(
         await Repository.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<TopicReadDto> UpdateTopicOwnerAsync(string senderId, Guid topicId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var topic = await Repository
+            .FindByIdAsync(topicId, true, cancellationToken);
+        
+        if(topic is null)
+        {
+            ThrowNotFoundException<TopicReadDto>(topicId);
+        }
+        
+        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
+
+        if (senderUserId == topic!.OwnerId)
+        {
+            throw new ForbiddenException();
+        }
+        
+        topic!.SetOwner(userId);
+        await Repository.SaveChangesAsync(cancellationToken);
+        
+        return Mapper.Map<TopicReadDto>(topic);
+    }
+
 
     public async Task<PostReadDto> CreatePostAsync(
         string senderId,PostCreateDto postCreateDto, Guid topicId, CancellationToken cancellationToken = default)
@@ -130,7 +160,7 @@ public class TopicTopicApplicationService(
         
         if(topic is null)
         {
-            ThrowNotFoundException<Topic>(topicId);
+            ThrowNotFoundException<TopicReadDto>(topicId);
         }
 
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
@@ -148,7 +178,7 @@ public class TopicTopicApplicationService(
         
         if(topic is null)
         {
-            ThrowNotFoundException<Topic>(topicId);
+            ThrowNotFoundException<TopicReadDto>(topicId);
         }
 
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
@@ -163,12 +193,12 @@ public class TopicTopicApplicationService(
         await Repository.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<PagedList<Topic>> FindHeadTopics(
+    public async Task<PagedList<TopicReadDto>> FindHeadTopics(
         TopicSearchParameters parameters, 
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == null;
+        Expression<Func<TopicReadDto, bool>> expression = t => t.ParentTopicId == null;
 
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
@@ -194,7 +224,7 @@ public class TopicTopicApplicationService(
             );
     }
 
-    public async Task<PagedList<Topic>> FindChildTopics(
+    public async Task<PagedList<TopicReadDto>> FindChildTopics(
         Guid parentTopicId,
         TopicSearchParameters parameters,
         PaginationParameters paginationParameters,
@@ -202,10 +232,10 @@ public class TopicTopicApplicationService(
     {
         if (!await Repository.ExistsAsync(parentTopicId, cancellationToken))
         {
-            throw new EntityNotFoundException<Topic>(parentTopicId);
+            throw new EntityNotFoundException<TopicReadDto>(parentTopicId);
         }
         
-        Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == parentTopicId;
+        Expression<Func<TopicReadDto, bool>> expression = t => t.ParentTopicId == parentTopicId;
 
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
@@ -238,7 +268,7 @@ public class TopicTopicApplicationService(
         throw new EntityNotFoundException<T>(id);
     }
 
-    protected override Expression<Func<Topic, object>> ParseSortOptions(TopicSortOptions sortOptions)
+    protected override Expression<Func<TopicReadDto, object>> ParseSortOptions(TopicSortOptions sortOptions)
     {
         return sortOptions switch
         {
@@ -248,7 +278,7 @@ public class TopicTopicApplicationService(
         };
     }
 
-    protected override (Expression<Func<Topic, object>> selector, bool ascending) DefaultSortOptions
+    protected override (Expression<Func<TopicReadDto, object>> selector, bool ascending) DefaultSortOptions
     {
         get
         {

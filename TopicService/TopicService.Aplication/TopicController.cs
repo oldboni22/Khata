@@ -6,6 +6,7 @@ using Shared.Extensions;
 using TopicService.API.ApplicationServices;
 using TopicService.API.Dto.Topic;
 using TopicService.API.Utilities.LogMessages;
+using TopicReadDto = TopicService.API.Dto.Topic.TopicReadDto;
 
 namespace TopicService.API;
 
