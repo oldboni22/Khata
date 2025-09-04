@@ -10,5 +10,4 @@ namespace Infrastructure;
 
 public class TopicRepository(TopicServiceContext context) : GenericRepository<Topic>(context), ITopicRepository
 {
-    
 }

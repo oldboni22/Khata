@@ -45,8 +45,8 @@ public interface ITopicApplicationService
 }
 
 public class TopicTopicApplicationService(
-    ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
-    ApplicationServiceBase<Topic, TopicSortOptions>(topicRepository, userGRpcClient, mapper, logger),ITopicApplicationService
+    ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
+    ApplicationServiceBase<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger),ITopicApplicationService
 {
     public async Task<TopicReadDto> CreateHeadTopicAsync(string senderId, TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
     {
@@ -54,7 +54,7 @@ public class TopicTopicApplicationService(
         
         var topicEntity = Topic.Create(topicCreateDto.Name, senderUserId);
         
-        var createdTopic = await TopicRepository.CreateAsync(topicEntity, cancellationToken);
+        var createdTopic = await Repository.CreateAsync(topicEntity, cancellationToken);
         
         return Mapper.Map<TopicReadDto>(createdTopic);
     }
@@ -63,7 +63,7 @@ public class TopicTopicApplicationService(
     {
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
         
-        var topic = await TopicRepository.FindByIdAsync(topicId, cancellationToken: cancellationToken);
+        var topic = await Repository.FindByIdAsync(topicId, cancellationToken: cancellationToken);
 
         if (topic is null)
         {
@@ -75,13 +75,13 @@ public class TopicTopicApplicationService(
             throw new ForbiddenException();
         }
         
-        await TopicRepository.DeleteAsync(topicId, cancellationToken);
+        await Repository.DeleteAsync(topicId, cancellationToken);
     }
 
     public async Task<TopicReadDto> CreateSubTopicAsync(
         string senderId, TopicCreateDto topicCreateDto, Guid parentTopicId, CancellationToken cancellationToken = default)
     {
-        var parentTopic = await TopicRepository
+        var parentTopic = await Repository
             .FindByIdAsync(parentTopicId, true, cancellationToken);
 
         if (parentTopic is null)
@@ -93,7 +93,7 @@ public class TopicTopicApplicationService(
         
         var createdTopic = parentTopic!.AddSubTopic(topicCreateDto.Name, senderUserId);
 
-        await TopicRepository.SaveChangesAsync(cancellationToken);
+        await Repository.SaveChangesAsync(cancellationToken);
         
         return Mapper.Map<TopicReadDto>(createdTopic);
     }
@@ -101,7 +101,7 @@ public class TopicTopicApplicationService(
     public async Task RemoveSubTopicAsync(
         string senderId, Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository
+        var topic = await Repository
             .FindByIdAsync(topicId, true, cancellationToken);
 
 
@@ -119,14 +119,14 @@ public class TopicTopicApplicationService(
 
         topic!.RemoveSubTopic(topicId, senderUserId);
         
-        await TopicRepository.SaveChangesAsync(cancellationToken);
+        await Repository.SaveChangesAsync(cancellationToken);
     }
 
 
     public async Task<PostReadDto> CreatePostAsync(
         string senderId,PostCreateDto postCreateDto, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -137,14 +137,14 @@ public class TopicTopicApplicationService(
         
         var createdPost = topic!.AddPost(postCreateDto.Title, postCreateDto.Text, senderUserId);
         
-        await TopicRepository.SaveChangesAsync(cancellationToken);
+        await Repository.SaveChangesAsync(cancellationToken);
         
         return Mapper.Map<PostReadDto>(createdPost);
     }
 
     public async Task RemovePostAsync(string senderId, Guid postId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -160,7 +160,7 @@ public class TopicTopicApplicationService(
         
         topic!.RemovePost(postId, senderUserId);
         
-        await TopicRepository.SaveChangesAsync(cancellationToken);
+        await Repository.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<PagedList<Topic>> FindHeadTopics(
@@ -183,7 +183,7 @@ public class TopicTopicApplicationService(
         
         var selectors = ParseFilters(filters);
 
-        return await TopicRepository
+        return await Repository
             .FindByConditionWithFilterAsync
             (
                 expression,
@@ -200,7 +200,7 @@ public class TopicTopicApplicationService(
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        if (!await TopicRepository.ExistsAsync(parentTopicId, cancellationToken))
+        if (!await Repository.ExistsAsync(parentTopicId, cancellationToken))
         {
             throw new EntityNotFoundException<Topic>(parentTopicId);
         }
@@ -220,7 +220,7 @@ public class TopicTopicApplicationService(
         
         var selectors = ParseFilters(filters);
         
-        return await TopicRepository
+        return await Repository
             .FindByConditionWithFilterAsync
             (
                 expression,
