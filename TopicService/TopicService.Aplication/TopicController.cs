@@ -3,6 +3,7 @@ using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Extensions;
+using TopicService.API.ApplicationServices;
 using TopicService.API.Dto.Topic;
 using TopicService.API.Utilities.LogMessages;
 
