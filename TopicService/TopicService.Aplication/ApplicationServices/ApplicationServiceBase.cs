@@ -9,11 +9,11 @@ using TopicService.API.Utilities.LogMessages;
 namespace TopicService.API.ApplicationServices;
 
 public abstract class ApplicationServiceBase<TEntity, TSortOptions>(
-    IGenericRepository<TEntity> repository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) 
+    ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) 
     where TEntity : EntityBase
     where TSortOptions : Enum
 {
-    protected IGenericRepository<TEntity> Repository { get; } = repository;
+    protected ITopicRepository Repository { get; } = repository;
     
     protected IUserGRpcClient UserGRpcClient { get; } = userGRpcClient;
     
