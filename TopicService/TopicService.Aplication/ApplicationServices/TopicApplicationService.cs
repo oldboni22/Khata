@@ -7,6 +7,7 @@ using Infrastructure.gRpc;
 using Shared.Exceptions;
 using Shared.Extensions;
 using Shared.Filters;
+using Shared.Filters.Topic;
 using Shared.PagedList;
 using TopicService.API.Dto.Post;
 using TopicService.API.Dto.Topic;

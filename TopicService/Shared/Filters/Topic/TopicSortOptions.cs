@@ -1,4 +1,4 @@
-namespace Shared.Filters;
+namespace Shared.Filters.Topic;
 
 public enum TopicSortOptions
 {
