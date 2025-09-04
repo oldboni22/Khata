@@ -5,6 +5,7 @@ using Shared.Extensions;
 using Shared.PagedList;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Exceptions.Relations;
+using UserService.BLL.gRpc;
 using UserService.BLL.Models;
 using UserService.BLL.Models.User;
 using UserService.BLL.Utilities.MessageGenerators.Logs;
@@ -26,6 +27,12 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     Task<PagedList<UserTopicRelationModel>> FindUserRelationsAsync(
         Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
     
+    Task<List<Guid>> FindBannedTopicsIdsAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken = default);
+    
+    Task<bool> DoesUserHaveTopicStatusAsync(Guid userId, Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default);
+    
     Task AddSubscriptionAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
     
     Task RemoveSubscriptionAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
@@ -42,6 +49,7 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
 public class UserService(
     IUserRepository userRepository,
     IUserTopicRelationRepository userTopicRelationRepository,
+    ITopicGRpcClient topicGRpcClient,
     IMapper mapper, 
     ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
@@ -102,6 +110,34 @@ public class UserService(
                 );
         
         return Mapper.Map<PagedList<UserTopicRelationModel>>(relationEntities);
+    }
+
+    public async Task<List<Guid>> FindBannedTopicsIdsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var relations = await userTopicRelationRepository
+            .FindAllByConditionAsync
+            (
+                relation => relation.UserId == userId && relation.TopicRelationStatus == UserTopicRelationStatus.Banned,
+                false,
+                cancellationToken
+            );
+        
+        return relations.Select(r => r.TopicId).ToList();
+    }
+
+    public async Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken = default)
+    {
+        var user = await FindUserByAuth0IdAsync(auth0Id, cancellationToken);
+
+        return user.Id;
+    }
+
+    public async Task<bool> DoesUserHaveTopicStatusAsync(
+        Guid userId, Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default)
+    {
+        var relations = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
+        
+        return DoesUserHaveRelationStatus(relations, status, out var relationId);
     }
 
     public async Task AddSubscriptionAsync(
@@ -170,7 +206,7 @@ public class UserService(
 
     public async Task AddBanAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var senderUser = await GetUserByAuth0IdAsync(senderId, cancellationToken);
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
         
         var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
         
@@ -229,7 +265,7 @@ public class UserService(
 
     public async Task RemoveBanAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var senderUser = await GetUserByAuth0IdAsync(senderId, cancellationToken);
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
         
         var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
         
@@ -255,7 +291,12 @@ public class UserService(
 
     public async Task AddModerationStatusAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        //TODO When topic service will be ready check is sender a topic owner
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
+
+        if (!await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId))
+        {
+            throw new ForbiddenException(senderUser.Id);
+        }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
@@ -291,7 +332,12 @@ public class UserService(
 
     public async Task RemoveModerationStatusAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        //TODO When topic service will be ready check is sender a topic owner
+        var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
+
+        if (!await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId))
+        {
+             throw new ForbiddenException(senderUser.Id);
+        }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
@@ -336,15 +382,15 @@ public class UserService(
     private bool DoesUserHaveRelationStatus(
         List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
     {
-        var subRelation = relations
+        var relation = relations
             .FirstOrDefault(relation => relation.TopicRelationStatus == targetStatus);
 
-        relationId = subRelation?.Id ?? Guid.Empty;
+        relationId = relation?.Id ?? Guid.Empty;
 
         return relationId != Guid.Empty;
     }
 
-    private async Task<User> GetUserByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken)
+    private async Task<User> FindUserByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken)
     {
         var userEntity = await userRepository.FindUserByAuth0IdAsync(auth0Id, cancellationToken);
 
@@ -358,7 +404,7 @@ public class UserService(
     
     private async Task ValidateSenderIdAsync(string senderId, Guid userId, CancellationToken cancellationToken)
     {
-        var userEntity = await GetUserByAuth0IdAsync(senderId, cancellationToken);
+        var userEntity = await FindUserByAuth0IdAsync(senderId, cancellationToken);
 
         if (userEntity.Id != userId)
         {

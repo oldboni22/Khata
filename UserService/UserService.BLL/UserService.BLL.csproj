@@ -12,12 +12,18 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
       <PackageReference Include="AutoMapper" Version="15.0.1" />
+      <PackageReference Include="Grpc.Tools" Version="2.72.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Serilog" Version="4.3.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Models\Enums\" />
+        <Folder Include="Models\Enums\" />
+        <Protobuf Include="gRpc\TopicService.proto" GrpcServices="Both" />
     </ItemGroup>
 
 </Project>

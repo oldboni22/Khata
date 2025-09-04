@@ -1,5 +1,8 @@
+using Infrastructure.gRpc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared;
+using UserService.BLL.gRpc;
 using UserService.BLL.Services;
 using UserService.BLL.Utilities;
 using UserService.DAL.Extensions;
@@ -13,7 +16,23 @@ public static class ServiceCollectionExtensions
         services
             .AddDataLayerDependencies(configuration)
             .AddMapping()
+            .AddGRpc(configuration)
             .AddServices();
+        
+        return services;
+    }
+    
+    private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
+    {
+        var port = new Uri(configuration[ConfigurationKeys.TopicGRpcPort]!);
+        
+        services.AddGrpc();
+        services.AddGrpcClient<TopicGRpcApi.TopicGRpcApiClient>(options =>
+        {
+            options.Address = port;
+        });
+
+        services.AddScoped<ITopicGRpcClient,TopicGRpcClientWrapper>();
         
         return services;
     }
