@@ -22,7 +22,7 @@ namespace TopicService.API.Controllers;
 public class TopicController(ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
     ServiceController<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger)
 {
-    public async Task<Dto.Topic.TopicReadDto> CreateHeadTopicAsync(TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
+    public async Task<TopicReadDto> CreateHeadTopicAsync(TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
     {
         var senderId = User.GetAuth0Id();
         
@@ -32,7 +32,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         
         var createdTopic = await Repository.CreateAsync(topicEntity, cancellationToken);
         
-        return Mapper.Map<Dto.Topic.TopicReadDto>(createdTopic);
+        return Mapper.Map<TopicReadDto>(createdTopic);
     }
 
     public async Task RemoveHeadTopicAsync(Guid topicId, CancellationToken cancellationToken = default)
@@ -56,7 +56,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         await Repository.DeleteAsync(topicId, cancellationToken);
     }
 
-    public async Task<Dto.Topic.TopicReadDto> CreateSubTopicAsync(
+    public async Task<TopicReadDto> CreateSubTopicAsync(
         TopicCreateDto topicCreateDto, Guid parentTopicId, CancellationToken cancellationToken = default)
     {
         var parentTopic = await Repository
@@ -80,7 +80,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
 
         await Repository.UpdateAsync(cancellationToken);
         
-        return Mapper.Map<Dto.Topic.TopicReadDto>(createdTopic);
+        return Mapper.Map<TopicReadDto>(createdTopic);
     }
 
     public async Task RemoveSubTopicAsync(Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default)
@@ -177,7 +177,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         await Repository.UpdateAsync(cancellationToken);
     }
 
-    public async Task<PagedList<Topic>> FindHeadTopics(
+    public async Task<PagedList<TopicReadDto>> FindHeadTopics(
         TopicSearchParameters parameters, 
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
@@ -192,7 +192,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         
         var selectors = ParseFilters(parameters.Filters);
 
-        return await Repository
+        var topicEntities = await Repository
             .FindByConditionWithFilterAsync
             (
                 expression,
@@ -201,9 +201,11 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
                 false,
                 cancellationToken
             );
+        
+        return Mapper.Map<PagedList<TopicReadDto>>(topicEntities);
     }
 
-    public async Task<PagedList<Topic>> FindChildTopics(
+    public async Task<PagedList<TopicReadDto>> FindChildTopics(
         Guid parentTopicId,
         TopicSearchParameters parameters,
         PaginationParameters paginationParameters,
@@ -224,7 +226,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         
         var selectors = ParseFilters(parameters.Filters);
         
-        return await Repository
+        var topicEntities = await Repository
             .FindByConditionWithFilterAsync
             (
                 expression,
@@ -233,6 +235,8 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
                 false,
                 cancellationToken
             );
+        
+        return Mapper.Map<PagedList<TopicReadDto>>(topicEntities);
     }
 
     protected override Expression<Func<Topic, object>> ParseSortOption(TopicSortOptions sortOption)
