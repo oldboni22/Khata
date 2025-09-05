@@ -193,11 +193,11 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         var selectors = ParseFilters(parameters.Filters);
 
         var topicEntities = await Repository
-            .FindByConditionWithFilterAsync
+            .FindByConditionAsync
             (
                 expression,
-                selectors,
                 paginationParameters,
+                selectors,
                 false,
                 cancellationToken
             );
@@ -227,11 +227,11 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         var selectors = ParseFilters(parameters.Filters);
         
         var topicEntities = await Repository
-            .FindByConditionWithFilterAsync
+            .FindByConditionAsync
             (
                 expression,
-                selectors,
                 paginationParameters,
+                selectors,
                 false,
                 cancellationToken
             );

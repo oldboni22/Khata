@@ -11,32 +11,11 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
     where T : EntityBase
 {
     protected TopicServiceContext Context { get; } = context;
-
-    public async Task<PagedList<T>> FindByConditionAsync(
-        Expression<Func<T, bool>> expression, 
-        PaginationParameters paginationParameters, 
-        bool trackChanges = false, 
-        CancellationToken cancellationToken = default)
-    {
-        var query = Context.Set<T>()
-            .Where(expression)
-            .Skip((paginationParameters.PageNumber -1) * paginationParameters.PageSize)
-            .Take(paginationParameters.PageSize);
-        
-        query = trackChanges ? query : query.AsNoTracking();
-
-        var list = await query.ToListAsync(cancellationToken);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-        var pageCount = (int)Math.Ceiling(totalCount / (double)paginationParameters.PageSize);
-        
-        return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
-    }
     
-    public async Task<PagedList<T>> FindByConditionWithFilterAsync(
+    public async Task<PagedList<T>> FindByConditionAsync(
         Expression<Func<T, bool>> expression,
-        (Expression<Func<T, object>> predicate, bool isAscending)[] keySelectors, 
         PaginationParameters paginationParameters,
+        (Expression<Func<T, object>> predicate, bool isAscending)[]? keySelectors = null, 
         bool trackChanges = false, 
         CancellationToken cancellationToken = default)
     {
@@ -45,7 +24,10 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
 
         var totalCount = await query.CountAsync(cancellationToken);
         
-        query = ApplyKeySelectors(query, keySelectors);
+        if(keySelectors is not null)
+        {
+            query = ApplyKeySelectors(query, keySelectors);
+        }
         
         query = trackChanges ? query : query.AsNoTracking();
 
@@ -58,7 +40,7 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
         
         return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
     }
-    
+
     public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)
     {
         var query = Context.Set<T>().Where(ent => ent.Id == id);
