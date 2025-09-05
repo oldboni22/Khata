@@ -44,6 +44,8 @@ service TopicGRpcApi {
 service UserGRpcApi {
 
     rpc IsModerator(TopicUserStatusRequest) returns (TopicUserResponse);
+    
+    rpc IsBanned(TopicUserStatusRequest) returns (TopicUserResponse);
 
     rpc FindBannedTopicsId(BannedUserTopicsRequest) returns (BannedUserTopicsResponse);
     

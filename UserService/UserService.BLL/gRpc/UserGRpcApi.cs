@@ -19,6 +19,18 @@ public class UserGRpcApi(IUserService userService) : Infrastructure.gRpc.UserGRp
         return new TopicUserResponse { Result = result };
     }
 
+    public override async Task<TopicUserResponse> IsBanned(TopicUserStatusRequest request, ServerCallContext context)
+    {
+        var userId = Guid.Parse(request.UserId);
+        var topicId = Guid.Parse(request.TopicId);
+        
+        var result = await userService
+            .DoesUserHaveTopicStatusAsync(userId, topicId, UserTopicRelationStatus.Banned);
+
+        return new TopicUserResponse { Result = result };
+    }
+    
+    
     public override async Task<BannedUserTopicsResponse> FindBannedTopicsId(
         BannedUserTopicsRequest request, ServerCallContext context)
     {
