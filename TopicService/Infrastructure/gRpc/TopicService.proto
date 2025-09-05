@@ -8,6 +8,8 @@ message TopicUserStatusRequest {
 
     string topic_id = 1;
     string user_id = 2;
+    
+    int32 status = 3;
 }
 
 message TopicUserResponse {
@@ -19,7 +21,6 @@ message BannedUserTopicsRequest{
 
     string user_id = 1;
 }
-
 
 message BannedUserTopicsResponse{
 
@@ -43,7 +44,7 @@ service TopicGRpcApi {
 
 service UserGRpcApi {
 
-    rpc IsModerator(TopicUserStatusRequest) returns (TopicUserResponse);
+    rpc HasStatus(TopicUserStatusRequest) returns (TopicUserResponse);
 
     rpc FindBannedTopicsId(BannedUserTopicsRequest) returns (BannedUserTopicsResponse);
     

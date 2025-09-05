@@ -1,6 +1,6 @@
 using Shared.PagedList;
 
-namespace Shared;
+namespace Shared.Extensions;
 
 public static class ListExtensions
 {

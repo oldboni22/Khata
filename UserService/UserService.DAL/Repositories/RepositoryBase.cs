@@ -48,7 +48,8 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
 
         var list = await query.ToListAsync(cancellationToken);
 
-        var pageCount = (int)Math.Ceiling(Context.Set<T>().Count()/(double)paginationParameters.PageSize);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var pageCount = (int)Math.Ceiling(totalCount / (double)paginationParameters.PageSize);
         
         return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
     }

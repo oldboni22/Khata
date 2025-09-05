@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{8166F0A0-B0B3-4B84-B6EF-94EC9BFBD332}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopicService.API", "TopicService.API\TopicService.API.csproj", "{E2101509-63A9-430D-B9DA-4EFCE7DD2098}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopicService.Aplication", "TopicService.Aplication\TopicService.Aplication.csproj", "{E2101509-63A9-430D-B9DA-4EFCE7DD2098}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

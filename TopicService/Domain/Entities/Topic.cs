@@ -1,4 +1,5 @@
 ﻿using Domain.Exceptions;
+using Shared.Exceptions;
 
 namespace Domain.Entities;
 
@@ -52,6 +53,19 @@ public class Topic : EntityWithTimestamps
         return subTopic;
     }
 
+    public void RemoveSubTopic(Guid subTopicId, Guid senderId)
+    {
+        var subTopic = _subTopics.FirstOrDefault(p => p.Id == subTopicId)
+                       ?? throw new EntityNotFoundException<Topic>(subTopicId);
+
+        if (senderId != OwnerId && senderId != subTopic.OwnerId)
+        {
+            throw new ForbiddenException();
+        }
+        
+        _subTopics.Remove(subTopic);
+    }
+
     public Post AddPost(string title, string text, Guid authorId)
     {
         var post = Post.Create(title, text, Id, authorId);
@@ -65,6 +79,11 @@ public class Topic : EntityWithTimestamps
     {
         var post = _posts.FirstOrDefault(p => p.Id == postId)
                    ?? throw new EntityNotFoundException<Post>(postId);
+
+        if (senderId != OwnerId && senderId != post.AuthorId)
+        {
+            throw new ForbiddenException();
+        }
 
         _posts.Remove(post);
     }
