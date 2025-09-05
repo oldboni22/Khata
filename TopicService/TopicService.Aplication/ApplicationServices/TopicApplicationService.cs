@@ -99,6 +99,11 @@ public class TopicTopicApplicationService(
         }
 
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
+
+        if (await UserGRpcClient.IsBannedAsync(senderUserId, parentTopicId))
+        {
+            throw new ForbiddenException();
+        }
         
         var createdTopic = parentTopic!.AddSubTopic(topicCreateDto.Name, senderUserId);
 

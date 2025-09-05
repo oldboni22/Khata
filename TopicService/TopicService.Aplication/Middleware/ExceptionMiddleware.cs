@@ -1,3 +1,4 @@
+using Shared.Exceptions;
 using UserService.API.Utilities;
 
 namespace TopicService.API.Middleware;
@@ -20,9 +21,12 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
     {
         logger.Error(exception.Message);
 
-        ExceptionDetails details = exception switch
+        ExceptionDetails details = new ExceptionDetails(exception.Message,1);
+            
+        details = exception switch
         {
-            _ => new ExceptionDetails(exception.Message, StatusCodes.Status500InternalServerError)
+            ForbiddenException => details with {StatusCode = StatusCodes.Status403Forbidden},
+            _ => details with {StatusCode = StatusCodes.Status500InternalServerError},
         };
 
         context.Response.ContentType = "application/json";
