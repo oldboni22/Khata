@@ -5,6 +5,8 @@ public interface IUserGRpcClient
     Task<List<Guid>> FindBannedTopicsIdAsync(Guid userId);
     
     Task<bool> IsModeratorAsync(Guid userId, Guid topicId);
+    
+    Task<bool> IsBannedAsync(Guid userId, Guid topicId);
 
     Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id);
 }
@@ -29,6 +31,19 @@ public class UserGRpcClientWrapper(UserGRpcApi.UserGRpcApiClient client) : IUser
         };
         
         var response = await client.IsModeratorAsync(request);
+
+        return response.Result;
+    }
+
+    public async Task<bool> IsBannedAsync(Guid userId, Guid topicId)
+    {
+        var  request = new TopicUserStatusRequest
+        {
+            UserId = userId.ToString(),
+            TopicId = topicId.ToString()
+        };
+        
+        var response = await client.IsBannedAsync(request);
 
         return response.Result;
     }
