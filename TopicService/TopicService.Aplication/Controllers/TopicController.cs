@@ -145,7 +145,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
 
         var senderId = User.GetAuth0Id();
         
-        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId);
+        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
         var createdPost = topic!.AddPost(postCreateDto.Title, postCreateDto.Text, senderUserId);
         

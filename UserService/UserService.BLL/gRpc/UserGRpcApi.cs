@@ -7,28 +7,19 @@ namespace UserService.BLL.gRpc;
 
 public class UserGRpcApi(IUserService userService) : Infrastructure.gRpc.UserGRpcApi.UserGRpcApiBase 
 {
-    public override async Task<TopicUserResponse> IsModerator(
+    public override async Task<TopicUserResponse> HasStatus(
         TopicUserStatusRequest request, ServerCallContext context)
     {
         var userId = Guid.Parse(request.UserId);
         var topicId = Guid.Parse(request.TopicId);
         
         var result = await userService
-            .DoesUserHaveTopicStatusAsync(userId, topicId, UserTopicRelationStatus.Moderator);
+            .DoesUserHaveTopicStatusAsync(userId, topicId, (UserTopicRelationStatus)request.Status);
 
         return new TopicUserResponse { Result = result };
     }
 
-    public override async Task<TopicUserResponse> IsBanned(TopicUserStatusRequest request, ServerCallContext context)
-    {
-        var userId = Guid.Parse(request.UserId);
-        var topicId = Guid.Parse(request.TopicId);
-        
-        var result = await userService
-            .DoesUserHaveTopicStatusAsync(userId, topicId, UserTopicRelationStatus.Banned);
-
-        return new TopicUserResponse { Result = result };
-    }
+    
     
     
     public override async Task<BannedUserTopicsResponse> FindBannedTopicsId(
