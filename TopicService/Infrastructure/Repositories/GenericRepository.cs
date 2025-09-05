@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
+using Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Shared.Extensions;
 using Shared.PagedList;
@@ -58,19 +59,17 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
         return entity;
     }
     
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await FindByIdAsync(id, false, cancellationToken);
 
         if (entity is null)
         {
-            return false;
+            throw new EntityNotFoundException<T>(id);
         }
         
         Context.Set<T>().Remove(entity);
         await Context.SaveChangesAsync(cancellationToken);
-        
-        return true;
     }
     
     public async Task UpdateAsync(CancellationToken cancellationToken = default)
