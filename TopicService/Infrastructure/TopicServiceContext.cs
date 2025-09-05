@@ -7,7 +7,7 @@ namespace Infrastructure;
 
 public class TopicServiceContext : DbContext
 {
-    public DbSet<TopicReadDto> Topics { get; init; }
+    public DbSet<Topic> Topics { get; init; }
     
     public DbSet<Post> Posts { get; init; }
     
@@ -34,14 +34,14 @@ public class TopicServiceContext : DbContext
         builder.ApplyConfiguration(new TopicEntityConfiguration());
 
         builder
-            .Entity<TopicReadDto>()
-            .HasMany<TopicReadDto>(topic => topic.SubTopics)
+            .Entity<Topic>()
+            .HasMany<Topic>(topic => topic.SubTopics)
             .WithOne()
             .HasForeignKey(topic => topic.ParentTopicId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder
-            .Entity<TopicReadDto>()
+            .Entity<Topic>()
             .HasMany<Post>(topic => topic.Posts)
             .WithOne()
             .HasForeignKey(post => post.TopicId)

@@ -5,7 +5,7 @@ namespace TopicService.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplicationLayer(this IServiceCollection collection, IConfiguration configuration)
+    public static IServiceCollection AddApplicationLayerDependencies(this IServiceCollection collection, IConfiguration configuration)
     {
         return collection
             .AddMapping()

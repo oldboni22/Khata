@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>TopicService.API</RootNamespace>
+        <UserSecretsId>825abf4b-3118-41c4-9e08-a27e935d5daf</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>

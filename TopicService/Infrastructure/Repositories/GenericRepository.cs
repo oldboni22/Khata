@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
+using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
-using Domain.RepositoryContracts;
 using Microsoft.EntityFrameworkCore;
 using Shared.Extensions;
 using Shared.PagedList;
@@ -91,7 +91,7 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
         return true;
     }
     
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(CancellationToken cancellationToken = default)
     {
         await Context.SaveChangesAsync(cancellationToken);
     }

@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using Domain.Entities;
 using Shared.PagedList;
 
-namespace Domain.RepositoryContracts;
+namespace Domain.Contracts.RepositoryContracts;
 
 public interface IGenericRepository<T>
     where T : EntityBase
@@ -26,7 +26,7 @@ public interface IGenericRepository<T>
     
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
     
-    Task SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task UpdateAsync(CancellationToken cancellationToken = default);
     
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
 }

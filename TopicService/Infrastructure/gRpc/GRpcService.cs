@@ -1,4 +1,4 @@
-using Domain.RepositoryContracts;
+using Domain.Contracts.RepositoryContracts;
 using Grpc.Core;
 
 namespace Infrastructure.gRpc;

@@ -1,16 +1,15 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Domain.Contracts.GRpc;
+using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
-using Domain.Exceptions;
-using Domain.RepositoryContracts;
-using Infrastructure.gRpc;
+using Microsoft.AspNetCore.Mvc;
 using Shared.Filters;
-using TopicService.API.Utilities.LogMessages;
 
-namespace TopicService.API.ApplicationServices;
+namespace TopicService.API.Controllers;
 
-public abstract class ApplicationServiceBase<TEntity, TSortOptions>(
-    ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) 
+public abstract class ServiceController<TEntity, TSortOptions>(
+    ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
     where TEntity : EntityBase
     where TSortOptions : Enum
 {
@@ -20,9 +19,9 @@ public abstract class ApplicationServiceBase<TEntity, TSortOptions>(
     
     protected IMapper Mapper { get; } = mapper;
     
-    protected Serilog.ILogger Logger { get; } = logger.ForContext<ApplicationServiceBase<TEntity, TSortOptions>>();
+    protected Serilog.ILogger Logger { get; } = logger.ForContext<ServiceController<TEntity, TSortOptions>>();
 
-    protected abstract Expression<Func<TEntity, object>> ParseSortOptions(TSortOptions sortOptions);
+    protected abstract Expression<Func<TEntity, object>> ParseSortOption(TSortOptions sortOption);
     
     protected abstract (Expression<Func<TEntity, object>> selector, bool ascending) DefaultSortOptions { get; }
     
@@ -40,17 +39,10 @@ public abstract class ApplicationServiceBase<TEntity, TSortOptions>(
             
             for (int i = 0; i < entries.Count; i++)
             {
-                selectors[i] = (ParseSortOptions(entries[i].SortOptions), entries[i].Ascending);
+                selectors[i] = (ParseSortOption(entries[i].SortOptions), entries[i].Ascending);
             }
         }
 
         return selectors;
     }
-    
-    protected void ThrowNotFoundException(Guid id)
-    {
-        logger.Information(EntityNotFoundLogMessage<TEntity>.Generate(id));
-        
-        throw new EntityNotFoundException<TEntity>(id);
-    }  
 }
