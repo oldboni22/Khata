@@ -96,11 +96,6 @@ public class GenericRepository<T>(TopicServiceContext context) : IGenericReposit
         await Context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return Context.Set<T>().AnyAsync(ent => ent.Id == id, cancellationToken);
-    }
-
     private IQueryable<T> ApplyKeySelectors(
         IQueryable<T> query, (Expression<Func<T, object>> predicate, bool isAscending)[] selectors)
     {

@@ -211,7 +211,7 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        if (!await Repository.ExistsAsync(parentTopicId, cancellationToken))
+        if (await Repository.FindByIdAsync(parentTopicId, false, cancellationToken) is null)
         {
             throw new EntityNotFoundException<Topic>(parentTopicId);
         }

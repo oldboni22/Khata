@@ -22,7 +22,6 @@ message BannedUserTopicsRequest{
     string user_id = 1;
 }
 
-
 message BannedUserTopicsResponse{
 
     repeated string topic_ids = 1;
