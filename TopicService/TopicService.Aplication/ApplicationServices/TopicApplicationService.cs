@@ -206,13 +206,8 @@ public class TopicTopicApplicationService(
             expression = expression.And(t =>
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
-
-        var filters = parameters
-            .Filters
-            .Select(entry => (entry.SortOptions, entry.Ascending))
-            .ToArray();
         
-        var selectors = ParseFilters(filters);
+        var selectors = ParseFilters(parameters.Filters);
 
         return await Repository
             .FindByConditionWithFilterAsync
@@ -244,12 +239,7 @@ public class TopicTopicApplicationService(
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
-        var filters = parameters
-            .Filters
-            .Select(entry => (entry.SortOptions, entry.Ascending))
-            .ToArray();
-        
-        var selectors = ParseFilters(filters);
+        var selectors = ParseFilters(parameters.Filters);
         
         return await Repository
             .FindByConditionWithFilterAsync

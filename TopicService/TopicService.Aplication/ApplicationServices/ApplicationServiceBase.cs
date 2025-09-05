@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Exceptions;
 using Domain.RepositoryContracts;
 using Infrastructure.gRpc;
+using Shared.Filters;
 using TopicService.API.Utilities.LogMessages;
 
 namespace TopicService.API.ApplicationServices;
@@ -25,21 +26,21 @@ public abstract class ApplicationServiceBase<TEntity, TSortOptions>(
     
     protected abstract (Expression<Func<TEntity, object>> selector, bool ascending) DefaultSortOptions { get; }
     
-    protected (Expression<Func<TEntity, object>>, bool)[] ParseFilters((TSortOptions selector, bool ascending)[] filters)
+    protected (Expression<Func<TEntity, object>>, bool)[] ParseFilters(List<FilterEntry<TSortOptions>> entries)
     {
         (Expression<Func<TEntity, object>>, bool)[] selectors;
         
-        if (filters.Length == 0)
+        if (entries.Count == 0)
         {
             selectors = [ DefaultSortOptions ];
         }
         else
         {
-            selectors = new (Expression<Func<TEntity, object>>, bool)[filters.Length];
+            selectors = new (Expression<Func<TEntity, object>>, bool)[entries.Count];
             
-            for (int i = 0; i < filters.Length; i++)
+            for (int i = 0; i < entries.Count; i++)
             {
-                selectors[i] = (ParseSortOptions(filters[i].selector), filters[i].ascending);
+                selectors[i] = (ParseSortOptions(entries[i].SortOptions), entries[i].Ascending);
             }
         }
 
