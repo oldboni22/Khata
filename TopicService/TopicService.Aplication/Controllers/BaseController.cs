@@ -8,7 +8,7 @@ using Shared.Filters;
 
 namespace TopicService.API.Controllers;
 
-public abstract class ServiceController<TEntity, TSortOptions>(
+public abstract class BaseController<TEntity, TSortOptions>(
     ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
     where TEntity : EntityBase
     where TSortOptions : Enum
@@ -19,7 +19,7 @@ public abstract class ServiceController<TEntity, TSortOptions>(
     
     protected IMapper Mapper { get; } = mapper;
     
-    protected Serilog.ILogger Logger { get; } = logger.ForContext<ServiceController<TEntity, TSortOptions>>();
+    protected Serilog.ILogger Logger { get; } = logger.ForContext<BaseController<TEntity, TSortOptions>>();
 
     protected abstract Expression<Func<TEntity, object>> ParseSortOption(TSortOptions sortOption);
     

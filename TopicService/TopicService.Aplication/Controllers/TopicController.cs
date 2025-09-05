@@ -20,7 +20,7 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class TopicController(ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
-    ServiceController<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger)
+    BaseController<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger)
 {
     public async Task<TopicReadDto> CreateHeadTopicAsync(TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
     {
