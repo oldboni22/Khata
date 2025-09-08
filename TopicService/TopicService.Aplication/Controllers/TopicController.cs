@@ -35,6 +35,8 @@ public class TopicController(
         var topicEntity = Topic.Create(topicCreateDto.Name, senderUserId);
         
         var createdTopic = await Repository.CreateAsync(topicEntity, cancellationToken);
+
+        await Repository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<TopicReadDto>(createdTopic);
     }
@@ -60,6 +62,8 @@ public class TopicController(
         }
         
         await Repository.DeleteAsync(parentTopicId, cancellationToken);
+        
+        await Repository.UpdateAsync(cancellationToken);
     }
 
     [Authorize]
@@ -141,55 +145,11 @@ public class TopicController(
         }
         
         topic!.SetOwner(dto.NewOwnerId);
+        
         await Repository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<Topic>(topic);
     }
-    
-    /*public async Task<PostReadDto> CreatePostAsync(
-        PostCreateDto postCreateDto, Guid topicId, CancellationToken cancellationToken = default)
-    {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var senderId = User.GetAuth0Id();
-        
-        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
-        
-        var createdPost = topic!.AddPost(postCreateDto.Title, postCreateDto.Text, senderUserId);
-        
-        await Repository.UpdateAsync(cancellationToken);
-        
-        return Mapper.Map<PostReadDto>(createdPost);
-    }
-
-    public async Task RemovePostAsync(Guid postId, Guid topicId, CancellationToken cancellationToken = default)
-    {
-         var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var senderId = User.GetAuth0Id();
-        
-        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
-        
-        if (!await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
-        {
-            throw new ForbiddenException();
-        }
-        
-        topic!.RemovePost(postId, senderUserId);
-        
-        await Repository.UpdateAsync(cancellationToken);
-    }*/
-    //^ Это Будет перенесено в другой контроллер ^
     
     [HttpGet("parentTopics")]
     public async Task<PagedList<TopicReadDto>> FindParentTopics(

@@ -27,6 +27,8 @@ public class Topic : EntityWithTimestamps
 
     public Guid OwnerId { get; private set; }
     
+    public int PostCount { get; private set; }
+    
     private Topic(string name, Guid creatorId, Guid? parentTopicId = null)
     {
         Name = name;
@@ -71,6 +73,7 @@ public class Topic : EntityWithTimestamps
         var post = Post.Create(title, text, Id, authorId);
         
         _posts.Add(post);
+        PostCount++;
 
         return post;
     }
@@ -86,6 +89,7 @@ public class Topic : EntityWithTimestamps
         }
 
         _posts.Remove(post);
+        PostCount--;
     }
 
     public void SetOwner(Guid ownerId) => OwnerId = ownerId;

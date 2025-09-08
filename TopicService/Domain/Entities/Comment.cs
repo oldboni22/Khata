@@ -24,6 +24,10 @@ public class Comment : EntityWithTimestamps
     public Guid UserId { get; init; }
     
     public string Text { get; private set; }
+    
+    public int LikeCount { get; private set; }
+    
+    public int DislikeCount { get; private set; }
 
     private Comment(string text, Guid postId, Guid userId)
     {
@@ -57,6 +61,8 @@ public class Comment : EntityWithTimestamps
         
         _interactions.Add(integration);
 
+        UpdateInteractions();
+
         return integration;
     }
 
@@ -71,6 +77,14 @@ public class Comment : EntityWithTimestamps
         }
         
         _interactions.Remove(interaction);
+        
+        UpdateInteractions();
+    }
+    
+    private void UpdateInteractions()
+    {
+        LikeCount = _interactions.Count(inter => inter.Rating is InteractionType.Like);
+        DislikeCount = _interactions.Count - LikeCount;
     }
     
     private static void ValidateText(string text)
