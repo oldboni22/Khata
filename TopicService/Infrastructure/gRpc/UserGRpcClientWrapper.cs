@@ -1,13 +1,7 @@
+using Domain.Contracts.GRpc;
+using Shared.Enums;
+
 namespace Infrastructure.gRpc;
-
-public interface IUserGRpcClient
-{
-    Task<List<Guid>> FindBannedTopicsIdAsync(Guid userId);
-    
-    Task<bool> IsModeratorAsync(Guid userId, Guid topicId);
-
-    Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id);
-}
 
 public class UserGRpcClientWrapper(UserGRpcApi.UserGRpcApiClient client) : IUserGRpcClient 
 {
@@ -20,15 +14,17 @@ public class UserGRpcClientWrapper(UserGRpcApi.UserGRpcApiClient client) : IUser
         return response.TopicIds.Select(Guid.Parse).ToList();
     }
 
-    public async Task<bool> IsModeratorAsync(Guid userId, Guid topicId)
+    public async Task<bool> HasStatusAsync(Guid userId, Guid topicId, UserTopicRelationStatus status)
     {
         var  request = new TopicUserStatusRequest
         {
             UserId = userId.ToString(),
-            TopicId = topicId.ToString()
+            TopicId = topicId.ToString(),
+            
+            Status = (int)status
         };
         
-        var response = await client.IsModeratorAsync(request);
+        var response = await client.HasStatusAsync(request);
 
         return response.Result;
     }
