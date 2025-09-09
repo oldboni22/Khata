@@ -32,7 +32,10 @@ public static class ServiceCollectinExtensions
 
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        return services.AddScoped<ITopicRepository, TopicRepository>();
+        return services
+            .AddScoped<ITopicRepository, TopicRepository>()
+            .AddScoped<IPostRepository, PostRepository>()
+            .AddScoped<ICommentRepository, CommentRepository>();
     }
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)

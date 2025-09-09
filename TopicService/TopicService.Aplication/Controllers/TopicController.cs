@@ -18,7 +18,7 @@ using ILogger = Serilog.ILogger;
 namespace TopicService.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/topics")]
 public class TopicController(
     ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
     BaseController<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger)

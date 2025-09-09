@@ -43,8 +43,13 @@ public class Comment : EntityWithTimestamps
         return new Comment(text, postId, authorId);
     }
 
-    public void SetText(string text)
+    public void SetText(string text, Guid senderId)
     {
+        if (senderId == UserId)
+        {
+            throw new ForbiddenException(); 
+        }
+        
         ValidateText(text);
 
         Text = text;
