@@ -4,7 +4,7 @@ using Shared.PagedList;
 
 namespace Domain.Contracts.RepositoryContracts;
 
-public interface IGenericReadRepository<T> where T : EntityBase
+public interface IGenericReadOnlyRepository<T> where T : EntityBase
 {
     Task<PagedList<T>> FindByConditionAsync(
         Expression<Func<T, bool>> expression,

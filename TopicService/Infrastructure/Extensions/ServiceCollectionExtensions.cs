@@ -2,7 +2,6 @@ using Domain.Contracts.GRpc;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Infrastructure.gRpc;
-using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +16,6 @@ public static class ServiceCollectionExtensions
         return
             services
                 .AddTopicContext(configuration)
-                .AddRepositories()
                 .AddGRpc(configuration);
     }
 
@@ -31,13 +29,13 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    private static IServiceCollection AddRepositories(this IServiceCollection services)
+    /*private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         return services
             .AddScoped<IGenericRepository<Topic>, GenericRepository<Topic>>()
             .AddScoped<IGenericReadRepository<Post>, GenericReadRepository<Post>>()
             .AddScoped<IGenericReadRepository<Comment>, GenericReadRepository<Comment>>();
-    }
+    }*/
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
     {
