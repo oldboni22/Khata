@@ -21,9 +21,9 @@ public class CommentInteraction : EntityBase
     public static CommentInteraction Create(Guid commentId, Guid userId, InteractionType rating) =>
         new CommentInteraction(commentId, userId, rating);
     
-    public void SetRating(InteractionType rating, Guid sendeId)
+    public void SetRating(InteractionType rating, Guid senderId)
     {
-        if (sendeId != UserId)
+        if (senderId != UserId)
         {
             throw new ForbiddenException();
         }

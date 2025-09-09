@@ -103,7 +103,7 @@ public class Post : EntityWithTimestamps
 
         _interactions.Add(integration);
 
-        UpdateInteractions();
+        UpdateInteractions(rating, true);
 
         return integration;
     }
@@ -120,13 +120,19 @@ public class Post : EntityWithTimestamps
 
         _interactions.Remove(interaction);
 
-        UpdateInteractions();
+        UpdateInteractions(interaction.Rating, false);
     }
 
-    private void UpdateInteractions()
+    private void UpdateInteractions(InteractionType type, bool wasAdded)
     {
-        LikeCount = _interactions.Count(inter => inter.Rating is InteractionType.Like);
-        DislikeCount = _interactions.Count - LikeCount;
+        if (type is InteractionType.Like)
+        {
+            LikeCount = wasAdded ? LikeCount + 1 : LikeCount - 1;
+        }
+        else if (type is InteractionType.Dislike)
+        {
+            DislikeCount = wasAdded ? DislikeCount + 1 : DislikeCount - 1;
+        }
     }
     
     private static void ValidateText(string text)

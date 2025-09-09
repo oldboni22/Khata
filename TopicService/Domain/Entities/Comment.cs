@@ -62,13 +62,13 @@ public class Comment : EntityWithTimestamps
             throw new SelfInteractionException();
         }
         
-        var integration = CommentInteraction.Create(Id, userId, rating);
+        var interaction = CommentInteraction.Create(Id, userId, rating);
         
-        _interactions.Add(integration);
+        _interactions.Add(interaction);
 
-        UpdateInteractions();
+        UpdateInteractions(rating, false);
 
-        return integration;
+        return interaction;
     }
 
     public void RemoveInteraction(Guid interactionId, Guid senderId)
@@ -83,13 +83,19 @@ public class Comment : EntityWithTimestamps
         
         _interactions.Remove(interaction);
         
-        UpdateInteractions();
+        UpdateInteractions(interaction.Rating, false);
     }
     
-    private void UpdateInteractions()
+    private void UpdateInteractions(InteractionType type, bool wasAdded)
     {
-        LikeCount = _interactions.Count(inter => inter.Rating is InteractionType.Like);
-        DislikeCount = _interactions.Count - LikeCount;
+        if (type is InteractionType.Like)
+        {
+            LikeCount = wasAdded ? LikeCount + 1 : LikeCount - 1;
+        }
+        else if (type is InteractionType.Dislike)
+        {
+            DislikeCount = wasAdded ? DislikeCount + 1 : DislikeCount - 1;
+        }
     }
     
     private static void ValidateText(string text)
