@@ -24,7 +24,7 @@ public class TopicController(
     BaseController<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger)
 {
     [Authorize]
-    [HttpPost("create")]
+    [HttpPost]
     public async Task<TopicReadDto> CreateParentTopicAsync(
         TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
     {

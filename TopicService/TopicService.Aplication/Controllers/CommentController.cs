@@ -16,7 +16,6 @@ using ILogger = Serilog.ILogger;
 
 namespace TopicService.API.Controllers;
 
-
 [ApiController]
 [Route("api/topics/{topicId}/posts/{postId}/comments")]
 public class CommentController(
@@ -26,7 +25,6 @@ public class CommentController(
     IMapper mapper,
     ILogger logger) : BaseController<Comment, CommentSortOptions>(repository, userGRpcClient, mapper, logger)
 {
-
     [HttpPost]
     [Authorize]
     public async Task<CommentReadDto> CreateCommentAsync(
@@ -151,7 +149,7 @@ public class CommentController(
     }
 
     [HttpGet]
-    public async Task<PagedList<CommentReadDto>> FindCommentAsync(
+    public async Task<PagedList<CommentReadDto>> FindCommentsAsync(
         Guid topicId,
         Guid postId,
         [FromQuery] CommentSearchParameters searchParameters,
