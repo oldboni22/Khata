@@ -9,7 +9,7 @@ using Shared;
 
 namespace Infrastructure.Extensions;
 
-public static class ServiceCollectinExtensions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services, IConfiguration configuration)
     {
