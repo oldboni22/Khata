@@ -20,19 +20,19 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/topics/{topicId}/posts")]
 public class PostController(
-    ITopicRepository repository,
-    IPostRepository postRepository,
+    IGenericRepository<Topic> topicRepository,
+    IGenericReadRepository<Post> postRepository,
     IUserGRpcClient userGRpcClient, 
     IMapper mapper, 
     ILogger logger) 
-    : BaseController<Post,PostSortOptions>(repository, userGRpcClient, mapper, logger)
+    : BaseController<Post,PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
     [HttpPost]
     public async Task<PostReadDto> CreatePostAsync(
         PostCreateDto postCreateDto, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -45,7 +45,7 @@ public class PostController(
         
         var createdPost = topic.AddPost(postCreateDto.Title, postCreateDto.Text, senderUserId);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<PostReadDto>(createdPost);
     }
@@ -54,7 +54,7 @@ public class PostController(
     [HttpDelete("{postId}")]
     public async Task RemovePostAsync(Guid postId, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -72,7 +72,7 @@ public class PostController(
         
         topic.RemovePost(postId, senderUserId);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
 
     [Authorize]
@@ -80,7 +80,7 @@ public class PostController(
     public async Task<PostReadDto> UpdatePostAsync(
         PostUpdateDto dto ,Guid topicId ,Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -100,7 +100,7 @@ public class PostController(
         
         post.Update(senderUserId, dto.Title, dto.Text);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<PostReadDto>(post);
     }
@@ -112,7 +112,7 @@ public class PostController(
         [FromQuery] PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -145,7 +145,7 @@ public class PostController(
     [HttpGet("{postId}")]
     public async Task<PostReadDto> FindPostAsync(Guid topicId, Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -167,7 +167,7 @@ public class PostController(
     public async Task AddInteractionAsync(
         [FromBody] InteractionType interactionType, Guid topicId, Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -187,7 +187,7 @@ public class PostController(
         
         post.AddInteraction(userId, interactionType);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
     
     [Authorize]
@@ -195,7 +195,7 @@ public class PostController(
     public async Task RemoveInteractionAsync(
         Guid topicId, Guid postId, Guid interactionId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -215,7 +215,7 @@ public class PostController(
         
         post.RemoveInteraction(interactionId, userId);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
     
     [Authorize]
@@ -227,7 +227,7 @@ public class PostController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -254,7 +254,7 @@ public class PostController(
         
         interaction.SetRating(interactionType, userId);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
     
     protected override Expression<Func<Post, object>> ParseSortOption(PostSortOptions sortOption)

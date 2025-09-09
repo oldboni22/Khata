@@ -4,7 +4,7 @@ using Shared.PagedList;
 
 namespace Domain.Contracts.RepositoryContracts;
 
-public interface IGenericWriteRepository<T>
+public interface IGenericRepository<T> : IGenericReadRepository<T>
     where T : EntityBase
 {
     Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default);

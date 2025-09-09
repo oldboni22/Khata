@@ -8,7 +8,7 @@ using Shared.PagedList;
 
 namespace Infrastructure.Repositories;
 
-public class GenericRepository<T>(TopicServiceContext context) : GenericReadRepository<T>(context), IGenericWriteRepository<T>
+public class GenericRepository<T>(TopicServiceContext context) : GenericReadRepository<T>(context), IGenericRepository<T>
     where T : EntityBase
 {
     public async Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default)

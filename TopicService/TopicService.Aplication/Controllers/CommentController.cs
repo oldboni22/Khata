@@ -19,18 +19,18 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/topics/{topicId}/posts/{postId}/comments")]
 public class CommentController(
-    ITopicRepository repository,
-    ICommentRepository commentRepository,
+    IGenericRepository<Topic> postTopicRepository,
+    IGenericReadRepository<Comment> commentRepository,
     IUserGRpcClient userGRpcClient,
     IMapper mapper,
-    ILogger logger) : BaseController<Comment, CommentSortOptions>(repository, userGRpcClient, mapper, logger)
+    ILogger logger) : BaseController<Comment, CommentSortOptions>(postTopicRepository, userGRpcClient, mapper, logger)
 {
     [HttpPost]
     [Authorize]
     public async Task<CommentReadDto> CreateCommentAsync(
         Guid topicId, Guid postId, [FromBody] string text, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -50,7 +50,7 @@ public class CommentController(
         
         var comment = post.AddComment(text, senderUserId);
 
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
         
         return mapper.Map<CommentReadDto>(comment);
     }
@@ -60,7 +60,7 @@ public class CommentController(
     public async Task DeleteCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -80,7 +80,7 @@ public class CommentController(
         
         post.RemoveComment(commentId, senderUserId);
 
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
     
     [Authorize]
@@ -88,7 +88,7 @@ public class CommentController(
     public async Task<CommentReadDto> UpdateCommentAsync(
         Guid topicId, Guid postId, Guid commentId, [FromBody] string text, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
         
         if(topic is null)
         {
@@ -115,7 +115,7 @@ public class CommentController(
         
         comment.SetText(text, senderUserId);
 
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
         
         return mapper.Map<CommentReadDto>(comment);
     }
@@ -124,7 +124,7 @@ public class CommentController(
     public async Task<CommentReadDto> FindCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -156,7 +156,7 @@ public class CommentController(
         [FromQuery] PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -201,7 +201,7 @@ public class CommentController(
         Guid commentId,
         CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -228,7 +228,7 @@ public class CommentController(
         
         comment.AddInteraction(userId, interactionType);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
     
     [Authorize]
@@ -240,7 +240,7 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -267,7 +267,7 @@ public class CommentController(
         
         comment.RemoveInteraction(interactionId, userId);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
     
     [Authorize]
@@ -280,7 +280,7 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await Repository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
         
         if(topic is null)
         {
@@ -314,7 +314,7 @@ public class CommentController(
         
         interaction.SetRating(interactionType, userId);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
     
     protected override Expression<Func<Comment, object>> ParseSortOption(CommentSortOptions sortOption)

@@ -1,5 +1,6 @@
 using Domain.Contracts.GRpc;
 using Domain.Contracts.RepositoryContracts;
+using Domain.Entities;
 using Infrastructure.gRpc;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -33,9 +34,9 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         return services
-            .AddScoped<ITopicRepository, TopicRepository>()
-            .AddScoped<IPostRepository, PostRepository>()
-            .AddScoped<ICommentRepository, CommentRepository>();
+            .AddScoped<IGenericRepository<Topic>, GenericRepository<Topic>>()
+            .AddScoped<IGenericReadRepository<Post>, GenericReadRepository<Post>>()
+            .AddScoped<IGenericReadRepository<Comment>, GenericReadRepository<Comment>>();
     }
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)

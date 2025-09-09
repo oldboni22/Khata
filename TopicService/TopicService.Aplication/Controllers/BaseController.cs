@@ -9,11 +9,11 @@ using Shared.Filters;
 namespace TopicService.API.Controllers;
 
 public abstract class BaseController<TEntity, TSortOptions>(
-    ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
+    IGenericRepository<Topic> postTopicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
     where TEntity : EntityBase
     where TSortOptions : Enum
 {
-    protected ITopicRepository Repository { get; } = repository;
+    protected IGenericRepository<Topic> TopicRepository { get; } = postTopicRepository;
     
     protected IUserGRpcClient UserGRpcClient { get; } = userGRpcClient;
     
