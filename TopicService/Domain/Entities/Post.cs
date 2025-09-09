@@ -34,7 +34,7 @@ public class Post : EntityWithTimestamps
 
     public string Text { get; private set; }
 
-    public string Title { get; init; }
+    public string Title { get; private set; }
 
     public int LikeCount { get; private set; }
 
@@ -50,21 +50,24 @@ public class Post : EntityWithTimestamps
 
     public static Post Create(string title, string text, Guid topicId, Guid authorId)
     {
-        if (string.IsNullOrEmpty(title) || title.Length is < TitleMinLength or > TitleMaxLength)
-        {
-            throw new Exception(); //TODO Custom exception
-        }
-
+        ValidateTitle(title);
         ValidateText(text);
 
         return new Post(title, text, topicId, authorId);
     }
 
-    public void SetText(string text)
+    public void Update(Guid senderId, string title ,string text)
     {
+        ValidateTitle(title);
         ValidateText(text);
 
+        if (senderId != AuthorId)
+        {
+            throw new ForbiddenException();
+        }
+
         Text = text;
+        Title = title;
     }
 
     public Comment AddComment(string text, Guid authorId)
@@ -129,6 +132,14 @@ public class Post : EntityWithTimestamps
     private static void ValidateText(string text)
     {
         if (string.IsNullOrEmpty(text) || text.Length is < TextMinLength or > TextMaxLength)
+        {
+            throw new Exception(); //TODO Custom exception
+        }
+    }
+    
+    private static void ValidateTitle(string title)
+    {
+        if (string.IsNullOrEmpty(title) || title.Length is < TitleMinLength or > TitleMaxLength)
         {
             throw new Exception(); //TODO Custom exception
         }

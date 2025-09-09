@@ -157,11 +157,11 @@ public class TopicController(
         [FromQuery] PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == null;
+        Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == null;
 
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
-            expression = expression.And(t =>
+            predicate = predicate.And(t =>
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
@@ -170,7 +170,7 @@ public class TopicController(
         var topicEntities = await Repository
             .FindByConditionAsync
             (
-                expression,
+                predicate,
                 paginationParameters,
                 selectors,
                 false,
@@ -192,11 +192,11 @@ public class TopicController(
             throw new EntityNotFoundException<Topic>(parentTopicId);
         }
         
-        Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == parentTopicId;
+        Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == parentTopicId;
 
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
-            expression = expression.And(t =>
+            predicate = predicate.And(t =>
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
@@ -205,7 +205,7 @@ public class TopicController(
         var topicEntities = await Repository
             .FindByConditionAsync
             (
-                expression,
+                predicate,
                 paginationParameters,
                 selectors,
                 false,
@@ -225,5 +225,6 @@ public class TopicController(
         };
     }
 
-    protected override (Expression<Func<Topic, object>> selector, bool ascending) DefaultSortOptions => (t => t.Name, true);
+    protected override (Expression<Func<Topic, object>> selector, bool ascending) DefaultSortOptions => 
+        (t => t.Name, true);
 }

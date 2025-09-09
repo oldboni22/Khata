@@ -2,6 +2,6 @@ using Domain.Entities;
 
 namespace Domain.Contracts.RepositoryContracts;
 
-public interface ITopicRepository : IGenericRepository<Topic>
+public interface ITopicRepository : IGenericWriteRepository<Topic>, IGenericReadRepository<Topic>
 {
 }

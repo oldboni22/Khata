@@ -1,4 +1,5 @@
 using Shared.Enums;
+using Shared.Exceptions;
 
 namespace Domain.Entities.Interactions;
 
@@ -20,5 +21,13 @@ public class CommentInteraction : EntityBase
     public static CommentInteraction Create(Guid commentId, Guid userId, InteractionType rating) =>
         new CommentInteraction(commentId, userId, rating);
     
-    public void SetRating(InteractionType rating) => Rating = rating;
+    public void SetRating(InteractionType rating, Guid sendeId)
+    {
+        if (sendeId != UserId)
+        {
+            throw new ForbiddenException();
+        }
+        
+        Rating = rating;
+    }
 }

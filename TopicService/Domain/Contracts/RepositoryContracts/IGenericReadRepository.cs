@@ -4,8 +4,7 @@ using Shared.PagedList;
 
 namespace Domain.Contracts.RepositoryContracts;
 
-public interface IGenericRepository<T>
-    where T : EntityBase
+public interface IGenericReadRepository<T> where T : EntityBase
 {
     Task<PagedList<T>> FindByConditionAsync(
         Expression<Func<T, bool>> expression,
@@ -15,10 +14,4 @@ public interface IGenericRepository<T>
         CancellationToken cancellationToken = default);
 
     Task<T?> FindByIdAsync(Guid id, bool trackChanges = true, CancellationToken cancellationToken = default);
-
-    Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default);
-
-    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-
-    Task UpdateAsync(CancellationToken cancellationToken = default);
 }

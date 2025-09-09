@@ -4,6 +4,8 @@ namespace UserService.API.DTO;
 
 public class UserReadDto
 {
+    public Guid Id { get; set; }
+    
     public required string Name { get; init; }
     
     public List<UserTopicRelationDto> TopicStatuses { get; init; } = [];
