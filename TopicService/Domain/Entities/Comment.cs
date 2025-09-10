@@ -24,6 +24,10 @@ public class Comment : EntityWithTimestamps
     public Guid UserId { get; init; }
     
     public string Text { get; private set; }
+    
+    public int LikeCount { get; private set; }
+    
+    public int DislikeCount { get; private set; }
 
     private Comment(string text, Guid postId, Guid userId)
     {
@@ -39,8 +43,13 @@ public class Comment : EntityWithTimestamps
         return new Comment(text, postId, authorId);
     }
 
-    public void SetText(string text)
+    public void SetText(string text, Guid senderId)
     {
+        if (senderId != UserId)
+        {
+            throw new ForbiddenException(); 
+        }
+        
         ValidateText(text);
 
         Text = text;
@@ -53,11 +62,13 @@ public class Comment : EntityWithTimestamps
             throw new SelfInteractionException();
         }
         
-        var integration = CommentInteraction.Create(Id, userId, rating);
+        var interaction = CommentInteraction.Create(Id, userId, rating);
         
-        _interactions.Add(integration);
+        _interactions.Add(interaction);
 
-        return integration;
+        UpdateInteractions(rating, false);
+
+        return interaction;
     }
 
     public void RemoveInteraction(Guid interactionId, Guid senderId)
@@ -69,8 +80,22 @@ public class Comment : EntityWithTimestamps
         {
             throw new ForbiddenException();
         }
-        
+         
         _interactions.Remove(interaction);
+        
+        UpdateInteractions(interaction.Rating, false);
+    }
+    
+    private void UpdateInteractions(InteractionType type, bool wasAdded)
+    {
+        if (type is InteractionType.Like)
+        {
+            LikeCount = wasAdded ? LikeCount + 1 : LikeCount - 1;
+        }
+        else if (type is InteractionType.Dislike)
+        {
+            DislikeCount = wasAdded ? DislikeCount + 1 : DislikeCount - 1;
+        }
     }
     
     private static void ValidateText(string text)

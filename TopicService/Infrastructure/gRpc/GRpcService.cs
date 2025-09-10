@@ -1,9 +1,10 @@
 using Domain.Contracts.RepositoryContracts;
+using Domain.Entities;
 using Grpc.Core;
 
 namespace Infrastructure.gRpc;
 
-public class GRpcService(ITopicRepository topicRepository) : TopicGRpcApi.TopicGRpcApiBase
+public class GRpcService(IGenericRepository<Topic> topicRepository) : TopicGRpcApi.TopicGRpcApiBase
 {
     public override async Task<TopicUserResponse> IsOwner(TopicUserStatusRequest request, ServerCallContext context)
     {

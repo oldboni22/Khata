@@ -42,8 +42,8 @@ public class UserController(
     
     [HttpGet("topics/{topicId}")]
     public async Task<PagedList<UserReadDto>> FindUsersAsync(
-        [FromBody] PaginationParameters pagedParameters, 
-        [FromQuery] UserTopicRelationStatus status,
+        [FromBody] UserTopicRelationStatus status,
+        [FromQuery] PaginationParameters pagedParameters, 
         Guid topicId,
         CancellationToken cancellationToken)
     {
@@ -63,7 +63,7 @@ public class UserController(
 
     [HttpGet($"{UserIdRoute}/relations")]
     public async Task<PagedList<UserTopicRelationDto>> FindUserRelationsAsync(
-        [FromBody] PaginationParameters paginationParameters , Guid userId, CancellationToken cancellationToken)
+        [FromQuery] PaginationParameters paginationParameters , Guid userId, CancellationToken cancellationToken)
     {
         var relations = 
             await userService.FindUserRelationsAsync(userId, paginationParameters, cancellationToken);

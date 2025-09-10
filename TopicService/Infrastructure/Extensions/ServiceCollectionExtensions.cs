@@ -1,5 +1,6 @@
 using Domain.Contracts.GRpc;
 using Domain.Contracts.RepositoryContracts;
+using Domain.Entities;
 using Infrastructure.gRpc;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ using Shared;
 
 namespace Infrastructure.Extensions;
 
-public static class ServiceCollectinExtensions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services, IConfiguration configuration)
     {
@@ -32,7 +33,10 @@ public static class ServiceCollectinExtensions
 
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        return services.AddScoped<ITopicRepository, TopicRepository>();
+        return services
+            .AddScoped<IGenericRepository<Topic>, GenericRepository<Topic>>()
+            .AddScoped<IGenericReadOnlyRepository<Post>, GenericReadOnlyRepository<Post>>()
+            .AddScoped<IGenericReadOnlyRepository<Comment>, GenericReadOnlyRepository<Comment>>();
     }
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)

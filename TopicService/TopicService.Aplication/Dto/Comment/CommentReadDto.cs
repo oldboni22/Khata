@@ -1,12 +1,10 @@
-namespace TopicService.API.Dto.Post;
+namespace TopicService.API.Dto.Comment;
 
-public class PostReadDto
+public class CommentReadDto
 {
     public Guid Id { get; set; }
-    
+
     public required string Text { get; set; }
-    
-    public required string Title { get; set; }
     
     public int LikeCount { get; set; }
     

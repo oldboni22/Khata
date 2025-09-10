@@ -18,11 +18,15 @@ using ILogger = Serilog.ILogger;
 namespace TopicService.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class TopicController(ITopicRepository repository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
-    BaseController<Topic, TopicSortOptions>(repository, userGRpcClient, mapper, logger)
+[Route("api/topics")]
+public class TopicController(
+    IGenericRepository<Topic> topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
+    BaseController<Topic, TopicSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
-    public async Task<TopicReadDto> CreateHeadTopicAsync(TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
+    [Authorize]
+    [HttpPost]
+    public async Task<TopicReadDto> CreateParentTopicAsync(
+        TopicCreateDto topicCreateDto, CancellationToken cancellationToken = default)
     {
         var senderId = User.GetAuth0Id();
         
@@ -30,42 +34,41 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         
         var topicEntity = Topic.Create(topicCreateDto.Name, senderUserId);
         
-        var createdTopic = await Repository.CreateAsync(topicEntity, cancellationToken);
+        var createdTopic = await TopicRepository.CreateAsync(topicEntity, cancellationToken);
+
+        await TopicRepository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<TopicReadDto>(createdTopic);
     }
 
-    public async Task RemoveHeadTopicAsync(Guid topicId, CancellationToken cancellationToken = default)
+    [Authorize]
+    [HttpDelete("{parentTopicId}")]
+    public async Task RemoveParentTopicAsync(Guid parentTopicId, CancellationToken cancellationToken = default)
     {
         var senderId = User.GetAuth0Id();
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
-        var topic = await Repository.FindByIdAsync(topicId, cancellationToken: cancellationToken);
-
-        if (topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
+        var topic = await TopicRepository.FindByIdAsync(parentTopicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(parentTopicId);
 
         if (senderUserId != topic!.OwnerId)
         {
             throw new ForbiddenException();
         }
         
-        await Repository.DeleteAsync(topicId, cancellationToken);
+        await TopicRepository.DeleteAsync(parentTopicId, cancellationToken);
+        
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
 
+    [Authorize]
+    [HttpPost("{parentTopicId}/subtopics")]
     public async Task<TopicReadDto> CreateSubTopicAsync(
         TopicCreateDto topicCreateDto, Guid parentTopicId, CancellationToken cancellationToken = default)
     {
-        var parentTopic = await Repository
-            .FindByIdAsync(parentTopicId, true, cancellationToken);
-
-        if (parentTopic is null)
-        {
-            throw new EntityNotFoundException<Topic>(parentTopicId);
-        }
+        var parentTopic = await TopicRepository.FindByIdAsync(parentTopicId, true, cancellationToken) 
+                          ?? throw new EntityNotFoundException<Topic>(parentTopicId);
 
         var senderId = User.GetAuth0Id();
         
@@ -78,20 +81,18 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         
         var createdTopic = parentTopic!.AddSubTopic(topicCreateDto.Name, senderUserId);
 
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<TopicReadDto>(createdTopic);
     }
 
-    public async Task RemoveSubTopicAsync(Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default)
+    [Authorize]
+    [HttpDelete("{parentTopicId}/subtopics/{topicId}")]
+    public async Task RemoveSubTopicAsync(
+        Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var topic = await Repository
-            .FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(parentTopicId);
-        }
+        var parentTopic = await TopicRepository.FindByIdAsync(parentTopicId, true, cancellationToken) 
+                          ?? throw new EntityNotFoundException<Topic>(parentTopicId);
 
         var senderId = User.GetAuth0Id();
         
@@ -102,20 +103,18 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
             throw new ForbiddenException();
         }
 
-        topic!.RemoveSubTopic(topicId, senderUserId);
+        parentTopic!.RemoveSubTopic(topicId, senderUserId);
         
-        await Repository.UpdateAsync(cancellationToken);
+        await TopicRepository.UpdateAsync(cancellationToken);
     }
 
-    public async Task<Topic> UpdateTopicOwnerAsync(Guid topicId, Guid userId, CancellationToken cancellationToken = default)
+    [Authorize]
+    [HttpPatch("{topicId}/owner")]
+    public async Task<Topic> UpdateTopicOwnerAsync(
+        Guid topicId, OwnershipTransferDto dto, CancellationToken cancellationToken = default)
     {
-        var topic = await Repository
-            .FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken)
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
      
         var senderId = User.GetAuth0Id();
         
@@ -126,76 +125,33 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
             throw new ForbiddenException();
         }
         
-        topic!.SetOwner(userId);
-        await Repository.UpdateAsync(cancellationToken);
+        topic!.SetOwner(dto.NewOwnerId);
+        
+        await TopicRepository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<Topic>(topic);
     }
-
-
-    public async Task<PostReadDto> CreatePostAsync(
-        PostCreateDto postCreateDto, Guid topicId, CancellationToken cancellationToken = default)
-    {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var senderId = User.GetAuth0Id();
-        
-        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
-        
-        var createdPost = topic!.AddPost(postCreateDto.Title, postCreateDto.Text, senderUserId);
-        
-        await Repository.UpdateAsync(cancellationToken);
-        
-        return Mapper.Map<PostReadDto>(createdPost);
-    }
-
-    public async Task RemovePostAsync(Guid postId, Guid topicId, CancellationToken cancellationToken = default)
-    {
-        var topic = await Repository.FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var senderId = User.GetAuth0Id();
-        
-        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
-        
-        if (!await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
-        {
-            throw new ForbiddenException();
-        }
-        
-        topic!.RemovePost(postId, senderUserId);
-        
-        await Repository.UpdateAsync(cancellationToken);
-    }
-
-    public async Task<PagedList<TopicReadDto>> FindHeadTopics(
-        TopicSearchParameters parameters, 
-        PaginationParameters paginationParameters,
+    
+    [HttpGet("parentTopics")]
+    public async Task<PagedList<TopicReadDto>> FindParentTopics(
+        [FromQuery] TopicSearchParameters parameters, 
+        [FromQuery] PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == null;
+        Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == null;
 
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
-            expression = expression.And(t =>
+            predicate = predicate.And(t =>
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
         var selectors = ParseFilters(parameters.Filters);
 
-        var topicEntities = await Repository
+        var topicEntities = await TopicRepository
             .FindByConditionAsync
             (
-                expression,
+                predicate,
                 paginationParameters,
                 selectors,
                 false,
@@ -205,31 +161,32 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         return Mapper.Map<PagedList<TopicReadDto>>(topicEntities);
     }
 
+    [HttpGet("{parentTopicId}/subtopics")]
     public async Task<PagedList<TopicReadDto>> FindChildTopics(
         Guid parentTopicId,
-        TopicSearchParameters parameters,
-        PaginationParameters paginationParameters,
+        [FromQuery] TopicSearchParameters parameters,
+        [FromQuery] PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        if (await Repository.FindByIdAsync(parentTopicId, false, cancellationToken) is null)
+        if (await TopicRepository.FindByIdAsync(parentTopicId, false, cancellationToken) is null)
         {
             throw new EntityNotFoundException<Topic>(parentTopicId);
         }
         
-        Expression<Func<Topic, bool>> expression = t => t.ParentTopicId == parentTopicId;
+        Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == parentTopicId;
 
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
         {
-            expression = expression.And(t =>
+            predicate = predicate.And(t =>
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
         var selectors = ParseFilters(parameters.Filters);
         
-        var topicEntities = await Repository
+        var topicEntities = await TopicRepository
             .FindByConditionAsync
             (
-                expression,
+                predicate,
                 paginationParameters,
                 selectors,
                 false,
@@ -249,5 +206,6 @@ public class TopicController(ITopicRepository repository, IUserGRpcClient userGR
         };
     }
 
-    protected override (Expression<Func<Topic, object>> selector, bool ascending) DefaultSortOptions => (t => t.Name, true);
+    protected override (Expression<Func<Topic, object>> selector, bool ascending) DefaultSortOptions => 
+        (t => t.Name, true);
 }

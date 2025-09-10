@@ -1,4 +1,5 @@
 using Shared.Enums;
+using Shared.Exceptions;
 
 namespace Domain.Entities.Interactions;
 
@@ -20,5 +21,13 @@ public class PostInteraction : EntityBase
     public static PostInteraction Create(Guid postId, Guid userId, InteractionType rating) =>
         new PostInteraction(postId, userId, rating);
     
-    public void SetRating(InteractionType rating) => Rating = rating;
+    public void SetRating(InteractionType rating, Guid senderId)
+    {
+        if (senderId != UserId)
+        {
+            throw new ForbiddenException();
+        }
+        
+        Rating = rating;
+    }
 }
