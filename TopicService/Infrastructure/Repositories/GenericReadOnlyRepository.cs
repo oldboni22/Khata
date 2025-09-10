@@ -40,7 +40,7 @@ public class GenericReadOnlyRepository<T>(TopicServiceContext context) : IGeneri
         return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount);
     }
 
-    public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)
+    public async Task<T?> FindByIdAsync(Guid id, bool trackChanges = false, CancellationToken cancellationToken = default)
     {
         var query = Context.Set<T>().Where(ent => ent.Id == id);
         query = trackChanges ? query : query.AsNoTracking();
