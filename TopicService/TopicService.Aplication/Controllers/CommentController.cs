@@ -30,19 +30,11 @@ public class CommentController(
     public async Task<CommentReadDto> CreateCommentAsync(
         Guid topicId, Guid postId, [FromBody] string text, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId) 
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
         var senderId = User.GetAuth0Id();
         
@@ -60,19 +52,11 @@ public class CommentController(
     public async Task DeleteCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
         var senderId = User.GetAuth0Id();
         
@@ -88,26 +72,14 @@ public class CommentController(
     public async Task<CommentReadDto> UpdateCommentAsync(
         Guid topicId, Guid postId, Guid commentId, [FromBody] string text, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
-        
-        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId);
-
-        if (comment is null)
-        {
-            throw new EntityNotFoundException<Comment>(commentId);
-        }
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
         
         var senderId = User.GetAuth0Id();
         
@@ -124,26 +96,14 @@ public class CommentController(
     public async Task<CommentReadDto> FindCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
-        
-        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId);
-
-        if (comment is null)
-        {
-            throw new EntityNotFoundException<Comment>(commentId);
-        }
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
         
         return mapper.Map<CommentReadDto>(comment);
     }
@@ -156,19 +116,11 @@ public class CommentController(
         [FromQuery] PaginationParameters paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
         Expression<Func<Comment, bool>> predicate = comm => comm.PostId == postId;
 
@@ -201,26 +153,14 @@ public class CommentController(
         Guid commentId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
-        
-        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId);
-
-        if (comment is null)
-        {
-            throw new EntityNotFoundException<Comment>(commentId);
-        }
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
         
         var senderId = User.GetAuth0Id();
         
@@ -240,26 +180,14 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
-        
-        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId);
-
-        if (comment is null)
-        {
-            throw new EntityNotFoundException<Comment>(commentId);
-        }
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
         
         var senderId = User.GetAuth0Id();
         
@@ -280,26 +208,14 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken);
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
         
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
-
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId);
-
-        if (post is null)
-        {
-            throw new EntityNotFoundException<Post>(postId);
-        }
-        
-        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId);
-
-        if (comment is null)
-        {
-            throw new EntityNotFoundException<Comment>(commentId);
-        }
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
         
         var interaction = comment.Interactions.SingleOrDefault(i => i.Id == interactionId);
 

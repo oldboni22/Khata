@@ -49,12 +49,8 @@ public class TopicController(
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
-        var topic = await TopicRepository.FindByIdAsync(parentTopicId, cancellationToken: cancellationToken);
-
-        if (topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(parentTopicId);
-        }
+        var topic = await TopicRepository.FindByIdAsync(parentTopicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(parentTopicId);
 
         if (senderUserId != topic!.OwnerId)
         {
@@ -71,13 +67,8 @@ public class TopicController(
     public async Task<TopicReadDto> CreateSubTopicAsync(
         TopicCreateDto topicCreateDto, Guid parentTopicId, CancellationToken cancellationToken = default)
     {
-        var parentTopic = await TopicRepository
-            .FindByIdAsync(parentTopicId, true, cancellationToken);
-
-        if (parentTopic is null)
-        {
-            throw new EntityNotFoundException<Topic>(parentTopicId);
-        }
+        var parentTopic = await TopicRepository.FindByIdAsync(parentTopicId, true, cancellationToken) 
+                          ?? throw new EntityNotFoundException<Topic>(parentTopicId);
 
         var senderId = User.GetAuth0Id();
         
@@ -100,13 +91,8 @@ public class TopicController(
     public async Task RemoveSubTopicAsync(
         Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository
-            .FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(parentTopicId);
-        }
+        var parentTopic = await TopicRepository.FindByIdAsync(parentTopicId, true, cancellationToken) 
+                          ?? throw new EntityNotFoundException<Topic>(parentTopicId);
 
         var senderId = User.GetAuth0Id();
         
@@ -117,7 +103,7 @@ public class TopicController(
             throw new ForbiddenException();
         }
 
-        topic!.RemoveSubTopic(topicId, senderUserId);
+        parentTopic!.RemoveSubTopic(topicId, senderUserId);
         
         await TopicRepository.UpdateAsync(cancellationToken);
     }
@@ -127,13 +113,8 @@ public class TopicController(
     public async Task<Topic> UpdateTopicOwnerAsync(
         Guid topicId, OwnershipTransferDto dto, CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository
-            .FindByIdAsync(topicId, true, cancellationToken);
-        
-        if(topic is null)
-        {
-            throw new EntityNotFoundException<Topic>(topicId);
-        }
+        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken)
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
      
         var senderId = User.GetAuth0Id();
         
