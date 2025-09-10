@@ -1,10 +1,7 @@
-using System.Linq.Expressions;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Domain.Exceptions;
-using Microsoft.EntityFrameworkCore;
-using Shared.Extensions;
-using Shared.PagedList;
+
 
 namespace Infrastructure.Repositories;
 
