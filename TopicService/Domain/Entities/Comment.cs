@@ -45,7 +45,7 @@ public class Comment : EntityWithTimestamps
 
     public void SetText(string text, Guid senderId)
     {
-        if (senderId == UserId)
+        if (senderId != UserId)
         {
             throw new ForbiddenException(); 
         }
@@ -80,7 +80,7 @@ public class Comment : EntityWithTimestamps
         {
             throw new ForbiddenException();
         }
-        
+         
         _interactions.Remove(interaction);
         
         UpdateInteractions(interaction.Rating, false);
