@@ -108,7 +108,7 @@ public class UserController(
     }
     
     [Authorize]
-    [HttpDelete($"{UserTopicRelationControlRoute}/unsubscribe")]
+    [HttpPost($"{UserTopicRelationControlRoute}/unsubscribe")]
     public async Task RemoveSubscriptionAsync(
          Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
@@ -127,7 +127,7 @@ public class UserController(
     }
 
     [Authorize]
-    [HttpDelete($"{UserTopicRelationControlRoute}/unban")]
+    [HttpPost($"{UserTopicRelationControlRoute}/unban")]
     public async Task RemoveBanAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
         var senderId = User.GetAuth0Id();
@@ -145,7 +145,7 @@ public class UserController(
     }
     
     [Authorize]
-    [HttpDelete($"{UserTopicRelationControlRoute}/unmod")]
+    [HttpPost($"{UserTopicRelationControlRoute}/unmod")]
     public async Task RemoveModerationStatusAsync(Guid userId,  Guid topicId, CancellationToken cancellationToken)
     {
         var senderId = User.GetAuth0Id();
