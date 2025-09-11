@@ -6,15 +6,19 @@ namespace Infrastructure;
 
 public class TimeStampsInterceptor : ISaveChangesInterceptor
 {
-    public int SavedChanges(SaveChangesCompletedEventData eventData, int result)
+    public InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        return SetTimeStamps(eventData);
+        SetTimeStamps(eventData);
+        
+        return result;
     }
 
-    public ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
+    public ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        return new ValueTask<int>(SetTimeStamps(eventData));
+        SetTimeStamps(eventData);
+        
+        return new ValueTask<InterceptionResult<int>>(result);
     }
 
     private int SetTimeStamps(DbContextEventData eventData)

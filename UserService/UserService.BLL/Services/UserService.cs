@@ -210,7 +210,12 @@ public class UserService(
         
         var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
         
-        if(!DoesUserHaveRelationStatus(senderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId))
+        var hasModeration = !DoesUserHaveRelationStatus(
+            senderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId);
+        
+        var isOwner = await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId);
+        
+        if(!isOwner && !hasModeration)
         {
             Logger.Warning(ForbiddenLogMessageGenerator.GenerateMessage(senderUser.Id));
 
@@ -255,7 +260,7 @@ public class UserService(
             UserId = userId,
             TopicId = topicId,
             TopicRelationStatus = UserTopicRelationStatus.Banned,
-            User = userModel!
+            User = null!
         };
         
         var relationEntity = Mapper.Map<UserTopicRelation>(relationModel);
@@ -269,11 +274,21 @@ public class UserService(
         
         var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
         
-        if(!DoesUserHaveRelationStatus(senderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId))
+        var hasModeration = !DoesUserHaveRelationStatus(
+            senderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId);
+        
+        var isOwner = await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId);
+        
+        if(!isOwner && !hasModeration)
         {
             Logger.Warning(ForbiddenLogMessageGenerator.GenerateMessage(senderUser.Id));
 
             throw new ForbiddenException(senderUser.Id);
+        }
+
+        if (senderUser.Id == userId)
+        {
+            throw new BadRequestException(SelfBanExceptionMessages.DefaultMessage);
         }
         
         var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);

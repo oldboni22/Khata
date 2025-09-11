@@ -24,12 +24,12 @@ public static class ServiceCollectionExtensions
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
     {
-        var port = new Uri(configuration[ConfigurationKeys.TopicGRpcPort]!);
+        var address = new Uri($"https://localhost:{configuration[ConfigurationKeys.TopicGRpcPort]!}");
         
         services.AddGrpc();
         services.AddGrpcClient<TopicGRpcApi.TopicGRpcApiClient>(options =>
         {
-            options.Address = port;
+            options.Address = address;
         });
 
         services.AddScoped<ITopicGRpcClient,TopicGRpcClientWrapper>();

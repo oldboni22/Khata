@@ -9,7 +9,7 @@ public interface IGenericRepository<T> : IGenericReadOnlyRepository<T>
 {
     Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default);
 
-    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task UpdateAsync(CancellationToken cancellationToken = default);
 }
