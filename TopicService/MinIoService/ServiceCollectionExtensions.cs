@@ -26,7 +26,9 @@ public static class ServiceCollectionExtensions
             config
                 .WithEndpoint(StaticVariables.Endpoint)
                 .WithCredentials(StaticVariables.AccessKey, StaticVariables.SecretKey)
+                .WithSSL(false)
                 .Build();
-        });
+        })
+        .AddSingleton<IMinioService, MinioService>();
     } 
 }

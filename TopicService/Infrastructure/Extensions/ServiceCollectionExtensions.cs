@@ -41,12 +41,13 @@ public static class ServiceCollectionExtensions
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
     {
-        var port = new Uri(configuration[ConfigurationKeys.TopicGRpcAddress]!);
+        var userGrpcAddress = new Uri(configuration[ConfigurationKeys.UserGRpcAddress]!);
         
         services.AddGrpc();
+        
         services.AddGrpcClient<UserGRpcApi.UserGRpcApiClient>(options =>
         {
-            options.Address = port;
+            options.Address = userGrpcAddress;
         });
         
         services.AddScoped<IUserGRpcClient, UserGRpcClientWrapper>();
