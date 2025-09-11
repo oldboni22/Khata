@@ -22,13 +22,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddMinioService(this IServiceCollection services)
     {
         return services.AddMinio(config =>
-            {
-                config
-                    .WithEndpoint(StaticVariables.Endpoint)
-                    .WithCredentials(StaticVariables.AccessKey, StaticVariables.SecretKey)
-                    .WithSSL(false)
-                    .Build();
-            })
-            .AddSingleton<IMinioService, MinioService>();
+        {
+            config
+                .WithEndpoint(StaticVariables.Endpoint)
+                .WithCredentials(StaticVariables.AccessKey, StaticVariables.SecretKey)
+                .Build();
+        });
     } 
 }
