@@ -23,4 +23,6 @@ public static class ConfigurationKeys
     public const string MinioSecretKey = "Minio:SecretKey";
     
     public const string ApplicationPort = "ApplicationPort";
+
+    public const string SerilogLogFile = "SerilogSettings:LogFile";
 }
