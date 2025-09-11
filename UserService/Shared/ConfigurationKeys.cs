@@ -11,4 +11,6 @@ public static class ConfigurationKeys
     public const string UserGRpcPort = "GRpc:UserApiAddress";
     
     public const string TopicGRpcPort = "GRpc:TopicApiAddress";
+    
+    public const string SerilogFile = "SerilogSettings:LogFile";
 }

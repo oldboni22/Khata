@@ -309,7 +309,9 @@ public class UserService(
     private async Task<UserTopicRelation?> FindUserTopicRelationAsync(
         Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        if (!await userRepository.ExistsAsync(userId, cancellationToken))
+        var target = await FindByIdAsync(userId, cancellationToken);
+        
+        if (target is null)
         {
             throw new EntityNotFoundException<User>(userId);
         }
