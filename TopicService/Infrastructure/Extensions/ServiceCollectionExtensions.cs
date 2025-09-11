@@ -2,10 +2,12 @@ using Domain.Contracts.GRpc;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Infrastructure.gRpc;
+using Infrastructure.Minio;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MinIoService;
 using Shared;
 
 namespace Infrastructure.Extensions;
@@ -18,9 +20,21 @@ public static class ServiceCollectionExtensions
             services
                 .AddTopicContext(configuration)
                 .AddRepositories()
+                .AddMinio(configuration)
+                .AddSingleton<IMinioService, TopicMinioService>()
                 .AddGRpc(configuration);
     }
 
+    private static IServiceCollection AddMinio(this IServiceCollection services, IConfiguration configuration)
+    {
+        var endpoint = configuration[ConfigurationKeys.MinioEndpoint];
+        var accessKey = configuration[ConfigurationKeys.MinioAccessKey];
+        var secretKey = configuration[ConfigurationKeys.MinioSecretKey];
+
+        return services
+            .AddMinioService(() => new  MinioServiceOptions(endpoint!, accessKey!, secretKey!));
+    }
+    
     private static IServiceCollection AddTopicContext(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Postgres");
@@ -41,13 +55,13 @@ public static class ServiceCollectionExtensions
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
     {
-        var userGrpcAddress = new Uri(configuration[ConfigurationKeys.UserGRpcAddress]!);
+        var userServiceGrpcAddress = new Uri(configuration[ConfigurationKeys.UserGRpcAddress]!);
         
         services.AddGrpc();
         
         services.AddGrpcClient<UserGRpcApi.UserGRpcApiClient>(options =>
         {
-            options.Address = userGrpcAddress;
+            options.Address = userServiceGrpcAddress;
         });
         
         services.AddScoped<IUserGRpcClient, UserGRpcClientWrapper>();

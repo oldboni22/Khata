@@ -29,8 +29,6 @@ public class PostController(
     ILogger logger) 
     : BaseController<Post,PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
-    private const string BucketName = "topicscontnt";
-    
     [Authorize]
     [HttpPost]
     public async Task<PostReadDto> CreatePostAsync(
@@ -97,7 +95,7 @@ public class PostController(
         
         var minioKey = postId.ToString();
 
-        await minioService.DeleteFileAsync(BucketName, minioKey);
+        await minioService.DeleteFileAsync(minioKey);
     }
 
     [Authorize]
@@ -144,7 +142,7 @@ public class PostController(
 
         var minioKey = postId.ToString();
 
-        await minioService.UploadFileAsync(file, BucketName, minioKey);
+        await minioService.UploadFileAsync(file, minioKey);
     }
 
     [HttpGet]
@@ -205,7 +203,7 @@ public class PostController(
         
         var minioKey = postId.ToString();
 
-        var (stream, stats) = await minioService.GetFileAsync(BucketName, minioKey) 
+        var (stream, stats) = await minioService.GetFileAsync(minioKey) 
                               ?? throw new Exception();
 
         return File(stream, stats.ContentType, stats.ObjectName);

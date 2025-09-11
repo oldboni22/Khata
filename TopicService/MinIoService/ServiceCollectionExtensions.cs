@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddMinioService(this IServiceCollection services, Func<MinioServiceOptions> optionsFactory)
     {
         var options = optionsFactory();
-        
+
         return services.AddMinio(config =>
         {
             config
@@ -18,7 +18,6 @@ public static class ServiceCollectionExtensions
                 .WithCredentials(options.AccessKey, options.SecretKey)
                 .WithSSL(false)
                 .Build();
-        })
-        .AddSingleton<IMinioService, MinioService>();
+        });
     } 
 }

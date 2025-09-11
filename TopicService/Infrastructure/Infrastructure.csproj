@@ -25,6 +25,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Domain\Domain.csproj" />
+        <ProjectReference Include="..\MinIoService\MinIoService.csproj" />
         <Protobuf Include="gRpc\TopicService.proto" GrpcServices="Both" />
     </ItemGroup>
 

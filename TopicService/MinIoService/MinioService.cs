@@ -1,18 +1,21 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Minio;
+using Minio.DataModel;
 using Minio.DataModel.Args;
 
 namespace MinIoService;
 
-internal class MinioService(IMinioClient client) : IMinioService
+public abstract class MinioService(IMinioClient client) : IMinioService
 {
-    public async Task UploadFileAsync(IFormFile file, string bucketName, string key)
+    protected abstract string BucketName { get; }
+
+    public async Task UploadFileAsync(IFormFile file, string key)
     {
         await using var stream = file.OpenReadStream();
 
         var putObjectArgs = new PutObjectArgs()
-            .WithBucket(bucketName)
+            .WithBucket(BucketName)
             .WithObject(key)
             .WithStreamData(stream)
             .WithObjectSize(stream.Length)
@@ -21,33 +24,41 @@ internal class MinioService(IMinioClient client) : IMinioService
         await client.PutObjectAsync(putObjectArgs);
     }
 
-    public async Task<FormFile> GetFileAsync(string bucketName, string key)
+    public async Task<(Stream stream, ObjectStat stats)?> GetFileAsync(string key)
     {
-        var objectStream = new MemoryStream();
-        
-        var getObjectArgs = new GetObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(key)
-            .WithCallbackStream(stream =>
-            {
-                stream.CopyTo(objectStream);
-            });
-
-        var objectData = await client.GetObjectAsync(getObjectArgs);
-        
-        var fileData = new FormFile(objectStream, 0, objectStream.Length, "media", key)
+        try
         {
-            Headers = new HeaderDictionary(),
-            ContentType = "application/octet-stream"
-        };
+            var statArgs = new StatObjectArgs()
+                .WithBucket(BucketName)
+                .WithObject(key);
 
-        return fileData;
+            var stats = await client.StatObjectAsync(statArgs);
+
+            var objectStream = new MemoryStream();
+        
+            var getObjectArgs = new GetObjectArgs()
+                .WithBucket(BucketName)
+                .WithObject(key)
+                .WithCallbackStream((s) =>
+                {
+                    s.CopyTo(objectStream);
+                    objectStream.Position = 0;
+                });
+            
+            await client.GetObjectAsync(getObjectArgs);
+
+            return (objectStream, stats);
+        }
+        catch (Minio.Exceptions.ObjectNotFoundException e)
+        {
+            return null; 
+        }
     }
     
-    public async Task DeleteFileAsync(string bucketName, string key)
+    public async Task DeleteFileAsync(string key)
     {
         var removeObjectArgs = new RemoveObjectArgs()
-            .WithBucket(bucketName)
+            .WithBucket(BucketName)
             .WithObject(key);
 
         await client.RemoveObjectAsync(removeObjectArgs);

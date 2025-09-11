@@ -66,8 +66,6 @@ public class UserService(
     ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
 {
-    private const string BucketName = "userdata";
-    
     public async Task<UserModel?> UpdateAsync(
         string senderId, 
         Guid userId, 
@@ -87,7 +85,7 @@ public class UserService(
 
         var minioKey = userId.ToString();
         
-        await minioService.UploadFileAsync(file, BucketName ,minioKey);
+        await minioService.UploadFileAsync(file, minioKey);
     }
 
     public async Task DeleteAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
@@ -103,7 +101,7 @@ public class UserService(
 
         var minioKey = userId.ToString();
         
-        await minioService.DeleteFileAsync(BucketName ,minioKey);
+        await minioService.DeleteFileAsync(minioKey);
     }
 
     public async Task<(Stream stream, ObjectStat stats)> FindUserPfpAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
@@ -112,7 +110,7 @@ public class UserService(
 
         var minioKey = userId.ToString();
 
-        var minioResult = await minioService.GetFileAsync(BucketName, minioKey);
+        var minioResult = await minioService.GetFileAsync(minioKey);
 
         if (minioResult is null)
         {
