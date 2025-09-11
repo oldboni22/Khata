@@ -1,4 +1,8 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Minio;
+using Minio.DataModel;
+using MinIoService;
 using Serilog;
 using Shared.Enums;
 using Shared.Extensions;
@@ -18,8 +22,15 @@ namespace UserService.BLL.Services;
 public interface IUserService : IGenericService<User, UserModel, UserCreateModel, UserUpdateModel>
 {
     Task<UserModel?> UpdateAsync(string senderId, Guid userId, UserUpdateModel updateModel, CancellationToken cancellationToken = default);
+
+    Task UpdatePfpAsync(string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default);
     
     Task DeleteAsync(string senderId ,Guid userId, CancellationToken cancellationToken = default);
+    
+    Task DeletePfpAsync(string senderId, Guid userId, CancellationToken cancellationToken = default);
+
+    Task<(Stream stream, ObjectStat stats)> FindUserPfpAsync(
+        string senderId, Guid userId, CancellationToken cancellationToken = default);
     
     Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
         Guid topicId, UserTopicRelationStatus status, PaginationParameters paginationParameters, CancellationToken cancellationToken = default);
@@ -50,10 +61,13 @@ public class UserService(
     IUserRepository userRepository,
     IUserTopicRelationRepository userTopicRelationRepository,
     ITopicGRpcClient topicGRpcClient,
+    IMinioService minioService,
     IMapper mapper, 
     ILogger logger) : 
     GenericService<User, UserModel, UserCreateModel, UserUpdateModel>(userRepository, mapper, logger), IUserService
 {
+    private const string BucketName = "userdata";
+    
     public async Task<UserModel?> UpdateAsync(
         string senderId, 
         Guid userId, 
@@ -67,12 +81,47 @@ public class UserService(
         return await UpdateAsync(userId, updateModel, cancellationToken);
     }
 
+    public async Task UpdatePfpAsync(string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default)
+    {
+        await ValidateSenderIdAsync(senderId, userId, cancellationToken);
+
+        var minioKey = userId.ToString();
+        
+        await minioService.UploadFileAsync(file, BucketName ,minioKey);
+    }
+
     public async Task DeleteAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
         
         await DeleteAsync(userId, cancellationToken);
     }
+
+    public async Task DeletePfpAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        await ValidateSenderIdAsync(senderId, userId, cancellationToken);
+
+        var minioKey = userId.ToString();
+        
+        await minioService.DeleteFileAsync(BucketName ,minioKey);
+    }
+
+    public async Task<(Stream stream, ObjectStat stats)> FindUserPfpAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        await ValidateSenderIdAsync(senderId, userId, cancellationToken);
+
+        var minioKey = userId.ToString();
+
+        var minioResult = await minioService.GetFileAsync(BucketName, minioKey);
+
+        if (minioResult is null)
+        {
+            throw new Exception();
+        }
+
+        return minioResult.Value;
+    }
+
 
     public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
         Guid topicId, 

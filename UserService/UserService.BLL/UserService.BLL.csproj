@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\TopicService\MinIoService\MinIoService.csproj" />
       <ProjectReference Include="..\UserService.DAL\UserService.DAL.csproj" />
     </ItemGroup>
 

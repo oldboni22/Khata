@@ -7,7 +7,9 @@ using Domain.Entities.Interactions;
 using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MinIoService;
 using Shared.Enums;
+using Shared.Exceptions;
 using Shared.Extensions;
 using Shared.Filters.Comment;
 using Shared.PagedList;
@@ -22,9 +24,12 @@ public class CommentController(
     IGenericRepository<Topic> postTopicRepository,
     IGenericReadOnlyRepository<Comment> commentRepository,
     IUserGRpcClient userGRpcClient,
+    IMinioService minioService,
     IMapper mapper,
     ILogger logger) : BaseController<Comment, CommentSortOptions>(postTopicRepository, userGRpcClient, mapper, logger)
 {
+    private const string BucketName = "topicscontent";
+    
     [HttpPost]
     [Authorize]
     public async Task<CommentReadDto> CreateCommentAsync(
@@ -68,6 +73,35 @@ public class CommentController(
     }
     
     [Authorize]
+    [HttpDelete("{commentId}/media")]
+    public async Task RemoveCommentMediaAsync(
+        Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
+    {
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
+        
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
+        
+        var senderId = User.GetAuth0Id();
+        
+        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
+        
+        if (senderUserId != comment.UserId && senderUserId != topic.OwnerId &&
+            await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
+        {
+            throw new ForbiddenException();
+        }
+        
+        var minioKey = commentId.ToString();
+
+        await minioService.DeleteFileAsync(BucketName, minioKey);
+    }
+    
+    [Authorize]
     [HttpPut("{commentId}")]
     public async Task<CommentReadDto> UpdateCommentAsync(
         Guid topicId, Guid postId, Guid commentId, [FromBody] string text, CancellationToken cancellationToken)
@@ -92,6 +126,35 @@ public class CommentController(
         return mapper.Map<CommentReadDto>(comment);
     }
 
+    [Authorize]
+    [HttpPut("{commentId}/media")]
+    public async Task UpdateCommentMediaAsync(
+        IFormFile file, Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
+    {
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
+        
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
+        
+        var senderId = User.GetAuth0Id();
+        
+        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
+        
+        if (senderUserId != comment.UserId && senderUserId != topic.OwnerId &&
+            await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
+        {
+            throw new ForbiddenException();
+        }
+        
+        var minioKey = commentId.ToString();
+
+        await minioService.UploadFileAsync(file, BucketName, minioKey);
+    }
+    
     [HttpGet("{commentId}")]
     public async Task<CommentReadDto> FindCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
@@ -108,6 +171,28 @@ public class CommentController(
         return mapper.Map<CommentReadDto>(comment);
     }
 
+    [Authorize]
+    [HttpGet("{commentId}/media")]
+    public async Task<FileResult> GetCommentMediaAsync(
+        Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
+    {
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
+        
+        var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
+                      ?? throw new EntityNotFoundException<Comment>(commentId);
+        
+        var minioKey = commentId.ToString();
+
+        var (stream, stats) = await minioService.GetFileAsync(BucketName, minioKey) 
+                              ?? throw new Exception();
+
+        return File(stream, stats.ContentType, stats.ObjectName);
+    }
+    
     [HttpGet]
     public async Task<PagedList<CommentReadDto>> FindCommentsAsync(
         Guid topicId,
