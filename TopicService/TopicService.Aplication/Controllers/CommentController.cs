@@ -28,8 +28,6 @@ public class CommentController(
     IMapper mapper,
     ILogger logger) : BaseController<Comment, CommentSortOptions>(postTopicRepository, userGRpcClient, mapper, logger)
 {
-    private const string BucketName = "topicscontent";
-    
     [HttpPost]
     [Authorize]
     public async Task<CommentReadDto> CreateCommentAsync(
@@ -98,7 +96,7 @@ public class CommentController(
         
         var minioKey = commentId.ToString();
 
-        await minioService.DeleteFileAsync(BucketName, minioKey);
+        await minioService.DeleteFileAsync(minioKey);
     }
     
     [Authorize]
@@ -152,7 +150,7 @@ public class CommentController(
         
         var minioKey = commentId.ToString();
 
-        await minioService.UploadFileAsync(file, BucketName, minioKey);
+        await minioService.UploadFileAsync(file, minioKey);
     }
     
     [HttpGet("{commentId}")]
@@ -187,7 +185,7 @@ public class CommentController(
         
         var minioKey = commentId.ToString();
 
-        var (stream, stats) = await minioService.GetFileAsync(BucketName, minioKey) 
+        var (stream, stats) = await minioService.GetFileAsync(minioKey) 
                               ?? throw new Exception();
 
         return File(stream, stats.ContentType, stats.ObjectName);

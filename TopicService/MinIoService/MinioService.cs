@@ -6,14 +6,16 @@ using Minio.DataModel.Args;
 
 namespace MinIoService;
 
-internal class MinioService(IMinioClient client) : IMinioService
+public abstract class MinioService(IMinioClient client) : IMinioService
 {
-    public async Task UploadFileAsync(IFormFile file, string bucketName, string key)
+    protected abstract string BucketName { get; }
+
+    public async Task UploadFileAsync(IFormFile file, string key)
     {
         await using var stream = file.OpenReadStream();
 
         var putObjectArgs = new PutObjectArgs()
-            .WithBucket(bucketName)
+            .WithBucket(BucketName)
             .WithObject(key)
             .WithStreamData(stream)
             .WithObjectSize(stream.Length)
@@ -22,12 +24,12 @@ internal class MinioService(IMinioClient client) : IMinioService
         await client.PutObjectAsync(putObjectArgs);
     }
 
-    public async Task<(Stream stream, ObjectStat stats)?> GetFileAsync(string bucketName, string key)
+    public async Task<(Stream stream, ObjectStat stats)?> GetFileAsync(string key)
     {
         try
         {
             var statArgs = new StatObjectArgs()
-                .WithBucket(bucketName)
+                .WithBucket(BucketName)
                 .WithObject(key);
 
             var stats = await client.StatObjectAsync(statArgs);
@@ -35,7 +37,7 @@ internal class MinioService(IMinioClient client) : IMinioService
             var objectStream = new MemoryStream();
         
             var getObjectArgs = new GetObjectArgs()
-                .WithBucket(bucketName)
+                .WithBucket(BucketName)
                 .WithObject(key)
                 .WithCallbackStream((s) =>
                 {
@@ -53,10 +55,10 @@ internal class MinioService(IMinioClient client) : IMinioService
         }
     }
     
-    public async Task DeleteFileAsync(string bucketName, string key)
+    public async Task DeleteFileAsync(string key)
     {
         var removeObjectArgs = new RemoveObjectArgs()
-            .WithBucket(bucketName)
+            .WithBucket(BucketName)
             .WithObject(key);
 
         await client.RemoveObjectAsync(removeObjectArgs);

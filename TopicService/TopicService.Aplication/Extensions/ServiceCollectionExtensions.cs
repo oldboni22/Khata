@@ -12,19 +12,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationLayerDependencies(this IServiceCollection collection, IConfiguration configuration)
     {
         return collection
-            .AddMinio(configuration)
             .AddMapping()
             .AddInfrastructureDependencies(configuration);
-    }
-
-    private static IServiceCollection AddMinio(this IServiceCollection services, IConfiguration configuration)
-    {
-        var endpoint = configuration[ConfigurationKeys.MinioEndpoint];
-        var accessKey = configuration[ConfigurationKeys.MinioAccessKey];
-        var secretKey = configuration[ConfigurationKeys.MinioSecretKey];
-
-        return services
-            .AddMinioService(() => new  MinioServiceOptions(endpoint!, accessKey!, secretKey!));
     }
     
     private static IServiceCollection AddMapping(this IServiceCollection collection)

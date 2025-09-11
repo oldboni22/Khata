@@ -5,6 +5,7 @@ using Minio;
 using MinIoService;
 using Shared;
 using UserService.BLL.gRpc;
+using UserService.BLL.Minio;
 using UserService.BLL.Services;
 using UserService.BLL.Utilities;
 using UserService.DAL.Extensions;
@@ -31,19 +32,19 @@ public static class ServiceCollectionExtensions
         var secretKey = configuration[ConfigurationKeys.MinioSecretKey];
 
         return services
-            .SetMinioVariables(endpoint!, accessKey!, secretKey!)
-            .AddMinioService();
+            .AddMinioService(() => new MinioServiceOptions(endpoint!, accessKey!, secretKey!))
+            .AddSingleton<IMinioService, UserMinioService>();
     }
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
     {
-        var topicGrpcAddress = new Uri(configuration[ConfigurationKeys.TopicGRpcAddress]!);
+        var topicServiceGrpcAddress = new Uri(configuration[ConfigurationKeys.TopicGRpcAddress]!);
         
         services.AddGrpc();
         
         services.AddGrpcClient<TopicGRpcApi.TopicGRpcApiClient>(options =>
         {
-            options.Address = topicGrpcAddress;
+            options.Address = topicServiceGrpcAddress;
         });
 
         services.AddScoped<ITopicGRpcClient,TopicGRpcClientWrapper>();
