@@ -24,8 +24,7 @@ public static class ServiceCollectionExtensions
         var secretKey = configuration[ConfigurationKeys.MinioSecretKey];
 
         return services
-            .SetMinioVariables(endpoint!, accessKey!, secretKey!)
-            .AddMinioService();
+            .AddMinioService(() => new  MinioServiceOptions(endpoint!, accessKey!, secretKey!));
     }
     
     private static IServiceCollection AddMapping(this IServiceCollection collection)
