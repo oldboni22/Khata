@@ -17,17 +17,20 @@ public class GenericRepository<T>(TopicServiceContext context) : GenericReadOnly
         return entity;
     }
     
-    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await FindByIdAsync(id, false, cancellationToken);
 
         if (entity is null)
         {
-            throw new EntityNotFoundException<T>(id);
+            return false;
         }
         
         Context.Set<T>().Remove(entity);
+        
         await Context.SaveChangesAsync(cancellationToken);
+        
+        return true;
     }
     
     public async Task UpdateAsync(CancellationToken cancellationToken = default)

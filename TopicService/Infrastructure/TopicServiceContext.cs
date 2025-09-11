@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure;
 
-public class TopicServiceContext : DbContext
+public class TopicServiceContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<Topic> Topics { get; init; }
     

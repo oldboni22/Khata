@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Shared;
 using UserService.API.Extensions;
-using UserService.API.Middleware;   
+using UserService.API.Middleware;
+using UserService.BLL.gRpc;
 
 namespace UserService.API;
 
@@ -10,6 +13,29 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         builder.ConfigureSerilog();
+        
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            var grpcPortStr = builder.Configuration[ConfigurationKeys.TopicGRpcPort];
+            var grpcPort =  int.Parse(grpcPortStr!);
+            
+            var appPortStr = builder.Configuration[ConfigurationKeys.ApplicationPort];
+            var appPort = int.Parse(appPortStr!);
+            
+            options.ListenAnyIP(appPort, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                listenOptions.UseHttps();
+            });
+            //Rest APi ^
+            
+            options.ListenLocalhost(grpcPort, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http2;
+                listenOptions.UseHttps();
+            });
+            //GRpc & ^
+        });
         
         builder.Services.AddAuthenticationBearer(builder.Configuration);
         builder.Services.AddAuthorization();
@@ -33,6 +59,8 @@ public class Program
         
         app.UseHttpsRedirection();
 
+        app.MapGrpcService<UserGRpcApi>();
+        
         app.UseAuthentication();
         app.UseAuthorization();
         

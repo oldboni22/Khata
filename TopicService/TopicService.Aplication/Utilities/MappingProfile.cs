@@ -7,7 +7,7 @@ namespace TopicService.API.Utilities;
 
 public class MappingProfile : Profile
 {
-    protected MappingProfile()
+    public MappingProfile()
     {
         CreateMap<Topic, Dto.Topic.TopicReadDto>();
         

@@ -23,9 +23,7 @@ public interface IGenericRepository<T>
     
     Task<T?> UpdateAsync(T entity, CancellationToken cancellationToken = default);
     
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-    
-    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
 public class GenericRepository<T>(UserServiceContext context) : IGenericRepository<T> 
@@ -89,19 +87,13 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
         return entity;
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await FindByIdAsync(id, false, cancellationToken);
-        
-        if(entity is null)
-        {
-            return false;
-        }
+        var entity = await Context.Set<T>().FirstAsync(ent => ent.Id == id, cancellationToken);
         
         Context.Set<T>().Remove(entity);
-        await Context.SaveChangesAsync(cancellationToken);
         
-        return true;
+        await Context.SaveChangesAsync(cancellationToken);
     }
 
     public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)

@@ -41,7 +41,7 @@ public static class ServiceCollectionExtensions
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
     {
-        var port = new Uri(configuration[ConfigurationKeys.UserGRpcPort]!);
+        var port = new Uri(configuration[ConfigurationKeys.TopicGRpcAddress]!);
         
         services.AddGrpc();
         services.AddGrpcClient<UserGRpcApi.UserGRpcApiClient>(options =>

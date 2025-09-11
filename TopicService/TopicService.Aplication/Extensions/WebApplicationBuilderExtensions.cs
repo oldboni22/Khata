@@ -1,7 +1,6 @@
 using Serilog;
-using Shared;
 
-namespace UserService.API.Extensions;
+namespace TopicService.API.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
@@ -13,7 +12,7 @@ public static class WebApplicationBuilderExtensions
                 .ReadFrom.Configuration(builder.Configuration)
                 .ReadFrom.Services(sp)
                 .WriteTo.Console()
-                .WriteTo.File(builder.Configuration[ConfigurationKeys.SerilogFile]!);
+                .WriteTo.File("log.txt");
         });
     }
 }

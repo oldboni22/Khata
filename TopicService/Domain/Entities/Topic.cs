@@ -29,11 +29,11 @@ public class Topic : EntityWithTimestamps
     
     public int PostCount { get; private set; }
     
-    private Topic(string name, Guid creatorId, Guid? parentTopicId = null)
+    private Topic(string name, Guid ownerId, Guid? parentTopicId = null)
     {
         Name = name;
         ParentTopicId = parentTopicId;
-        OwnerId = creatorId;
+        OwnerId = ownerId;
     }
     
     public static Topic Create(string name, Guid creatorId, Guid? parentTopic = null)

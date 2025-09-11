@@ -80,7 +80,9 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
 
     public async Task<TModel?> UpdateAsync(Guid id, TUpdateModel updateModel, CancellationToken cancellationToken = default)
     {
-        if (!await repository.ExistsAsync(id, cancellationToken))
+        var target = await FindByIdAsync(id, cancellationToken);
+        
+        if (target is null)
         {
             Logger.Warning(EntityNotFoundLogMessageGenerator<TEntity>.GenerateMessage(id));
 
@@ -97,7 +99,9 @@ public class GenericService<TEntity, TModel, TCreateModel, TUpdateModel>(
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        if (!await repository.ExistsAsync(id, cancellationToken))
+        var target = await FindByIdAsync(id, cancellationToken);
+        
+        if (target is null)
         {
             Logger.Warning(EntityNotFoundLogMessageGenerator<TEntity>.GenerateMessage(id));
             

@@ -135,9 +135,9 @@ public class UserService(
     public async Task<bool> DoesUserHaveTopicStatusAsync(
         Guid userId, Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default)
     {
-        var relations = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
+        var relation = await FindUserTopicRelationAsync(userId, topicId, cancellationToken);
         
-        return DoesUserHaveRelationStatus(relations, status, out var relationId);
+        return relation?.TopicRelationStatus == status;
     }
 
     public async Task AddSubscriptionAsync(
@@ -145,34 +145,31 @@ public class UserService(
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
         
-        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
-        
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
-        {
-            Logger.Warning(UserAlreadyHasRelationLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Subscribed));
-            
-            throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Subscribed);
-        }
-        
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
-        {
-            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
+        var relation = await FindUserTopicRelationAsync(userId, topicId, cancellationToken);
 
-            throw new UserBannedException(userId, topicId);
+        if (relation is not null)
+        {
+            switch (relation.TopicRelationStatus)
+            {
+                case UserTopicRelationStatus.Subscribed: 
+                    throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Subscribed);
+                
+                case UserTopicRelationStatus.Moderator:
+                    throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Moderator);
+                
+                case UserTopicRelationStatus.Banned:
+                    throw new UserBannedException(userId, topicId);
+            }
         }
 
         var userModel = await FindByIdAsync(userId, cancellationToken);
-        
-        var relation = new UserTopicRelationModel()
+
+        var relationEntity = new UserTopicRelation
         {
             UserId = userId,
             TopicId = topicId,
-            TopicRelationStatus = UserTopicRelationStatus.Subscribed,
-            User = userModel!
+            User = null!
         };
-
-        var relationEntity = Mapper.Map<UserTopicRelation>(relation);
         
         await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
     }
@@ -182,35 +179,26 @@ public class UserService(
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
         
-        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
-        
-        if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
+        var relation = await FindUserTopicRelationAsync(userId, topicId, cancellationToken)
+                       ?? throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Subscribed);
+
+        if (relation.TopicRelationStatus != UserTopicRelationStatus.Subscribed)
         {
-            Logger.Warning(RelationDoesNotExistLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Subscribed));
-            
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Subscribed);
         }
         
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
-        {
-            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
-            
-            throw new UserBannedException(userId, topicId);
-        }
-        
-        var relationModel = relationModels.First(relation => relation.TopicRelationStatus == UserTopicRelationStatus.Subscribed);
-        
-        await userTopicRelationRepository.DeleteAsync(relationModel.Id, cancellationToken);
+        await userTopicRelationRepository.DeleteAsync(relation.Id, cancellationToken);
     }
 
     public async Task AddBanAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
+        var senderRelation = await FindUserTopicRelationAsync(senderUser.Id, topicId, cancellationToken);
         
-        var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
+        var hasModeration = senderRelation?.TopicRelationStatus == UserTopicRelationStatus.Moderator;
+        var isOwner = await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId);
         
-        if(!DoesUserHaveRelationStatus(senderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId))
+        if(!isOwner && !hasModeration)
         {
             Logger.Warning(ForbiddenLogMessageGenerator.GenerateMessage(senderUser.Id));
 
@@ -221,72 +209,55 @@ public class UserService(
         {
             throw new BadRequestException(SelfBanExceptionMessages.DefaultMessage);
         }
-        
-        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
 
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
+        var relation = await FindUserTopicRelationAsync(userId, topicId, cancellationToken);
+
+        if (relation is null)
         {
-            Logger.Warning(UserAlreadyHasRelationLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Banned));
+            await userTopicRelationRepository.CreateAsync
+            (new UserTopicRelation
+            {
+                UserId = userId,
+                TopicId = topicId,
+                TopicRelationStatus = UserTopicRelationStatus.Banned
+            }, cancellationToken);
             
-            throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Banned);
-        }
-        
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Subscribed, out var subscriptionRelationId))
-        {
-            Logger.Information(RemoveBannedUserStatusLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Subscribed));
-            
-            await userTopicRelationRepository.DeleteAsync(subscriptionRelationId, cancellationToken);
+            return;
         }
 
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Moderator, out var moderationRelationId))
+        if (relation.TopicRelationStatus == UserTopicRelationStatus.Moderator && !isOwner)
         {
-            Logger.Information(RemoveBannedUserStatusLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Moderator));
-            
-            await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
+            throw new ForbiddenException(senderUser.Id);
         }
         
-        var userModel = await FindByIdAsync(userId, cancellationToken);
+        relation.TopicRelationStatus = UserTopicRelationStatus.Banned;
         
-        var relationModel = new UserTopicRelationModel()
-        {
-            UserId = userId,
-            TopicId = topicId,
-            TopicRelationStatus = UserTopicRelationStatus.Banned,
-            User = userModel!
-        };
-        
-        var relationEntity = Mapper.Map<UserTopicRelation>(relationModel);
-        
-        await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
+        await userTopicRelationRepository.UpdateAsync(relation, cancellationToken);
     }
 
     public async Task RemoveBanAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
+        var senderRelation = await FindUserTopicRelationAsync(senderUser.Id, topicId, cancellationToken);
         
-        var senderRelationModels = await FindUserTopicRelationsAsync(senderUser.Id, topicId, cancellationToken);
+        var hasModeration = senderRelation?.TopicRelationStatus == UserTopicRelationStatus.Moderator;
+        var isOwner = await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId);
         
-        if(!DoesUserHaveRelationStatus(senderRelationModels, UserTopicRelationStatus.Moderator, out var moderRelationId))
+        if(!isOwner && !hasModeration)
         {
             Logger.Warning(ForbiddenLogMessageGenerator.GenerateMessage(senderUser.Id));
 
             throw new ForbiddenException(senderUser.Id);
         }
         
-        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
-        
-        if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
+        var relation = await FindUserTopicRelationAsync(userId, topicId, cancellationToken);
+
+        if (relation is null || relation.TopicRelationStatus != UserTopicRelationStatus.Banned)
         {
-            Logger.Warning(RelationDoesNotExistLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Banned));
-            
             throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Banned);
         }
         
-        await userTopicRelationRepository.DeleteAsync(banRelationId, cancellationToken);
+        await userTopicRelationRepository.DeleteAsync(relation.Id, cancellationToken);
     }
 
     public async Task AddModerationStatusAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
@@ -298,106 +269,68 @@ public class UserService(
             throw new ForbiddenException(senderUser.Id);
         }
         
-        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
+        var relation = await FindUserTopicRelationAsync(userId, topicId, cancellationToken);
 
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
+        if (relation is null)
         {
-            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
+            var createdRelation = new UserTopicRelation()
+            {
+                UserId = userId,
+                TopicId = topicId,
+                TopicRelationStatus = UserTopicRelationStatus.Moderator,
+            };
             
-            throw new UserBannedException(userId, topicId);
+            await userTopicRelationRepository.CreateAsync(createdRelation, cancellationToken);
+            
+            return;
         }
         
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Moderator, out var moderationRelationId))
-        {
-            Logger.Warning(UserAlreadyHasRelationLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Moderator));
-            
-            throw new RelationAlreadyExistsException(userId, topicId, UserTopicRelationStatus.Moderator);
-        }
+        relation.TopicRelationStatus = UserTopicRelationStatus.Moderator;
         
-        var userModel = await FindByIdAsync(userId, cancellationToken);
-        
-        var relationModel = new UserTopicRelationModel()
-        {
-            UserId = userId,
-            TopicId = topicId,
-            TopicRelationStatus = UserTopicRelationStatus.Banned,
-            User = userModel!
-        };
-        
-        var relationEntity = Mapper.Map<UserTopicRelation>(relationModel);
-        
-        await userTopicRelationRepository.CreateAsync(relationEntity, cancellationToken);
+        await userTopicRelationRepository.UpdateAsync(relation, cancellationToken);
     }
 
-    public async Task RemoveModerationStatusAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
+    public async Task RemoveModerationStatusAsync(
+        string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
         var senderUser = await FindUserByAuth0IdAsync(senderId, cancellationToken);
 
         if (!await topicGRpcClient.IsOwnerAsync(senderUser.Id, topicId))
         {
-             throw new ForbiddenException(senderUser.Id);
+            throw new ForbiddenException(senderUser.Id);
         }
         
-        var relationModels = await FindUserTopicRelationsAsync(userId, topicId, cancellationToken);
-
-        if (DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Banned, out var banRelationId))
-        {
-            Logger.Warning(UserBannedLogMessageGenerator.GenerateMessage(userId, topicId));
-            
-            throw new UserBannedException(userId, topicId);
-        }
+        var relation = await FindUserTopicRelationAsync(userId, topicId, cancellationToken)
+                       ?? throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Moderator);
         
-        if (!DoesUserHaveRelationStatus(relationModels, UserTopicRelationStatus.Moderator, out var moderationRelationId))
-        {
-            Logger.Warning(RelationDoesNotExistLogMessageGenerator
-                .GenerateMessage(userId, topicId, UserTopicRelationStatus.Moderator));
-            
-            throw new RelationDoesNotExistException(userId, topicId, UserTopicRelationStatus.Moderator);
-        }
-        
-        await userTopicRelationRepository.DeleteAsync(moderationRelationId, cancellationToken);
+        await userTopicRelationRepository.DeleteAsync(relation.Id, cancellationToken);
     }
 
-    private async Task<List<UserTopicRelationModel>> FindUserTopicRelationsAsync(
+    private async Task<UserTopicRelation?> FindUserTopicRelationAsync(
         Guid userId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        if (!await userRepository.ExistsAsync(userId, cancellationToken))
+        var target = await FindByIdAsync(userId, cancellationToken);
+        
+        if (target is null)
         {
             throw new EntityNotFoundException<User>(userId);
         }
         
-        var pagedList = await userTopicRelationRepository
-            .FindByConditionAsync
+        var list = await userTopicRelationRepository
+            .FindAllByConditionAsync
                 (
                     ent => ent.UserId == userId && ent.TopicId == topicId,
-                    new PaginationParameters(1,5),
-                    false,
+                    true,
                     cancellationToken
                 );
-
-        return Mapper.Map<List<UserTopicRelationModel>>(pagedList.Items);
+        
+        return list.FirstOrDefault();
     }
     
-    private bool DoesUserHaveRelationStatus(
-        List<UserTopicRelationModel> relations, UserTopicRelationStatus targetStatus, out Guid relationId)
-    {
-        var relation = relations
-            .FirstOrDefault(relation => relation.TopicRelationStatus == targetStatus);
-
-        relationId = relation?.Id ?? Guid.Empty;
-
-        return relationId != Guid.Empty;
-    }
-
     private async Task<User> FindUserByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken)
     {
-        var userEntity = await userRepository.FindUserByAuth0IdAsync(auth0Id, cancellationToken);
-
-        if (userEntity is null)
-        {
-            throw new NotFoundException(Auth0IdNotFoundExceptionMessageGenerator.GenerateMessage(auth0Id));
-        }
+        var userEntity = await userRepository.FindUserByAuth0IdAsync(auth0Id, cancellationToken)
+            ?? throw new NotFoundException(Auth0IdNotFoundExceptionMessageGenerator.GenerateMessage(auth0Id));
 
         return userEntity;
     }
