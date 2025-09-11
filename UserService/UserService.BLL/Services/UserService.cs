@@ -23,13 +23,13 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
 {
     Task<UserModel?> UpdateAsync(string senderId, Guid userId, UserUpdateModel updateModel, CancellationToken cancellationToken = default);
 
-    Task UpdatePfpAsync(string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default);
+    Task UpdatePictureAsync(string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default);
     
     Task DeleteAsync(string senderId ,Guid userId, CancellationToken cancellationToken = default);
     
-    Task DeletePfpAsync(string senderId, Guid userId, CancellationToken cancellationToken = default);
+    Task DeletePictureAsync(string senderId, Guid userId, CancellationToken cancellationToken = default);
 
-    Task<(Stream stream, ObjectStat stats)> FindUserPfpAsync(
+    Task<(Stream stream, ObjectStat stats)> FindUserPictureAsync(
         string senderId, Guid userId, CancellationToken cancellationToken = default);
     
     Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
@@ -79,7 +79,7 @@ public class UserService(
         return await UpdateAsync(userId, updateModel, cancellationToken);
     }
 
-    public async Task UpdatePfpAsync(string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default)
+    public async Task UpdatePictureAsync(string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default)
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
 
@@ -95,7 +95,7 @@ public class UserService(
         await DeleteAsync(userId, cancellationToken);
     }
 
-    public async Task DeletePfpAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task DeletePictureAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
 
@@ -104,7 +104,7 @@ public class UserService(
         await minioService.DeleteFileAsync(minioKey);
     }
 
-    public async Task<(Stream stream, ObjectStat stats)> FindUserPfpAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<(Stream stream, ObjectStat stats)> FindUserPictureAsync(string senderId, Guid userId, CancellationToken cancellationToken = default)
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
 

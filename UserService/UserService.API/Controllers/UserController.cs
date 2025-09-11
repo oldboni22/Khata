@@ -41,12 +41,12 @@ public class UserController(
     }
     
     [HttpPost($"{UserIdRoute}/media")]
-    public async Task UploadPfpAsync(
+    public async Task UploadPictureAsync(
         IFormFile file, Guid userId, CancellationToken cancellationToken)
     {
         var senderId = User.GetAuth0Id();
         
-        await userService.UpdatePfpAsync(senderId!, userId, file, cancellationToken);
+        await userService.UpdatePictureAsync(senderId!, userId, file, cancellationToken);
     }
     
     [HttpGet("topics/{topicId}")]
@@ -71,11 +71,11 @@ public class UserController(
     }
 
     [HttpGet($"{UserIdRoute}/media")]
-    public async Task<FileResult> FindPfpAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<FileResult> FindPictureAsync(Guid userId, CancellationToken cancellationToken)
     {
         var senderId = User.GetAuth0Id();
 
-        var (stream, stats) = await userService.FindUserPfpAsync(senderId!, userId, cancellationToken);
+        var (stream, stats) = await userService.FindUserPictureAsync(senderId!, userId, cancellationToken);
 
         return File(stream, stats.ContentType, stats.ObjectName);
     }
