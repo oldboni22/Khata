@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
 {
     public static void AddApiDependencies(this IServiceCollection services, IConfiguration configuration)
     {
-        services
+        services    
             .AddBusinessLayerDependencies(configuration)
             .AddMapping()
             .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())

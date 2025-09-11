@@ -15,17 +15,20 @@ public class Program
         
         builder.WebHost.ConfigureKestrel(options =>
         {
-            var addressStr = builder.Configuration[ConfigurationKeys.TopicGRpcPort];
-            var port =  int.Parse(addressStr!);
+            var grpcPortStr = builder.Configuration[ConfigurationKeys.TopicGRpcPort];
+            var grpcPort =  int.Parse(grpcPortStr!);
             
-            options.ListenAnyIP(7195, listenOptions =>
+            var appPortStr = builder.Configuration[ConfigurationKeys.ApplicationPort];
+            var appPort = int.Parse(appPortStr!);
+            
+            options.ListenAnyIP(appPort, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
                 listenOptions.UseHttps();
             });
             //Rest APi ^
             
-            options.ListenLocalhost(port, listenOptions =>
+            options.ListenLocalhost(grpcPort, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
                 listenOptions.UseHttps();

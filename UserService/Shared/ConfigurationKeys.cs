@@ -8,9 +8,15 @@ public static class ConfigurationKeys
 
     public const string Auth0Domain = "Auth0:Domain";
 
-    public const string UserGRpcPort = "GRpc:UserApiAddress";
+    public const string UserGRpcPort = "GRpc:UserApiPort";
     
-    public const string TopicGRpcPort = "GRpc:TopicApiAddress";
+    public const string UserGRpcAddress = "GRpc:UserApiAddress";
+    
+    public const string TopicGRpcPort = "GRpc:TopicApiPort";
+    
+    public const string TopicGRpcAddress = "GRpc:TopicApiAddress";
     
     public const string SerilogFile = "SerilogSettings:LogFile";
+
+    public const string ApplicationPort = "ApplicationPort";
 }
