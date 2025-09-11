@@ -11,4 +11,10 @@ public static class ConfigurationKeys
     public const string UserGRpcPort = "GRpc:UserApiAddress";
     
     public const string TopicGRpcPort = "GRpc:TopicApiAddress";
+
+    public const string MinioEndpoint = "Minio:Endpoint";
+    
+    public const string MinioAccessKey = "Minio:AccessKey";
+    
+    public const string MinioSecretKey = "Minio:SecretKey";
 }
