@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Minio;
+using Minio.DataModel;
 using Minio.DataModel.Args;
 
 namespace MinIoService;
@@ -21,27 +22,35 @@ internal class MinioService(IMinioClient client) : IMinioService
         await client.PutObjectAsync(putObjectArgs);
     }
 
-    public async Task<FormFile> GetFileAsync(string bucketName, string key)
+    public async Task<(Stream stream, ObjectStat stats)?> GetFileAsync(string bucketName, string key)
     {
-        var objectStream = new MemoryStream();
-        
-        var getObjectArgs = new GetObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(key)
-            .WithCallbackStream(stream =>
-            {
-                stream.CopyTo(objectStream);
-            });
-
-        var objectData = await client.GetObjectAsync(getObjectArgs);
-        
-        var fileData = new FormFile(objectStream, 0, objectStream.Length, "media", key)
+        try
         {
-            Headers = new HeaderDictionary(),
-            ContentType = "application/octet-stream"
-        };
+            var statArgs = new StatObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(key);
 
-        return fileData;
+            var stats = await client.StatObjectAsync(statArgs);
+
+            var objectStream = new MemoryStream();
+        
+            var getObjectArgs = new GetObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(key)
+                .WithCallbackStream((s) =>
+                {
+                    s.CopyTo(objectStream);
+                    objectStream.Position = 0;
+                });
+            
+            await client.GetObjectAsync(getObjectArgs);
+
+            return (objectStream, stats);
+        }
+        catch (Minio.Exceptions.ObjectNotFoundException e)
+        {
+            return null; 
+        }
     }
     
     public async Task DeleteFileAsync(string bucketName, string key)

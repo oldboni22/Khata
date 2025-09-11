@@ -1,6 +1,8 @@
 using Infrastructure.gRpc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Minio;
+using MinIoService;
 using Shared;
 using UserService.BLL.gRpc;
 using UserService.BLL.Services;
@@ -15,11 +17,22 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddDataLayerDependencies(configuration)
+            .AddMinio(configuration)
             .AddMapping()
             .AddGRpc(configuration)
             .AddServices();
-        
         return services;
+    }
+    
+    private static IServiceCollection AddMinio(this IServiceCollection services, IConfiguration configuration)
+    {
+        var endpoint = configuration[ConfigurationKeys.MinioEndpoint];
+        var accessKey = configuration[ConfigurationKeys.MinioAccessKey];
+        var secretKey = configuration[ConfigurationKeys.MinioSecretKey];
+
+        return services
+            .SetMinioVariables(endpoint!, accessKey!, secretKey!)
+            .AddMinioService();
     }
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)
