@@ -32,7 +32,12 @@ public static class ServiceCollectionExtensions
         var secretKey = configuration[ConfigurationKeys.MinioSecretKey];
 
         return services
-            .AddMinioService(() => new MinioServiceOptions(endpoint!, accessKey!, secretKey!))
+            .AddMinioService(options =>
+            {
+                options.AccessKey = accessKey!;
+                options.SecretKey = secretKey!;
+                options.Endpoint = endpoint!;
+            })
             .AddSingleton<IMinioService, UserMinioService>();
     }
     
