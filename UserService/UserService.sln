@@ -8,8 +8,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService.BLL", "UserServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{53ACBAD6-7001-4E73-82DC-5B273D159FFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinIoService", "..\TopicService\MinIoService\MinIoService.csproj", "{439F5D34-187A-4E54-B0FE-A633FCD33E4E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,9 +30,5 @@ Global
 		{53ACBAD6-7001-4E73-82DC-5B273D159FFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53ACBAD6-7001-4E73-82DC-5B273D159FFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53ACBAD6-7001-4E73-82DC-5B273D159FFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{439F5D34-187A-4E54-B0FE-A633FCD33E4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{439F5D34-187A-4E54-B0FE-A633FCD33E4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{439F5D34-187A-4E54-B0FE-A633FCD33E4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{439F5D34-187A-4E54-B0FE-A633FCD33E4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
