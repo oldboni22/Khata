@@ -49,7 +49,7 @@ public abstract class MinioService(IMinioClient client) : IMinioService
 
             return (objectStream, stats);
         }
-        catch (Minio.Exceptions.ObjectNotFoundException e)
+        catch
         {
             return null; 
         }
