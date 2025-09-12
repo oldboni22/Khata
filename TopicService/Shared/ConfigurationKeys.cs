@@ -13,10 +13,16 @@ public static class ConfigurationKeys
     public const string UserGRpcAddress = "GRpc:UserApiAddress";
     
     public const string TopicGRpcPort = "GRpc:TopicApiPort";
-    
+
     public const string TopicGRpcAddress = "GRpc:TopicApiAddress";
     
-    public const string SerilogFile = "SerilogSettings:LogFile";
+    public const string MinioEndpoint = "Minio:Endpoint";
+    
+    public const string MinioAccessKey = "Minio:AccessKey";
+    
+    public const string MinioSecretKey = "Minio:SecretKey";
+    
+    public const string SerilogLogFile = "SerilogSettings:LogFile";
 
     public const string ApplicationPort = "ApplicationPort";
 }

@@ -40,6 +40,15 @@ public class UserController(
         return mapper.Map<UserReadDto>(createdUser);
     }
     
+    [HttpPost($"{UserIdRoute}/media")]
+    public async Task UploadPictureAsync(
+        IFormFile file, Guid userId, CancellationToken cancellationToken)
+    {
+        var senderId = User.GetAuth0Id();
+        
+        await userService.UpdatePictureAsync(senderId!, userId, file, cancellationToken);
+    }
+    
     [HttpGet("topics/{topicId}")]
     public async Task<PagedList<UserReadDto>> FindUsersAsync(
         [FromBody] UserTopicRelationStatus status,
@@ -61,6 +70,16 @@ public class UserController(
         return mapper.Map<UserReadDto>(user);
     }
 
+    [HttpGet($"{UserIdRoute}/media")]
+    public async Task<FileResult> FindPictureAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var senderId = User.GetAuth0Id();
+
+        var (stream, stats) = await userService.FindUserPictureAsync(senderId!, userId, cancellationToken);
+
+        return File(stream, stats.ContentType, stats.ObjectName);
+    }
+    
     [HttpGet($"{UserIdRoute}/relations")]
     public async Task<PagedList<UserTopicRelationDto>> FindUserRelationsAsync(
         [FromQuery] PaginationParameters paginationParameters , Guid userId, CancellationToken cancellationToken)

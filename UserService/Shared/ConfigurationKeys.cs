@@ -9,7 +9,7 @@ public static class ConfigurationKeys
     public const string Auth0Domain = "Auth0:Domain";
 
     public const string UserGRpcPort = "GRpc:UserApiPort";
-    
+
     public const string UserGRpcAddress = "GRpc:UserApiAddress";
     
     public const string TopicGRpcPort = "GRpc:TopicApiPort";
@@ -19,4 +19,10 @@ public static class ConfigurationKeys
     public const string SerilogFile = "SerilogSettings:LogFile";
 
     public const string ApplicationPort = "ApplicationPort";
+    
+    public const string MinioEndpoint = "Minio:Endpoint";
+    
+    public const string MinioAccessKey = "Minio:AccessKey";
+    
+    public const string MinioSecretKey = "Minio:SecretKey";
 }
