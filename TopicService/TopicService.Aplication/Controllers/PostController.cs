@@ -7,6 +7,7 @@ using Domain.Entities.Interactions;
 using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MinIoService;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
@@ -23,6 +24,7 @@ public class PostController(
     IGenericRepository<Topic> topicRepository,
     IGenericReadOnlyRepository<Post> postRepository,
     IUserGRpcClient userGRpcClient, 
+    IMinioService minioService,
     IMapper mapper, 
     ILogger logger) 
     : BaseController<Post,PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
@@ -53,11 +55,15 @@ public class PostController(
         var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
+        
         var senderId = User.GetAuth0Id();
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
-        if (!await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
+        if (senderUserId != post.AuthorId && senderUserId != topic.OwnerId &&
+            await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
         {
             throw new ForbiddenException();
         }
@@ -65,6 +71,31 @@ public class PostController(
         topic.RemovePost(postId, senderUserId);
         
         await TopicRepository.UpdateAsync(cancellationToken);
+    }
+    
+    [Authorize]
+    [HttpDelete("{postId}/media")]
+    public async Task RemovePostMediaAsync(Guid postId, Guid topicId, CancellationToken cancellationToken)
+    {
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
+        
+        var senderId = User.GetAuth0Id();
+        
+        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
+        
+        if (senderUserId != post.AuthorId && senderUserId != topic.OwnerId &&
+            await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
+        {
+            throw new ForbiddenException();
+        }
+        
+        var minioKey = postId.ToString();
+
+        await minioService.DeleteFileAsync(minioKey);
     }
 
     [Authorize]
@@ -87,6 +118,31 @@ public class PostController(
         await TopicRepository.UpdateAsync(cancellationToken);
         
         return Mapper.Map<PostReadDto>(post);
+    }
+    
+    [Authorize]
+    [HttpPut("{postId}/media")]
+    public async Task UpdatePostMediaAsync(
+        IFormFile file ,Guid topicId ,Guid postId, CancellationToken cancellationToken)
+    {
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
+        
+        var senderId = User.GetAuth0Id();
+        
+        var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
+
+        if (senderUserId != post.AuthorId)
+        {
+            throw new ForbiddenException();
+        }
+
+        var minioKey = postId.ToString();
+
+        await minioService.UploadFileAsync(file, minioKey);
     }
 
     [HttpGet]
@@ -132,6 +188,25 @@ public class PostController(
                    ?? throw new EntityNotFoundException<Post>(postId);
         
         return Mapper.Map<PostReadDto>(post);
+    }
+    
+    [Authorize]
+    [HttpGet("{postId}/media")]
+    public async Task<FileResult> GetCommentMediaAsync(
+        Guid postId, Guid topicId, CancellationToken cancellationToken)
+    {
+        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+                    ?? throw new EntityNotFoundException<Topic>(topicId);
+
+        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
+                   ?? throw new EntityNotFoundException<Post>(postId);
+        
+        var minioKey = postId.ToString();
+
+        var (stream, stats) = await minioService.GetFileAsync(minioKey) 
+                              ?? throw new Exception();
+
+        return File(stream, stats.ContentType, stats.ObjectName);
     }
 
     [Authorize]

@@ -16,7 +16,7 @@ public class Program
         
         builder.WebHost.ConfigureKestrel(options =>
         {
-            var grpcPortStr = builder.Configuration[ConfigurationKeys.TopicGRpcPort];
+            var grpcPortStr = builder.Configuration[ConfigurationKeys.UserGRpcPort];
             var grpcPort =  int.Parse(grpcPortStr!);
             
             var appPortStr = builder.Configuration[ConfigurationKeys.ApplicationPort];

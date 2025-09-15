@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Security.Claims;
 using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using MinIoService;
 using Shared;
 
 namespace TopicService.API.Extensions;
@@ -14,7 +15,7 @@ public static class ServiceCollectionExtensions
             .AddMapping()
             .AddInfrastructureDependencies(configuration);
     }
-
+    
     private static IServiceCollection AddMapping(this IServiceCollection collection)
     {
         return collection.AddAutoMapper(cfg =>
