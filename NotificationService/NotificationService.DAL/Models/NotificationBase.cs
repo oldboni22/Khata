@@ -4,6 +4,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace NotificationService.DAL.Models;
 
+[BsonKnownTypes(typeof(PostNotification), typeof(CommentNotification))]
 public abstract class NotificationBase
 {
     [BsonId]
@@ -13,4 +14,6 @@ public abstract class NotificationBase
     
     [BsonRepresentation(BsonType.DateTime)]
     public DateTime PostedOn { get; set; }
+
+    public abstract NotificationType GetNotificationType();
 }
