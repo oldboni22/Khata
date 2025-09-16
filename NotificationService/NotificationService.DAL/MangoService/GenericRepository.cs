@@ -12,9 +12,9 @@ public interface IGenericRepository<T> where T : NotificationBase
 
     Task<List<T>> FindAll(Guid userId);
 
-    Task Delete(Guid id);
+    Task<bool> Delete(Guid id);
 
-    Task<T> UpdateAsync(T notification);
+    Task<T?> UpdateAsync(T notification);
 }
 
 public abstract class GenericRepository<T> : IGenericRepository<T>
@@ -50,15 +50,22 @@ public abstract class GenericRepository<T> : IGenericRepository<T>
         return await _collection.Find(notification => notification.UserId == userId).ToListAsync();
     }
 
-    public async Task Delete(Guid id)
+    public async Task<bool> Delete(Guid id)
     {
-        await _collection.DeleteOneAsync(notification => notification.Id == id);
+        var result = await _collection.DeleteOneAsync(notification => notification.Id == id);
+
+        return result.DeletedCount > 0;
     }
 
-    public async Task<T> UpdateAsync(T notification)
+    public async Task<T?> UpdateAsync(T notification)
     {
-        await _collection.ReplaceOneAsync(notif => notif.Id == notification.Id, notification);
+        var result = await _collection.ReplaceOneAsync(notif => notif.Id == notification.Id, notification);
 
+        if (result.ModifiedCount == 0)
+        {
+            return null;
+        }
+        
         return await _collection.Find(notif => notif.Id == notification.Id).FirstAsync();
     }
 }
