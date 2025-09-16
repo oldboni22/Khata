@@ -6,7 +6,7 @@ namespace NotificationService.DAL.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddNotificationServiceDependencies(
+    public static IServiceCollection AddNDataLayerDependenciesDependencies(
         this IServiceCollection services, IConfiguration configuration)
     {
         return services
