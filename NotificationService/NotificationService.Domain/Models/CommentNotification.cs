@@ -1,4 +1,4 @@
-namespace NotificationService.DAL.Models;
+namespace NotificationService.Domain.Models;
 
 public class CommentNotification : NotificationBase
 {

@@ -13,4 +13,8 @@
       <PackageReference Include="MongoDB.Driver" Version="3.5.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\NotificationService.Domain\NotificationService.Domain.csproj" />
+    </ItemGroup>
+
 </Project>

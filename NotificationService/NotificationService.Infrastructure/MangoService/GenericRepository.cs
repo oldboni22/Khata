@@ -1,21 +1,10 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using NotificationService.DAL.Models;
+using NotificationService.DAL.Contracts.Repos;
+using NotificationService.DAL.MangoService;
+using NotificationService.Domain.Models;
 
-namespace NotificationService.DAL.MangoService;
-
-public interface IGenericRepository<T> where T : NotificationBase
-{
-    Task<T> CreateAsync(T notification);
-
-    Task<T?> FindById(Guid id);
-
-    Task<List<T>> FindAll(Guid userId);
-
-    Task<bool> Delete(Guid id);
-
-    Task<T?> UpdateAsync(T notification);
-}
+namespace NotificationService.Infrastructure.MangoService;
 
 public abstract class GenericRepository<T> : IGenericRepository<T>
     where T : NotificationBase

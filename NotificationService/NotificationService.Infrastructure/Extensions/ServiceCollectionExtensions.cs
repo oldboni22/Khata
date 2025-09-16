@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NotificationService.DAL.MangoService;
 
-namespace NotificationService.DAL.Extensions;
+namespace NotificationService.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {

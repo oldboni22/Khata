@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace NotificationService.DAL.Models;
+namespace NotificationService.Domain.Models;
 
 [BsonKnownTypes(typeof(PostNotification), typeof(CommentNotification))]
 public abstract class NotificationBase

@@ -2,7 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService.API", "NotificationService.API\NotificationService.API.csproj", "{A629F005-166A-416D-94CD-433C263A552F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService.DAL", "NotificationService.DAL\NotificationService.DAL.csproj", "{56F9C4E0-EC04-4E39-B48B-9A5A4CD52C36}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService.Domain", "NotificationService.Domain\NotificationService.Domain.csproj", "{56F9C4E0-EC04-4E39-B48B-9A5A4CD52C36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService.Infrastructure", "NotificationService.Infrastructure\NotificationService.Infrastructure.csproj", "{B22B4BD4-2681-460F-A437-ACEBBF1AC408}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +20,9 @@ Global
 		{56F9C4E0-EC04-4E39-B48B-9A5A4CD52C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56F9C4E0-EC04-4E39-B48B-9A5A4CD52C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56F9C4E0-EC04-4E39-B48B-9A5A4CD52C36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B22B4BD4-2681-460F-A437-ACEBBF1AC408}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B22B4BD4-2681-460F-A437-ACEBBF1AC408}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B22B4BD4-2681-460F-A437-ACEBBF1AC408}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B22B4BD4-2681-460F-A437-ACEBBF1AC408}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

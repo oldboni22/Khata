@@ -1,6 +1,4 @@
-using MongoDB.Bson.Serialization.Attributes;
-
-namespace NotificationService.DAL.Models;
+namespace NotificationService.Domain.Models;
 
 public class PostNotification : NotificationBase
 {
