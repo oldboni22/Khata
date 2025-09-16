@@ -13,7 +13,7 @@ public static class WebApplicationBuilderExtensions
                 .ReadFrom.Configuration(builder.Configuration)
                 .ReadFrom.Services(sp)
                 .WriteTo.Console()
-                .WriteTo.File(builder.Configuration[ConfigurationKeys.SerilogFile]!);
+                .WriteTo.File(builder.Configuration[ConfigurationKeys.SerilogLogFile]!);
         });
     }
 }
