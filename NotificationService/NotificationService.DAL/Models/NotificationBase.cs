@@ -15,5 +15,6 @@ public abstract class NotificationBase
     [BsonRepresentation(BsonType.DateTime)]
     public DateTime PostedOn { get; set; }
 
-    public abstract NotificationType GetNotificationType();
+    [BsonRepresentation(BsonType.String)]
+    public abstract NotificationType NotificationType { get; }
 }

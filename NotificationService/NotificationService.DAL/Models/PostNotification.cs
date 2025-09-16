@@ -6,5 +6,5 @@ public class PostNotification : NotificationBase
 {
     public Guid PostId { get; set; }
     
-    public override NotificationType GetNotificationType() => NotificationType.Post;
+    public override NotificationType NotificationType => NotificationType.Post;
 }
