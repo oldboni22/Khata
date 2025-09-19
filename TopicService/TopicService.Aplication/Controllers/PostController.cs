@@ -21,7 +21,7 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/topics/{topicId}/posts")]
 public class PostController(
-    IGenericRepository<Topic> topicRepository,
+    ITopicRepository topicRepository,
     IGenericReadOnlyRepository<Post> postRepository,
     IUserGRpcClient userGRpcClient, 
     IMinioService minioService,

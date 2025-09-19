@@ -4,20 +4,15 @@ using Grpc.Core;
 
 namespace Infrastructure.gRpc;
 
-public class GRpcService(IGenericRepository<Topic> topicRepository) : TopicGRpcApi.TopicGRpcApiBase
+public class GRpcService(ITopicRepository topicRepository) : TopicGRpcApi.TopicGRpcApiBase
 {
     public override async Task<TopicUserResponse> IsOwner(TopicUserStatusRequest request, ServerCallContext context)
     {
         var userId = Guid.Parse(request.UserId);
         var topicId = Guid.Parse(request.TopicId);
 
-        var topic = await topicRepository.FindByIdAsync(topicId);
+        var result = await topicRepository.IsOwnerAsync(topicId, userId);
 
-        if (topic is null)
-        {
-            return new TopicUserResponse { Result = false };
-        }
-
-        return new TopicUserResponse { Result = topic.OwnerId == userId };
+        return new TopicUserResponse { Result = result};
     }
 }

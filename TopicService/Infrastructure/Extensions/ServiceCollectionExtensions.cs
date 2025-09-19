@@ -54,7 +54,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         return services
-            .AddScoped<IGenericRepository<Topic>, GenericRepository<Topic>>()
+            .AddScoped<ITopicRepository, TopicRepository>()
             .AddScoped<IGenericReadOnlyRepository<Post>, GenericReadOnlyRepository<Post>>()
             .AddScoped<IGenericReadOnlyRepository<Comment>, GenericReadOnlyRepository<Comment>>();
     }

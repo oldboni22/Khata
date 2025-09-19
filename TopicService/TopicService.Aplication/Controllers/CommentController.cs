@@ -21,7 +21,7 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/topics/{topicId}/posts/{postId}/comments")]
 public class CommentController(
-    IGenericRepository<Topic> postTopicRepository,
+    ITopicRepository postTopicRepository,
     IGenericReadOnlyRepository<Comment> commentRepository,
     IUserGRpcClient userGRpcClient,
     IMinioService minioService,

@@ -20,7 +20,7 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/topics")]
 public class TopicController(
-    IGenericRepository<Topic> topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
+    ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
     BaseController<Topic, TopicSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
