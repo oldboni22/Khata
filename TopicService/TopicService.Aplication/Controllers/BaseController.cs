@@ -5,15 +5,16 @@ using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Filters;
+using Shared.PagedList;
 
 namespace TopicService.API.Controllers;
 
 public abstract class BaseController<TEntity, TSortOptions>(
-    ITopicRepository postTopicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
+    ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
     where TEntity : EntityBase
     where TSortOptions : Enum
 {
-    protected IGenericRepository<Topic> TopicRepository { get; } = postTopicRepository;
+    protected ITopicRepository TopicRepository { get; } = topicRepository;
     
     protected IUserGRpcClient UserGRpcClient { get; } = userGRpcClient;
     
@@ -25,11 +26,11 @@ public abstract class BaseController<TEntity, TSortOptions>(
     
     protected abstract (Expression<Func<TEntity, object>> selector, bool ascending) DefaultSortOptions { get; }
     
-    protected (Expression<Func<TEntity, object>>, bool)[] ParseFilters(List<FilterEntry<TSortOptions>> entries)
+    protected (Expression<Func<TEntity, object>>, bool)[] ParseFilters(List<FilterEntry<TSortOptions>>? entries)
     {
         (Expression<Func<TEntity, object>>, bool)[] selectors;
         
-        if (entries.Count == 0)
+        if (entries == null || entries.Count == 0)
         {
             selectors = [ DefaultSortOptions ];
         }
@@ -44,5 +45,10 @@ public abstract class BaseController<TEntity, TSortOptions>(
         }
 
         return selectors;
+    }
+
+    protected void CheckQueryParameters(ref PaginationParameters? paginationParameters)
+    {
+        paginationParameters ??= new PaginationParameters();
     }
 }

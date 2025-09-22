@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using Domain.Contracts.GRpc;
+using Domain.Contracts.MessageBroker;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Domain.Entities.Interactions;
@@ -25,6 +26,7 @@ public class PostController(
     IGenericReadOnlyRepository<Post> postRepository,
     IUserGRpcClient userGRpcClient, 
     IMinioService minioService,
+    IMessageSender messageSender,
     IMapper mapper, 
     ILogger logger) 
     : BaseController<Post,PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
@@ -44,6 +46,17 @@ public class PostController(
         var createdPost = topic.AddPost(postCreateDto.Title, postCreateDto.Text, senderUserId);
         
         await TopicRepository.UpdateAsync(cancellationToken);
+
+        var users = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Subscribed);
+        var moderators = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Moderator);
+        
+        users.AddRange(moderators);
+
+        users.Add(topic.OwnerId);
+
+        users.Remove(senderUserId);
+        
+        await messageSender.SendPostNotificationCreateMessagesAsync(createdPost.Id, users, cancellationToken);
         
         return Mapper.Map<PostReadDto>(createdPost);
     }
@@ -148,8 +161,8 @@ public class PostController(
     [HttpGet]
     public async Task<PagedList<PostReadDto>> FindPostsAsync(
         Guid topicId,
-        [FromQuery] PostSearchParameters searchParameters,
-        [FromQuery] PaginationParameters paginationParameters,
+        [FromQuery] PostSearchOptions? searchOptions,
+        [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
         var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
@@ -157,13 +170,15 @@ public class PostController(
 
         Expression<Func<Post, bool>> predicate = post => post.TopicId == topicId;
 
-        if (!string.IsNullOrEmpty(searchParameters.SearchTerm))
+        CheckQueryParameters(ref paginationParameters);
+        
+        if (!string.IsNullOrEmpty(searchOptions?.SearchTerm))
         {
             predicate = predicate.And(post => 
-                post.Title.Contains(searchParameters.SearchTerm,StringComparison.InvariantCultureIgnoreCase));
+                post.Title.Contains(searchOptions.SearchTerm,StringComparison.InvariantCultureIgnoreCase));
         }
         
-        var selectors = ParseFilters(searchParameters.Filters);
+        var selectors = ParseFilters(searchOptions?.Filters);
 
         var pagedPosts = await postRepository
             .FindByConditionAsync

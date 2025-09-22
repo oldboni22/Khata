@@ -37,4 +37,17 @@ public class UserGRpcClientWrapper(UserGRpcApi.UserGRpcApiClient client) : IUser
 
         return Guid.Parse(response.UserId);
     }
+
+    public async Task<List<Guid>> FindUserIdsByTopicIdAsync(Guid topicId, UserTopicRelationStatus status)
+    {
+        var request = new UsersWithStatusRequest
+        {
+            TopicId = topicId.ToString(),
+            Status = (int)status
+        };
+
+        var result =  await client.FindUsersWithStatusAsync(request);
+        
+        return result.UserIds.Select(Guid.Parse).ToList();
+    }
 }

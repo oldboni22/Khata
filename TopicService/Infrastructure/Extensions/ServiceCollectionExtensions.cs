@@ -1,9 +1,12 @@
 using Domain.Contracts.GRpc;
+using Domain.Contracts.MessageBroker;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Infrastructure.gRpc;
+using Infrastructure.MessageSender;
 using Infrastructure.Minio;
 using Infrastructure.Repositories;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +25,8 @@ public static class ServiceCollectionExtensions
                 .AddRepositories()
                 .AddMinio(configuration)
                 .AddSingleton<IMinioService, TopicMinioService>()
-                .AddGRpc(configuration);
+                .AddGRpc(configuration)
+                .AddMessageBroker(configuration);
     }
 
     private static IServiceCollection AddMinio(this IServiceCollection services, IConfiguration configuration)
@@ -57,6 +61,20 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITopicRepository, TopicRepository>()
             .AddScoped<IGenericReadOnlyRepository<Post>, GenericReadOnlyRepository<Post>>()
             .AddScoped<IGenericReadOnlyRepository<Comment>, GenericReadOnlyRepository<Comment>>();
+    }
+    
+    private static IServiceCollection AddMessageBroker(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddMassTransit(config =>
+        {
+            config.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host(configuration[ConfigurationKeys.RabbitMqHost]);
+            });
+            
+        })
+        .Configure<MessageSenderOptions>(configuration.GetSection(MessageSenderOptions.SectionName))
+        .AddTransient<IMessageSender, MessageSender.MessageSender>();
     }
     
     private static IServiceCollection AddGRpc(this IServiceCollection services, IConfiguration configuration)

@@ -8,7 +8,7 @@ public interface IGenericReadOnlyRepository<T> where T : EntityBase
 {
     Task<PagedList<T>> FindByConditionAsync(
         Expression<Func<T, bool>> expression,
-        PaginationParameters paginationParameters,
+        PaginationParameters? paginationParameters,
         (Expression<Func<T, object>> predicate, bool isAscending)[]? keySelectors = null, 
         bool trackChanges = false, 
         CancellationToken cancellationToken = default);

@@ -42,6 +42,8 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
 
     Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken = default);
     
+    Task<List<string>> FindUsersWithStatusAsync(Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default);
+    
     Task<bool> DoesUserHaveTopicStatusAsync(Guid userId, Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default);
     
     Task AddSubscriptionAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
@@ -120,7 +122,6 @@ public class UserService(
         return minioResult.Value;
     }
 
-
     public async Task<PagedList<UserModel>> FindUsersByTopicIdAsync(
         Guid topicId, 
         UserTopicRelationStatus status, 
@@ -177,6 +178,18 @@ public class UserService(
         var user = await FindUserByAuth0IdAsync(auth0Id, cancellationToken);
 
         return user.Id;
+    }
+
+    public async Task<List<string>> FindUsersWithStatusAsync(
+        Guid topicId, UserTopicRelationStatus status, CancellationToken cancellationToken = default)
+    {
+        var relations = await userTopicRelationRepository
+            .FindAllByConditionAsync(relation => 
+                relation.TopicId == topicId && relation.TopicRelationStatus == status, false, cancellationToken);
+        
+        return relations
+            .Select(rel => rel.UserId.ToString())
+            .ToList();
     }
 
     public async Task<bool> DoesUserHaveTopicStatusAsync(

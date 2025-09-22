@@ -7,8 +7,10 @@ namespace NotificationService.Domain.Models;
 public abstract record NotificationBase
 {
     [BsonId]
+    [BsonRepresentation(BsonType.String)]
     public Guid Id { get; set; }
     
+    [BsonRepresentation(BsonType.String)]
     public Guid UserId { get; set; }
     
     [BsonRepresentation(BsonType.DateTime)]

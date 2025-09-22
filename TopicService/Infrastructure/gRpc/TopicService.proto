@@ -37,6 +37,18 @@ message UserIdByAuth0IdResponse{
     string user_id = 1;
 }
 
+message UsersWithStatusRequest{
+
+    string topic_id = 1;
+    
+    int32 status = 2;
+}
+
+message UsersWithStatusResponse{
+
+    repeated string user_ids = 1;
+}
+
 service TopicGRpcApi {
 
     rpc IsOwner(TopicUserStatusRequest) returns (TopicUserResponse);
@@ -49,5 +61,7 @@ service UserGRpcApi {
     rpc FindBannedTopicsId(BannedUserTopicsRequest) returns (BannedUserTopicsResponse);
     
     rpc FindUserIdByAuth0Id(UserIdByAuth0IdRequest) returns (UserIdByAuth0IdResponse);
+    
+    rpc FindUsersWithStatus(UsersWithStatusRequest) returns (UsersWithStatusResponse); 
 }
 

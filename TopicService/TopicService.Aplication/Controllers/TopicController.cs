@@ -134,19 +134,21 @@ public class TopicController(
     
     [HttpGet("parentTopics")]
     public async Task<PagedList<TopicReadDto>> FindParentTopics(
-        [FromQuery] TopicSearchParameters parameters, 
-        [FromQuery] PaginationParameters paginationParameters,
+        [FromQuery] TopicSearchParameters? parameters, 
+        [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
         Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == null;
 
-        if (!string.IsNullOrEmpty(parameters.SearchTerm))
+        CheckQueryParameters(ref paginationParameters);
+        
+        if (!string.IsNullOrEmpty(parameters?.SearchTerm))
         {
             predicate = predicate.And(t =>
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
-        var selectors = ParseFilters(parameters.Filters);
+        var selectors = ParseFilters(parameters?.Filters);
 
         var topicEntities = await TopicRepository
             .FindByConditionAsync
@@ -164,8 +166,8 @@ public class TopicController(
     [HttpGet("{parentTopicId}/subtopics")]
     public async Task<PagedList<TopicReadDto>> FindChildTopics(
         Guid parentTopicId,
-        [FromQuery] TopicSearchParameters parameters,
-        [FromQuery] PaginationParameters paginationParameters,
+        [FromQuery] TopicSearchParameters? parameters,
+        [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
         if (await TopicRepository.FindByIdAsync(parentTopicId, false, cancellationToken) is null)
@@ -175,13 +177,15 @@ public class TopicController(
         
         Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == parentTopicId;
 
-        if (!string.IsNullOrEmpty(parameters.SearchTerm))
+        CheckQueryParameters(ref paginationParameters);
+        
+        if (!string.IsNullOrEmpty(parameters?.SearchTerm))
         {
             predicate = predicate.And(t =>
                 t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
         
-        var selectors = ParseFilters(parameters.Filters);
+        var selectors = ParseFilters(parameters?.Filters);
         
         var topicEntities = await TopicRepository
             .FindByConditionAsync

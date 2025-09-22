@@ -1,3 +1,4 @@
+using System.Reflection;
 using MassTransit;
 using Shared;
 
@@ -13,10 +14,12 @@ public static class ServiceCollectionExtensions
                 .AddMessageBroker(configuration);
     }
     
-    public static IServiceCollection AddMessageBroker(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddMessageBroker(this IServiceCollection services, IConfiguration configuration)
     {
         return services.AddMassTransit(config =>
         {
+            config.AddConsumers(Assembly.GetExecutingAssembly());
+            
             config.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host(configuration[ConfigurationKeys.RabbitMqHost]);

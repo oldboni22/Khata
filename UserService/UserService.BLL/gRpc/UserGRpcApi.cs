@@ -12,15 +12,13 @@ public class UserGRpcApi(IUserService userService) : Infrastructure.gRpc.UserGRp
     {
         var userId = Guid.Parse(request.UserId);
         var topicId = Guid.Parse(request.TopicId);
+        var status = (UserTopicRelationStatus)request.Status;
         
         var result = await userService
-            .DoesUserHaveTopicStatusAsync(userId, topicId, (UserTopicRelationStatus)request.Status);
+            .DoesUserHaveTopicStatusAsync(userId, topicId, status);
 
         return new TopicUserResponse { Result = result };
     }
-
-    
-    
     
     public override async Task<BannedUserTopicsResponse> FindBannedTopicsId(
         BannedUserTopicsRequest request, ServerCallContext context)
@@ -42,5 +40,20 @@ public class UserGRpcApi(IUserService userService) : Infrastructure.gRpc.UserGRp
         var userId = await userService.FindUserIdByAuth0IdAsync(request.UserAuth0Id);
 
         return new UserIdByAuth0IdResponse { UserId = userId.ToString() };
+    }
+
+    public override async Task<UsersWithStatusResponse> FindUsersWithStatus(UsersWithStatusRequest request, ServerCallContext context)
+    {
+        var topicId = Guid.Parse(request.TopicId);
+        var status = (UserTopicRelationStatus)request.Status;
+        
+        var userIds = await userService.FindUsersWithStatusAsync(topicId, status);
+
+        var response = new UsersWithStatusResponse
+        {
+            UserIds = { userIds },
+        };
+        
+        return response;
     }
 }

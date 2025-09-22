@@ -13,7 +13,7 @@ public class GenericReadOnlyRepository<T>(TopicServiceContext context) : IGeneri
     
     public async Task<PagedList<T>> FindByConditionAsync(
         Expression<Func<T, bool>> expression,
-        PaginationParameters paginationParameters,
+        PaginationParameters? paginationParameters,
         (Expression<Func<T, object>> predicate, bool isAscending)[]? keySelectors = null, 
         bool trackChanges = false, 
         CancellationToken cancellationToken = default)

@@ -6,7 +6,7 @@ using NotificationService.Domain.Models;
 
 namespace NotificationService.Infrastructure.MangoService;
 
-public abstract class GenericRepository<T> : IGenericRepository<T>
+public class GenericRepository<T> : IGenericRepository<T>
     where T : NotificationBase
 {
     private readonly MongoClient _client;
@@ -15,6 +15,8 @@ public abstract class GenericRepository<T> : IGenericRepository<T>
 
     public GenericRepository(IOptions<MangoServiceOptions> options)
     {
+        
+        
         _client = new(options.Value.ConnectionString);
 
         var db = _client.GetDatabase(options.Value.DatabaseName);

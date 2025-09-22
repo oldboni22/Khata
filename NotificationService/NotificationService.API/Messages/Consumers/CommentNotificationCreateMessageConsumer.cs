@@ -1,5 +1,5 @@
 using MassTransit;
-using NotificationService.API.Messages.Models;
+using Messages;
 using NotificationService.API.Services;
 
 namespace NotificationService.API.Messages.Consumers;

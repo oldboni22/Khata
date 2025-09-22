@@ -1,3 +1,3 @@
-namespace NotificationService.API.Messages.Models;
+namespace Messages;
 
 public record class CommentNotificationCreateMessage(Guid UserId, Guid CommentId);
