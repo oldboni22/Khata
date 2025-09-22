@@ -4,7 +4,9 @@ namespace NotificationService.DAL.Contracts.Repos;
 
 public interface IGenericRepository<T> where T : NotificationBase
 {
-    Task<T> CreateAsync(T notification);
+    Task CreateAsync(T notification);
+    
+    Task CreateManyAsync(IEnumerable<T> notifications);
 
     Task<T?> FindById(Guid id);
 

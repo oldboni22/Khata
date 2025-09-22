@@ -1,6 +1,6 @@
 namespace NotificationService.Domain.Models;
 
-public class CommentNotification : NotificationBase
+public record CommentNotification : NotificationBase
 {
     public Guid CommentId { get; set; }
     

@@ -1,6 +1,6 @@
 namespace NotificationService.Domain.Models;
 
-public class PostNotification : NotificationBase
+public record PostNotification : NotificationBase
 {
     public Guid PostId { get; set; }
     

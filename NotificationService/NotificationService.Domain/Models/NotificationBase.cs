@@ -4,7 +4,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace NotificationService.Domain.Models;
 
 [BsonKnownTypes(typeof(PostNotification), typeof(CommentNotification))]
-public abstract class NotificationBase
+public abstract record NotificationBase
 {
     [BsonId]
     public Guid Id { get; set; }

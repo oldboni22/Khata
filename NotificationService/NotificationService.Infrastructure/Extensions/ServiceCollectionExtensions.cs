@@ -6,7 +6,14 @@ namespace NotificationService.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddNDataLayerDependenciesDependencies(
+    public static IServiceCollection AddInfrastructureDependencies(
+        this IServiceCollection services, IConfiguration configuration)
+    {
+        return services
+            .AddDataLayerDependencies(configuration);
+    }
+    
+    private static IServiceCollection AddDataLayerDependencies(
         this IServiceCollection services, IConfiguration configuration)
     {
         return services

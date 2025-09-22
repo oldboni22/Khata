@@ -22,11 +22,19 @@ public abstract class GenericRepository<T> : IGenericRepository<T>
         _collection = db.GetCollection<T>(options.Value.CollectionName);
     }
 
-    public async Task<T> CreateAsync(T notification)
+    public async Task CreateAsync(T notification)
     {
+        notification.PostedOn = DateTime.UtcNow;
+        
         await _collection.InsertOneAsync(notification);
+    }
 
-        return await _collection.Find(notif => notif.Id == notification.Id).FirstAsync();
+    public async Task CreateManyAsync(IEnumerable<T> notifications)
+    {
+        var postedOn = DateTime.UtcNow;
+        notifications = notifications.Select(notif => notif with { PostedOn = postedOn });
+        
+        await _collection.InsertManyAsync(notifications);
     }
 
     public async Task<T?> FindById(Guid id)

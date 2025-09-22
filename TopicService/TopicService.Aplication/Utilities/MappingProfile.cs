@@ -1,5 +1,6 @@
 using AutoMapper;
 using Domain.Entities;
+using TopicService.API.Dto.Comment;
 using TopicService.API.Dto.Post;
 using TopicService.API.Dto.Topic;
 
@@ -12,5 +13,7 @@ public class MappingProfile : Profile
         CreateMap<Topic, Dto.Topic.TopicReadDto>();
         
         CreateMap<Post, PostReadDto>();
+
+        CreateMap<Comment, CommentReadDto>();
     }
 }
