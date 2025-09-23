@@ -10,8 +10,8 @@ public interface INotificationService
 
 public class NotificationService(IGenericRepository<Notification> repository) : INotificationService
 {
-    public Task CreateNotificationsAsync(IEnumerable<Notification> notifications)
+    public async Task CreateNotificationsAsync(IEnumerable<Notification> notifications)
     {
-        throw new NotImplementedException();
+        await repository.CreateManyAsync(notifications);
     }
 }
