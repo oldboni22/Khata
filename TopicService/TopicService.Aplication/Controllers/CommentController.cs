@@ -6,6 +6,7 @@ using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Domain.Entities.Interactions;
 using Domain.Exceptions;
+using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MinIoService;
@@ -45,13 +46,14 @@ public class CommentController(
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
-        var comment = post.AddComment(text, senderUserId);
+        var createdComment = post.AddComment(text, senderUserId);
 
         await TopicRepository.UpdateAsync(cancellationToken);
         
-        await messageSender.SendCommentNotificationCreateMessageAsync(comment.UserId, comment.Id, cancellationToken);
+        await messageSender.SendNotificationsCreateMessagesAsync(
+            CreateCommentNotification(topicId, postId, createdComment.Id, post.AuthorId), cancellationToken);
         
-        return Mapper.Map<CommentReadDto>(comment);
+        return Mapper.Map<CommentReadDto>(createdComment);
     }
     
     [Authorize]
@@ -335,4 +337,27 @@ public class CommentController(
 
     protected override (Expression<Func<Comment, object>> selector, bool ascending) DefaultSortOptions =>
         (comm => comm.CreatedAt, true);
+
+    private List<Notification> CreateCommentNotification(Guid postId, Guid topicId, Guid commentId, Guid userId)
+    {
+        return
+        [
+            new Notification
+            {
+                UserId = userId,
+                EntityType = EntityType.Comment,
+                EntityId = commentId,
+                Parent = new ParentEntity
+                {
+                    Type = EntityType.Post,
+                    Id = postId,
+                    Parent = new ParentEntity
+                    {
+                        Type = EntityType.Topic,
+                        Id = topicId
+                    }
+                }
+            }
+        ];
+    }
 }

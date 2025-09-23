@@ -1,37 +1,17 @@
-using NotificationService.DAL.Contracts.Repos;
-using NotificationService.Domain.Models;
+using Messages.Models;
+using NotificationService.Domain.Contracts.Repos;
 
 namespace NotificationService.API.Services;
 
 public interface INotificationService
 {
-    Task CreatePostNotificationsAsync(IEnumerable<Guid> userIds, Guid postId);
-    
-    Task CreateCommentNotificationAsync(Guid userId, Guid commentId);
+    Task CreateNotificationsAsync(IEnumerable<Notification> notifications);
 }
 
-public class NotificationService(IGenericRepository<NotificationBase> repository) : INotificationService
+public class NotificationService(IGenericRepository<Notification> repository) : INotificationService
 {
-    public async Task CreatePostNotificationsAsync(IEnumerable<Guid> userIds, Guid postId)
+    public Task CreateNotificationsAsync(IEnumerable<Notification> notifications)
     {
-        var notifications = userIds
-            .Select(uid => new PostNotification()
-            {
-                UserId = uid,
-                PostId = postId
-            });
-
-        await repository.CreateManyAsync(notifications);
-    }
-
-    public async Task CreateCommentNotificationAsync(Guid userId, Guid commentId)
-    {
-        var notification = new CommentNotification()
-        {
-            UserId = userId,
-            CommentId = commentId
-        };
-        
-        await repository.CreateAsync(notification);
+        throw new NotImplementedException();
     }
 }

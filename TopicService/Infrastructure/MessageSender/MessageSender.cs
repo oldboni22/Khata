@@ -1,32 +1,20 @@
 using Domain.Contracts.MessageBroker;
 using MassTransit;
 using Messages;
+using Messages.Models;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.MessageSender;
 
 public class MessageSender(ISendEndpointProvider provider, IOptions<MessageSenderOptions> options) : IMessageSender
 {
-    private readonly string _postQueueName = options.Value.PostQueueName;
+    private readonly string _queueName =  options.Value.QueueName;
     
-    private readonly string _commentQueueName = options.Value.CommentQueueName;
-    
-    public async Task SendPostNotificationCreateMessagesAsync(
-        Guid postId, IEnumerable<Guid> usersIds, CancellationToken cancellationToken = default)
+    public async Task SendNotificationsCreateMessagesAsync(IEnumerable<Notification> notifications, CancellationToken cancellationToken = default)
     {
-        var endpoint = await provider.GetSendEndpoint(new Uri($"queue:{_postQueueName}"));
+        var endpoint = await provider.GetSendEndpoint(new Uri($"queue:{_queueName}"));
         
-        var message = new PostNotificationsCreateMessage(postId, usersIds);
-        
-        await endpoint.Send(message, cancellationToken);
-    }
-
-    public async Task SendCommentNotificationCreateMessageAsync(
-        Guid userId, Guid commentId, CancellationToken cancellationToken = default)
-    {
-        var endpoint = await provider.GetSendEndpoint(new Uri($"queue:{_commentQueueName}"));
-        
-        var message = new CommentNotificationCreateMessage(userId, commentId);
+        var message = new NotificationsCreateMessage(notifications);
         
         await endpoint.Send(message, cancellationToken);
     }

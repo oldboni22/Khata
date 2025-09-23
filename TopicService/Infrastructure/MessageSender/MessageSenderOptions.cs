@@ -4,7 +4,5 @@ public class MessageSenderOptions
 {
     public const string SectionName = "MessageSender";
     
-    public string PostQueueName { get; set; }
-    
-    public string CommentQueueName { get; set; }
+    public string QueueName { get; set; }
 }

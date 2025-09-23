@@ -6,6 +6,7 @@ using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Domain.Entities.Interactions;
 using Domain.Exceptions;
+using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MinIoService;
@@ -47,16 +48,17 @@ public class PostController(
         
         await TopicRepository.UpdateAsync(cancellationToken);
 
-        var users = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Subscribed);
-        var moderators = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Moderator);
+        var userIds = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Subscribed);
+        var moderatorIds = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Moderator);
         
-        users.AddRange(moderators);
+        userIds.AddRange(moderatorIds);
 
-        users.Add(topic.OwnerId);
+        userIds.Add(topic.OwnerId);
 
-        users.Remove(senderUserId);
+        userIds.Remove(senderUserId);
         
-        await messageSender.SendPostNotificationCreateMessagesAsync(createdPost.Id, users, cancellationToken);
+        await messageSender.SendNotificationsCreateMessagesAsync(
+            CreatePostNotifications(topicId, createdPost.Id, userIds), cancellationToken);
         
         return Mapper.Map<PostReadDto>(createdPost);
     }
@@ -309,4 +311,21 @@ public class PostController(
 
     protected override (Expression<Func<Post, object>> selector, bool ascending) DefaultSortOptions =>
         (post => post.Title, true);
+
+    private List<Notification> CreatePostNotifications(Guid topicId, Guid postId, IEnumerable<Guid> userIds)
+    {
+        return userIds.Select(uid => 
+            new Notification
+            {
+                UserId = uid,
+                EntityType = EntityType.Post,
+                EntityId = postId,
+                Parent = new ParentEntity
+                {
+                    Id = topicId,
+                    Type = EntityType.Topic
+                }
+            }
+        ).ToList();
+    }
 }
