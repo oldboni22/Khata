@@ -6,11 +6,12 @@ using Domain.Entities;
 using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
-using Shared.Filters.Topic;
 using Shared.PagedList;
+using Shared.Search.Topic;
 using TopicService.API.Dto.Post;
 using TopicService.API.Dto.Topic;
 using ILogger = Serilog.ILogger;
@@ -21,7 +22,7 @@ namespace TopicService.API.Controllers;
 [Route("api/topics")]
 public class TopicController(
     ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
-    BaseController<Topic, TopicSortOptions>(topicRepository, userGRpcClient, mapper, logger)
+    BaseController<Topic, TopicSortOptions, TopicFilter>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
     [HttpPost]
@@ -134,21 +135,21 @@ public class TopicController(
     
     [HttpGet("parentTopics")]
     public async Task<PagedList<TopicReadDto>> FindParentTopics(
-        [FromQuery] TopicSearchParameters? parameters, 
+        [FromQuery] TopicSearchParameters? searchOptions, 
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
         Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == null;
 
-        CheckQueryParameters(ref paginationParameters);
-        
-        if (!string.IsNullOrEmpty(parameters?.SearchTerm))
+        paginationParameters ??= new();
+
+        var filter = ParseFilter(searchOptions?.Filter);
+        if (filter is not null)
         {
-            predicate = predicate.And(t =>
-                t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
+            predicate = predicate.And(filter);
         }
         
-        var selectors = ParseFilters(parameters?.Filters);
+        var selectors = ParseSortOptions(searchOptions?.SortEntries);
 
         var topicEntities = await TopicRepository
             .FindByConditionAsync
@@ -166,7 +167,7 @@ public class TopicController(
     [HttpGet("{parentTopicId}/subtopics")]
     public async Task<PagedList<TopicReadDto>> FindChildTopics(
         Guid parentTopicId,
-        [FromQuery] TopicSearchParameters? parameters,
+        [FromQuery] TopicSearchParameters? searchOptions,
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
@@ -177,15 +178,15 @@ public class TopicController(
         
         Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == parentTopicId;
 
-        CheckQueryParameters(ref paginationParameters);
+        paginationParameters ??= new();
         
-        if (!string.IsNullOrEmpty(parameters?.SearchTerm))
+        var filter = ParseFilter(searchOptions?.Filter);
+        if (filter is not null)
         {
-            predicate = predicate.And(t =>
-                t.Name.Contains(parameters.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
+            predicate = predicate.And(filter);
         }
         
-        var selectors = ParseFilters(parameters?.Filters);
+        var selectors = ParseSortOptions(searchOptions?.SortEntries);
         
         var topicEntities = await TopicRepository
             .FindByConditionAsync
@@ -208,6 +209,24 @@ public class TopicController(
             TopicSortOptions.PostCount => t => t.Posts.Count,
             _ => DefaultSortOptions.selector,
         };
+    }
+
+    protected override Expression<Func<Topic, bool>>? ParseFilter(TopicFilter? filter)
+    {
+        if (filter is null)
+        {
+            return null;
+        }
+        
+        Expression<Func<Topic, bool>>? predicate = t => true;
+        
+        if (!string.IsNullOrEmpty(filter.SearchTerm))
+        {
+            predicate = predicate
+                .And(t => EF.Functions.ILike(t.Name, ToSearchString(filter.SearchTerm)));
+        }
+        
+        return predicate;
     }
 
     protected override (Expression<Func<Topic, object>> selector, bool ascending) DefaultSortOptions => 

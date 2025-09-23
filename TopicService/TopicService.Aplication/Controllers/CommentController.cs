@@ -9,12 +9,13 @@ using Domain.Exceptions;
 using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MinIoService;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
-using Shared.Filters.Comment;
 using Shared.PagedList;
+using Shared.Search.Comment;
 using TopicService.API.Dto.Comment;
 using ILogger = Serilog.ILogger;
 
@@ -29,7 +30,7 @@ public class CommentController(
     IMinioService minioService,
     IMessageSender messageSender,
     IMapper mapper,
-    ILogger logger) : BaseController<Comment, CommentSortOptions>(topicRepository, userGRpcClient, mapper, logger)
+    ILogger logger) : BaseController<Comment, CommentSortOptions, CommentFilter>(topicRepository, userGRpcClient, mapper, logger)
 {
     [HttpPost]
     [Authorize]
@@ -211,17 +212,17 @@ public class CommentController(
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
                    ?? throw new EntityNotFoundException<Post>(postId);
         
-        CheckQueryParameters(ref paginationParameters);
+        paginationParameters ??= new();
         
         Expression<Func<Comment, bool>> predicate = comm => comm.PostId == postId;
         
-        if (!string.IsNullOrEmpty(searchOptions?.SearchTerm))
+        var filter = ParseFilter(searchOptions?.Filter);
+        if (filter is not null)
         {
-            predicate = predicate.And(s => 
-                s.Text.Contains(searchOptions.SearchTerm, StringComparison.CurrentCultureIgnoreCase));
+            predicate = predicate.And(filter);
         }
 
-        var selectors = ParseFilters(searchOptions?.Filters);
+        var selectors = ParseSortOptions(searchOptions?.SortEntries);
         
         var pagedComments = commentRepository.FindByConditionAsync
         (
@@ -333,6 +334,24 @@ public class CommentController(
             CommentSortOptions.DislikeCount => comm => comm.DislikeCount,
             _ => DefaultSortOptions.selector,
         };
+    }
+
+    protected override Expression<Func<Comment, bool>>? ParseFilter(CommentFilter? filter)
+    {
+        if (filter is null)
+        {
+            return null;
+        }
+        
+        Expression<Func<Comment, bool>>? predicate = c => true;
+        
+        if (!string.IsNullOrEmpty(filter.SearchTerm))
+        {
+            predicate = predicate
+                .And(c => EF.Functions.ILike(c.Text, ToSearchString(filter.SearchTerm)));
+        }
+        
+        return predicate;
     }
 
     protected override (Expression<Func<Comment, object>> selector, bool ascending) DefaultSortOptions =>

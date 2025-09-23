@@ -9,12 +9,13 @@ using Domain.Exceptions;
 using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MinIoService;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
-using Shared.Filters.Post;
 using Shared.PagedList;
+using Shared.Search.Post;
 using TopicService.API.Dto.Post;
 using ILogger = Serilog.ILogger;
 
@@ -30,7 +31,7 @@ public class PostController(
     IMessageSender messageSender,
     IMapper mapper, 
     ILogger logger) 
-    : BaseController<Post,PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
+    : BaseController<Post, PostSortOptions, PostFilter>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
     [HttpPost]
@@ -172,15 +173,15 @@ public class PostController(
 
         Expression<Func<Post, bool>> predicate = post => post.TopicId == topicId;
 
-        CheckQueryParameters(ref paginationParameters);
+        paginationParameters ??= new PaginationParameters();
         
-        if (!string.IsNullOrEmpty(searchOptions?.SearchTerm))
+        var filter = ParseFilter(searchOptions?.Filter);
+        if (filter is not null)
         {
-            predicate = predicate.And(post => 
-                post.Title.Contains(searchOptions.SearchTerm,StringComparison.InvariantCultureIgnoreCase));
+            predicate = predicate.And(filter);
         }
         
-        var selectors = ParseFilters(searchOptions?.Filters);
+        var selectors = ParseSortOptions(searchOptions?.SortEntries);
 
         var pagedPosts = await postRepository
             .FindByConditionAsync
@@ -307,6 +308,34 @@ public class PostController(
             PostSortOptions.DislikeCount => post => post.DislikeCount,
             _ => DefaultSortOptions.selector
         };
+    }
+
+    protected override Expression<Func<Post, bool>>? ParseFilter(PostFilter? filter)
+    {
+        if (filter is null)
+        {
+            return null;
+        }
+        
+        Expression<Func<Post, bool>> predicate = p => true;
+        
+        if (!string.IsNullOrEmpty(filter.SearchTerm))
+        {
+            predicate = predicate
+                .And(p => EF.Functions.ILike(p.Title, ToSearchString(filter.SearchTerm)));
+        }
+
+        if (filter.MinLikes > 0)
+        {
+            predicate = predicate.And(p => p.LikeCount >= filter.MinLikes);
+        }
+
+        if (filter.UserId is not null)
+        {
+            predicate = predicate.And(p => p.AuthorId == filter.UserId);
+        }
+        
+        return predicate;
     }
 
     protected override (Expression<Func<Post, object>> selector, bool ascending) DefaultSortOptions =>

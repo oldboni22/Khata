@@ -6,13 +6,15 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Filters;
 using Shared.PagedList;
+using Shared.Search;
 
 namespace TopicService.API.Controllers;
 
-public abstract class BaseController<TEntity, TSortOptions>(
+public abstract class BaseController<TEntity, TSortOptions, TFilter>(
     ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
     where TEntity : EntityBase
     where TSortOptions : Enum
+    where TFilter : Filter
 {
     protected ITopicRepository TopicRepository { get; } = topicRepository;
     
@@ -20,13 +22,15 @@ public abstract class BaseController<TEntity, TSortOptions>(
     
     protected IMapper Mapper { get; } = mapper;
     
-    protected Serilog.ILogger Logger { get; } = logger.ForContext<BaseController<TEntity, TSortOptions>>();
+    protected Serilog.ILogger Logger { get; } = logger.ForContext<BaseController<TEntity, TSortOptions, TFilter>>();
 
     protected abstract Expression<Func<TEntity, object>> ParseSortOption(TSortOptions sortOption);
     
+    protected abstract Expression<Func<TEntity, bool>>? ParseFilter(TFilter? filter);
+    
     protected abstract (Expression<Func<TEntity, object>> selector, bool ascending) DefaultSortOptions { get; }
     
-    protected (Expression<Func<TEntity, object>>, bool)[] ParseFilters(List<FilterEntry<TSortOptions>>? entries)
+    protected (Expression<Func<TEntity, object>>, bool)[] ParseSortOptions(List<SortingEntry<TSortOptions>>? entries)
     {
         (Expression<Func<TEntity, object>>, bool)[] selectors;
         
@@ -47,8 +51,5 @@ public abstract class BaseController<TEntity, TSortOptions>(
         return selectors;
     }
 
-    protected void CheckQueryParameters(ref PaginationParameters? paginationParameters)
-    {
-        paginationParameters ??= new PaginationParameters();
-    }
+    protected string ToSearchString(string input) => $"%{input.Trim().ToLower()}%";
 }

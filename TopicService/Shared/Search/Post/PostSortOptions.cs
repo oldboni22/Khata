@@ -1,4 +1,4 @@
-namespace Shared.Filters.Post;
+namespace Shared.Search.Post;
 
 public enum PostSortOptions
 {
