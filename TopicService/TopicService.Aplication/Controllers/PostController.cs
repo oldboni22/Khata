@@ -25,13 +25,13 @@ namespace TopicService.API.Controllers;
 [Route("api/topics/{topicId}/posts")]
 public class PostController(
     ITopicRepository topicRepository,
-    IGenericReadOnlyRepository<Post> postRepository,
+    IPostRepository postRepository,
     IUserGRpcClient userGRpcClient, 
     IMinioService minioService,
     IMessageSender messageSender,
     IMapper mapper, 
     ILogger logger) 
-    : BaseController<Post, PostSortOptions, PostFilter>(topicRepository, userGRpcClient, mapper, logger)
+    : BaseController<Post, PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
     [HttpPost]
@@ -164,30 +164,23 @@ public class PostController(
     [HttpGet]
     public async Task<PagedList<PostReadDto>> FindPostsAsync(
         Guid topicId,
-        [FromQuery] PostSearchOptions? searchOptions,
+        [FromQuery] PostSearchOptions searchOptions,
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
         var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        Expression<Func<Post, bool>> predicate = post => post.TopicId == topicId;
-
         paginationParameters ??= new PaginationParameters();
         
-        var filter = ParseFilter(searchOptions?.Filter);
-        if (filter is not null)
-        {
-            predicate = predicate.And(filter);
-        }
-        
-        var selectors = ParseSortOptions(searchOptions?.SortEntries);
+        var selectors = ParseSortOptions(searchOptions.SortEntries);
 
         var pagedPosts = await postRepository
             .FindByConditionAsync
             (
-                predicate,
+                topicId,
                 paginationParameters,
+                searchOptions.Filter,
                 selectors,
                 false,
                 cancellationToken
@@ -308,34 +301,6 @@ public class PostController(
             PostSortOptions.DislikeCount => post => post.DislikeCount,
             _ => DefaultSortOptions.selector
         };
-    }
-
-    protected override Expression<Func<Post, bool>>? ParseFilter(PostFilter? filter)
-    {
-        if (filter is null)
-        {
-            return null;
-        }
-        
-        Expression<Func<Post, bool>> predicate = p => true;
-        
-        if (!string.IsNullOrEmpty(filter.SearchTerm))
-        {
-            predicate = predicate
-                .And(p => EF.Functions.ILike(p.Title, ToSearchString(filter.SearchTerm)));
-        }
-
-        if (filter.MinLikes > 0)
-        {
-            predicate = predicate.And(p => p.LikeCount >= filter.MinLikes);
-        }
-
-        if (filter.UserId is not null)
-        {
-            predicate = predicate.And(p => p.AuthorId == filter.UserId);
-        }
-        
-        return predicate;
     }
 
     protected override (Expression<Func<Post, object>> selector, bool ascending) DefaultSortOptions =>

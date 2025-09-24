@@ -10,11 +10,10 @@ using Shared.Search;
 
 namespace TopicService.API.Controllers;
 
-public abstract class BaseController<TEntity, TSortOptions, TFilter>(
+public abstract class BaseController<TEntity, TSortOptions>(
     ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, Serilog.ILogger logger) : ControllerBase
     where TEntity : EntityBase
     where TSortOptions : Enum
-    where TFilter : Filter
 {
     protected ITopicRepository TopicRepository { get; } = topicRepository;
     
@@ -22,11 +21,10 @@ public abstract class BaseController<TEntity, TSortOptions, TFilter>(
     
     protected IMapper Mapper { get; } = mapper;
     
-    protected Serilog.ILogger Logger { get; } = logger.ForContext<BaseController<TEntity, TSortOptions, TFilter>>();
+    protected Serilog.ILogger Logger { get; } = logger.ForContext<BaseController<TEntity, TSortOptions>>();
 
     protected abstract Expression<Func<TEntity, object>> ParseSortOption(TSortOptions sortOption);
     
-    protected abstract Expression<Func<TEntity, bool>>? ParseFilter(TFilter? filter);
     
     protected abstract (Expression<Func<TEntity, object>> selector, bool ascending) DefaultSortOptions { get; }
     
@@ -50,6 +48,4 @@ public abstract class BaseController<TEntity, TSortOptions, TFilter>(
 
         return selectors;
     }
-
-    protected string ToSearchString(string input) => $"%{input.Trim().ToLower()}%";
 }

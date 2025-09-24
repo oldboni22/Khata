@@ -1,6 +1,10 @@
+using System.Linq.Expressions;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Shared.Extensions;
+using Shared.PagedList;
+using Shared.Search.Topic;
 
 namespace Infrastructure.Repositories;
 
@@ -59,5 +63,45 @@ public class TopicRepository(TopicServiceContext context) : GenericRepository<To
         query = trackChanges? query : query.AsNoTrackingWithIdentityResolution();
         
         return query.FirstOrDefaultAsync(t => t.Id == topicId, cancellationToken: cancellationToken);
+    }
+
+    public async Task<PagedList<Topic>> FindByConditionAsync(
+        PaginationParameters paginationParameters, 
+        Guid? parentTopicId, 
+        TopicFilter? filter,
+        (Expression<Func<Topic, object>> predicate, 
+        bool isAscending)[]? keySelectors = null, 
+        bool trackChanges = false,
+        CancellationToken cancellationToken = default)
+    {
+        Expression<Func<Topic, bool>> expression = parentTopicId is null? 
+            t => t.ParentTopicId == null : 
+            t => t.ParentTopicId == parentTopicId;
+        
+        var filterExpression = ParseFilter(filter);
+        if (filterExpression is not null)
+        {
+            expression = expression.And(filterExpression);
+        }
+        
+        return await FindByConditionAsync(expression, paginationParameters, keySelectors, trackChanges, cancellationToken);
+    }
+    
+    private Expression<Func<Topic, bool>>? ParseFilter(TopicFilter? filter)
+    {
+        if (filter is null)
+        {
+            return null;
+        }
+        
+        Expression<Func<Topic, bool>>? predicate = t => true;
+        
+        if (!string.IsNullOrEmpty(filter.SearchTerm))
+        {
+            predicate = predicate
+                .And(t => EF.Functions.ILike(t.Name, filter.SearchTerm.ToSearchString()));
+        }
+        
+        return predicate;
     }
 }

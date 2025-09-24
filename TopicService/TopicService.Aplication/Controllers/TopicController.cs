@@ -22,7 +22,7 @@ namespace TopicService.API.Controllers;
 [Route("api/topics")]
 public class TopicController(
     ITopicRepository topicRepository, IUserGRpcClient userGRpcClient, IMapper mapper, ILogger logger) : 
-    BaseController<Topic, TopicSortOptions, TopicFilter>(topicRepository, userGRpcClient, mapper, logger)
+    BaseController<Topic, TopicSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
     [HttpPost]
@@ -135,27 +135,20 @@ public class TopicController(
     
     [HttpGet("parentTopics")]
     public async Task<PagedList<TopicReadDto>> FindParentTopics(
-        [FromQuery] TopicSearchParameters? searchOptions, 
+        [FromQuery] TopicSearchParameters searchOptions, 
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == null;
-
         paginationParameters ??= new();
-
-        var filter = ParseFilter(searchOptions?.Filter);
-        if (filter is not null)
-        {
-            predicate = predicate.And(filter);
-        }
         
-        var selectors = ParseSortOptions(searchOptions?.SortEntries);
+        var selectors = ParseSortOptions(searchOptions.SortEntries);
 
         var topicEntities = await TopicRepository
             .FindByConditionAsync
             (
-                predicate,
                 paginationParameters,
+                null,
+                searchOptions.Filter,
                 selectors,
                 false,
                 cancellationToken
@@ -167,32 +160,25 @@ public class TopicController(
     [HttpGet("{parentTopicId}/subtopics")]
     public async Task<PagedList<TopicReadDto>> FindChildTopics(
         Guid parentTopicId,
-        [FromQuery] TopicSearchParameters? searchOptions,
+        [FromQuery] TopicSearchParameters searchOptions,
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        if (await TopicRepository.FindTopicWithSubTopicsAsync(parentTopicId, false, cancellationToken) is null)
+        if (await TopicRepository.FindByIdAsync(parentTopicId, false, cancellationToken) is null)
         {
             throw new EntityNotFoundException<Topic>(parentTopicId);
         }
-        
-        Expression<Func<Topic, bool>> predicate = t => t.ParentTopicId == parentTopicId;
 
         paginationParameters ??= new();
         
-        var filter = ParseFilter(searchOptions?.Filter);
-        if (filter is not null)
-        {
-            predicate = predicate.And(filter);
-        }
-        
-        var selectors = ParseSortOptions(searchOptions?.SortEntries);
+        var selectors = ParseSortOptions(searchOptions.SortEntries);
         
         var topicEntities = await TopicRepository
             .FindByConditionAsync
             (
-                predicate,
                 paginationParameters,
+                parentTopicId,
+                searchOptions.Filter,
                 selectors,
                 false,
                 cancellationToken
@@ -209,24 +195,6 @@ public class TopicController(
             TopicSortOptions.PostCount => t => t.Posts.Count,
             _ => DefaultSortOptions.selector,
         };
-    }
-
-    protected override Expression<Func<Topic, bool>>? ParseFilter(TopicFilter? filter)
-    {
-        if (filter is null)
-        {
-            return null;
-        }
-        
-        Expression<Func<Topic, bool>>? predicate = t => true;
-        
-        if (!string.IsNullOrEmpty(filter.SearchTerm))
-        {
-            predicate = predicate
-                .And(t => EF.Functions.ILike(t.Name, ToSearchString(filter.SearchTerm)));
-        }
-        
-        return predicate;
     }
 
     protected override (Expression<Func<Topic, object>> selector, bool ascending) DefaultSortOptions => 
