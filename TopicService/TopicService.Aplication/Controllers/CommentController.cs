@@ -61,7 +61,7 @@ public class CommentController(
     public async Task DeleteCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -81,7 +81,7 @@ public class CommentController(
     public async Task RemoveCommentMediaAsync(
         Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -110,7 +110,7 @@ public class CommentController(
     public async Task<CommentReadDto> UpdateCommentAsync(
         Guid topicId, Guid postId, Guid commentId, [FromBody] string text, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -135,7 +135,7 @@ public class CommentController(
     public async Task UpdateCommentMediaAsync(
         IFormFile file, Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -163,7 +163,7 @@ public class CommentController(
     public async Task<CommentReadDto> FindCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -177,7 +177,7 @@ public class CommentController(
 
     [Authorize]
     [HttpGet("{commentId}/media")]
-    public async Task<FileResult> GetCommentMediaAsync(
+    public async Task<FileResult> FindTopicWithPostsAndThenCommentsAsync(
         Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
     {
         var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
@@ -205,7 +205,7 @@ public class CommentController(
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -244,7 +244,7 @@ public class CommentController(
         Guid commentId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -271,7 +271,7 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -299,7 +299,7 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)

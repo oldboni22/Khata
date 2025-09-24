@@ -21,12 +21,28 @@ public class TopicRepository(TopicServiceContext context) : GenericRepository<To
         return topic.OwnerId == userId;
     }
 
-    public Task<Topic?> FindTopicWithPostsAsync(Guid topicId, bool trackChanges = true, CancellationToken cancellationToken = default)
+    public Task<Topic?> FindTopicWithPostsAsync(
+        Guid topicId, bool trackChanges = true, CancellationToken cancellationToken = default)
     {
         var query = Context
             .Topics
             .Include(t => t.Posts)
-            .AsSplitQuery();
+            .AsQueryable();
+        
+        query = trackChanges? query : query.AsNoTracking();
+        
+        return query.FirstOrDefaultAsync(t => t.Id == topicId, cancellationToken: cancellationToken);
+    }
+
+    public Task<Topic?> FindTopicWithPostsAndThenCommentsAsync(
+        Guid topicId, bool trackChanges = true, CancellationToken cancellationToken = default)
+    {
+        var query = Context
+            .Topics
+            .AsSplitQuery()
+            .Include(t => t.Posts)
+            .ThenInclude(p => p.Comments)
+            .AsQueryable();
         
         query = trackChanges? query : query.AsNoTracking();
         
@@ -38,7 +54,7 @@ public class TopicRepository(TopicServiceContext context) : GenericRepository<To
         var query = Context
             .Topics
             .Include(t => t.SubTopics)
-            .AsSplitQuery();
+            .AsQueryable();
         
         query = trackChanges? query : query.AsNoTracking();
         

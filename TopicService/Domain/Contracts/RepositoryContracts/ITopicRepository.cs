@@ -8,5 +8,7 @@ public interface ITopicRepository : IGenericRepository<Topic>
     
     Task<Topic?> FindTopicWithPostsAsync(Guid topicId, bool trackChanges = true, CancellationToken cancellationToken = default);
     
+    Task<Topic?> FindTopicWithPostsAndThenCommentsAsync(Guid topicId, bool trackChanges = true, CancellationToken cancellationToken = default);
+    
     Task<Topic?> FindTopicWithSubTopicsAsync(Guid topicId, bool trackChanges = true, CancellationToken cancellationToken = default);
 }

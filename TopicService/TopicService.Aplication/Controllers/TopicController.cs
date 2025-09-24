@@ -91,7 +91,7 @@ public class TopicController(
     public async Task RemoveSubTopicAsync(
         Guid parentTopicId, Guid topicId, CancellationToken cancellationToken = default)
     {
-        var parentTopic = await TopicRepository.FindByIdAsync(parentTopicId, true, cancellationToken) 
+        var parentTopic = await TopicRepository.FindTopicWithSubTopicsAsync(parentTopicId, true, cancellationToken) 
                           ?? throw new EntityNotFoundException<Topic>(parentTopicId);
 
         var senderId = User.GetAuth0Id();
@@ -170,7 +170,7 @@ public class TopicController(
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        if (await TopicRepository.FindByIdAsync(parentTopicId, false, cancellationToken) is null)
+        if (await TopicRepository.FindTopicWithSubTopicsAsync(parentTopicId, false, cancellationToken) is null)
         {
             throw new EntityNotFoundException<Topic>(parentTopicId);
         }

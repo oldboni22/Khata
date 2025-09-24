@@ -67,7 +67,7 @@ public class PostController(
     [HttpDelete("{postId}")]
     public async Task RemovePostAsync(Guid postId, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -92,7 +92,7 @@ public class PostController(
     [HttpDelete("{postId}/media")]
     public async Task RemovePostMediaAsync(Guid postId, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -118,7 +118,7 @@ public class PostController(
     public async Task<PostReadDto> UpdatePostAsync(
         PostUpdateDto dto ,Guid topicId ,Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -140,7 +140,7 @@ public class PostController(
     public async Task UpdatePostMediaAsync(
         IFormFile file ,Guid topicId ,Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -198,7 +198,7 @@ public class PostController(
     [HttpGet("{postId}")]
     public async Task<PostReadDto> FindPostAsync(Guid topicId, Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -209,10 +209,10 @@ public class PostController(
     
     [Authorize]
     [HttpGet("{postId}/media")]
-    public async Task<FileResult> GetCommentMediaAsync(
+    public async Task<FileResult> GetPostMediaAsync(
         Guid postId, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -231,7 +231,7 @@ public class PostController(
     public async Task AddInteractionAsync(
         [FromBody] InteractionType interactionType, Guid topicId, Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -251,7 +251,7 @@ public class PostController(
     public async Task RemoveInteractionAsync(
         Guid topicId, Guid postId, Guid interactionId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -275,7 +275,7 @@ public class PostController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
