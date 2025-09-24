@@ -121,7 +121,7 @@ public class TopicController(
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
 
-        if (senderUserId == topic!.OwnerId)
+        if (senderUserId != topic!.OwnerId)
         {
             throw new ForbiddenException();
         }

@@ -79,7 +79,7 @@ public class PostController(
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
         if (senderUserId != post.AuthorId && senderUserId != topic.OwnerId &&
-            await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
+            !await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
         {
             throw new ForbiddenException();
         }
