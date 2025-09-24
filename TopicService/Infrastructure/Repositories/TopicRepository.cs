@@ -29,7 +29,7 @@ public class TopicRepository(TopicServiceContext context) : GenericRepository<To
             .Include(t => t.Posts)
             .AsQueryable();
         
-        query = trackChanges? query : query.AsNoTracking();
+        query = trackChanges? query : query.AsNoTrackingWithIdentityResolution();
         
         return query.FirstOrDefaultAsync(t => t.Id == topicId, cancellationToken: cancellationToken);
     }
@@ -44,7 +44,7 @@ public class TopicRepository(TopicServiceContext context) : GenericRepository<To
             .ThenInclude(p => p.Comments)
             .AsQueryable();
         
-        query = trackChanges? query : query.AsNoTracking();
+        query = trackChanges? query : query.AsNoTrackingWithIdentityResolution();
         
         return query.FirstOrDefaultAsync(t => t.Id == topicId, cancellationToken: cancellationToken);
     }
@@ -56,7 +56,7 @@ public class TopicRepository(TopicServiceContext context) : GenericRepository<To
             .Include(t => t.SubTopics)
             .AsQueryable();
         
-        query = trackChanges? query : query.AsNoTracking();
+        query = trackChanges? query : query.AsNoTrackingWithIdentityResolution();
         
         return query.FirstOrDefaultAsync(t => t.Id == topicId, cancellationToken: cancellationToken);
     }
