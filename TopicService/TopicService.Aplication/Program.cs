@@ -2,6 +2,7 @@ using Infrastructure.gRpc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Shared;
 using TopicService.API.Extensions;
+using TopicService.API.Middleware;
 
 namespace TopicService.API;
 
@@ -52,6 +53,8 @@ public class Program
             app.MapOpenApi();
         }
 
+        app.UseMiddleware<ExceptionMiddleware>();
+        
         app.UseHttpsRedirection();
 
         app.MapGrpcService<GRpcService>();

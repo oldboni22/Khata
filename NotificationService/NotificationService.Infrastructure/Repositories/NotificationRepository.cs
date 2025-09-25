@@ -5,6 +5,7 @@ using NotificationService.DAL.MangoService;
 using NotificationService.Domain.Contracts.Repos;
 using NotificationService.Infrastructure.MangoService;
 using Shared;
+using Shared.Extensions;
 using Shared.PagedList;
 
 namespace NotificationService.Infrastructure.Repositories;
