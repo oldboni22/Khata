@@ -140,7 +140,7 @@ public class UserService(
             .Items
             .Select(relation => relation.User)
             .ToList()
-            .ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pagedRelations.PageCount);
+            .ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pagedRelations.PageCount, pagedRelations.TotalCount);
         
         return Mapper.Map<PagedList<UserModel>>(pagedUsers);
     }
