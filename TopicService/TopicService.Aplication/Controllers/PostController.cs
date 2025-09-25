@@ -9,12 +9,13 @@ using Domain.Exceptions;
 using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MinIoService;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
-using Shared.Filters.Post;
 using Shared.PagedList;
+using Shared.Search.Post;
 using TopicService.API.Dto.Post;
 using ILogger = Serilog.ILogger;
 
@@ -24,13 +25,13 @@ namespace TopicService.API.Controllers;
 [Route("api/topics/{topicId}/posts")]
 public class PostController(
     ITopicRepository topicRepository,
-    IGenericReadOnlyRepository<Post> postRepository,
+    IPostRepository postRepository,
     IUserGRpcClient userGRpcClient, 
     IMinioService minioService,
     IMessageSender messageSender,
     IMapper mapper, 
     ILogger logger) 
-    : BaseController<Post,PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
+    : BaseController<Post, PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
     [HttpPost]
@@ -78,7 +79,7 @@ public class PostController(
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
         if (senderUserId != post.AuthorId && senderUserId != topic.OwnerId &&
-            await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
+            !await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
         {
             throw new ForbiddenException();
         }
@@ -163,30 +164,23 @@ public class PostController(
     [HttpGet]
     public async Task<PagedList<PostReadDto>> FindPostsAsync(
         Guid topicId,
-        [FromQuery] PostSearchOptions? searchOptions,
+        [FromQuery] PostSearchOptions searchOptions,
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
         var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        Expression<Func<Post, bool>> predicate = post => post.TopicId == topicId;
-
-        CheckQueryParameters(ref paginationParameters);
+        paginationParameters ??= new PaginationParameters();
         
-        if (!string.IsNullOrEmpty(searchOptions?.SearchTerm))
-        {
-            predicate = predicate.And(post => 
-                post.Title.Contains(searchOptions.SearchTerm,StringComparison.InvariantCultureIgnoreCase));
-        }
-        
-        var selectors = ParseFilters(searchOptions?.Filters);
+        var selectors = ParseSortOptions(searchOptions.SortEntries);
 
         var pagedPosts = await postRepository
             .FindByConditionAsync
             (
-                predicate,
+                topicId,
                 paginationParameters,
+                searchOptions.Filter,
                 selectors,
                 false,
                 cancellationToken

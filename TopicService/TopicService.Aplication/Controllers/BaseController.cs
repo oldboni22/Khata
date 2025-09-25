@@ -6,6 +6,7 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Filters;
 using Shared.PagedList;
+using Shared.Search;
 
 namespace TopicService.API.Controllers;
 
@@ -24,9 +25,10 @@ public abstract class BaseController<TEntity, TSortOptions>(
 
     protected abstract Expression<Func<TEntity, object>> ParseSortOption(TSortOptions sortOption);
     
+    
     protected abstract (Expression<Func<TEntity, object>> selector, bool ascending) DefaultSortOptions { get; }
     
-    protected (Expression<Func<TEntity, object>>, bool)[] ParseFilters(List<FilterEntry<TSortOptions>>? entries)
+    protected (Expression<Func<TEntity, object>>, bool)[] ParseSortOptions(List<SortingEntry<TSortOptions>>? entries)
     {
         (Expression<Func<TEntity, object>>, bool)[] selectors;
         
@@ -45,10 +47,5 @@ public abstract class BaseController<TEntity, TSortOptions>(
         }
 
         return selectors;
-    }
-
-    protected void CheckQueryParameters(ref PaginationParameters? paginationParameters)
-    {
-        paginationParameters ??= new PaginationParameters();
     }
 }

@@ -9,12 +9,13 @@ using Domain.Exceptions;
 using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MinIoService;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
-using Shared.Filters.Comment;
 using Shared.PagedList;
+using Shared.Search.Comment;
 using TopicService.API.Dto.Comment;
 using ILogger = Serilog.ILogger;
 
@@ -24,7 +25,7 @@ namespace TopicService.API.Controllers;
 [Route("api/topics/{topicId}/posts/{postId}/comments")]
 public class CommentController(
     ITopicRepository topicRepository,
-    IGenericReadOnlyRepository<Comment> commentRepository,
+    ICommentRepository commentRepository,
     IUserGRpcClient userGRpcClient,
     IMinioService minioService,
     IMessageSender messageSender,
@@ -201,7 +202,7 @@ public class CommentController(
     public async Task<PagedList<CommentReadDto>> FindCommentsAsync(
         Guid topicId,
         Guid postId,
-        [FromQuery] CommentSearchOptions? searchOptions,
+        [FromQuery] CommentSearchOptions searchOptions,
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
@@ -211,22 +212,15 @@ public class CommentController(
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
                    ?? throw new EntityNotFoundException<Post>(postId);
         
-        CheckQueryParameters(ref paginationParameters);
-        
-        Expression<Func<Comment, bool>> predicate = comm => comm.PostId == postId;
-        
-        if (!string.IsNullOrEmpty(searchOptions?.SearchTerm))
-        {
-            predicate = predicate.And(s => 
-                s.Text.Contains(searchOptions.SearchTerm, StringComparison.CurrentCultureIgnoreCase));
-        }
+        paginationParameters ??= new();
 
-        var selectors = ParseFilters(searchOptions?.Filters);
+        var selectors = ParseSortOptions(searchOptions.SortEntries);
         
         var pagedComments = commentRepository.FindByConditionAsync
         (
-            predicate,
+            postId,
             paginationParameters,
+            searchOptions.Filter,
             selectors,
             false,
             cancellationToken

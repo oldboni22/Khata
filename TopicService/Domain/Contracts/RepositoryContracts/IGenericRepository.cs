@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Domain.Entities;
 using Shared.PagedList;
+using Shared.Search;
 
 namespace Domain.Contracts.RepositoryContracts;
 
