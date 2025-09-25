@@ -1,18 +1,21 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using Domain.Contracts.GRpc;
+using Domain.Contracts.MessageBroker;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Domain.Entities.Interactions;
 using Domain.Exceptions;
+using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MinIoService;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
-using Shared.Filters.Post;
 using Shared.PagedList;
+using Shared.Search.Post;
 using TopicService.API.Dto.Post;
 using ILogger = Serilog.ILogger;
 
@@ -21,13 +24,14 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/topics/{topicId}/posts")]
 public class PostController(
-    IGenericRepository<Topic> topicRepository,
-    IGenericReadOnlyRepository<Post> postRepository,
+    ITopicRepository topicRepository,
+    IPostRepository postRepository,
     IUserGRpcClient userGRpcClient, 
     IMinioService minioService,
+    IMessageSender messageSender,
     IMapper mapper, 
     ILogger logger) 
-    : BaseController<Post,PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
+    : BaseController<Post, PostSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
     [Authorize]
     [HttpPost]
@@ -44,6 +48,18 @@ public class PostController(
         var createdPost = topic.AddPost(postCreateDto.Title, postCreateDto.Text, senderUserId);
         
         await TopicRepository.UpdateAsync(cancellationToken);
+
+        var userIds = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Subscribed);
+        var moderatorIds = await UserGRpcClient.FindUserIdsByTopicIdAsync(topicId, UserTopicRelationStatus.Moderator);
+        
+        userIds.AddRange(moderatorIds);
+
+        userIds.Add(topic.OwnerId);
+
+        userIds.Remove(senderUserId);
+        
+        await messageSender.SendNotificationsCreateMessagesAsync(
+            CreatePostNotifications(topicId, createdPost.Id, userIds), cancellationToken);
         
         return Mapper.Map<PostReadDto>(createdPost);
     }
@@ -52,7 +68,7 @@ public class PostController(
     [HttpDelete("{postId}")]
     public async Task RemovePostAsync(Guid postId, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -63,7 +79,7 @@ public class PostController(
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
         if (senderUserId != post.AuthorId && senderUserId != topic.OwnerId &&
-            await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
+            !await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
         {
             throw new ForbiddenException();
         }
@@ -77,7 +93,7 @@ public class PostController(
     [HttpDelete("{postId}/media")]
     public async Task RemovePostMediaAsync(Guid postId, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -103,7 +119,7 @@ public class PostController(
     public async Task<PostReadDto> UpdatePostAsync(
         PostUpdateDto dto ,Guid topicId ,Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -125,7 +141,7 @@ public class PostController(
     public async Task UpdatePostMediaAsync(
         IFormFile file ,Guid topicId ,Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -148,28 +164,23 @@ public class PostController(
     [HttpGet]
     public async Task<PagedList<PostReadDto>> FindPostsAsync(
         Guid topicId,
-        [FromQuery] PostSearchParameters searchParameters,
-        [FromQuery] PaginationParameters paginationParameters,
+        [FromQuery] PostSearchOptions searchOptions,
+        [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
         var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        Expression<Func<Post, bool>> predicate = post => post.TopicId == topicId;
-
-        if (!string.IsNullOrEmpty(searchParameters.SearchTerm))
-        {
-            predicate = predicate.And(post => 
-                post.Title.Contains(searchParameters.SearchTerm,StringComparison.InvariantCultureIgnoreCase));
-        }
+        paginationParameters ??= new PaginationParameters();
         
-        var selectors = ParseFilters(searchParameters.Filters);
+        var selectors = ParseSortOptions(searchOptions.SortEntries);
 
         var pagedPosts = await postRepository
             .FindByConditionAsync
             (
-                predicate,
+                topicId,
                 paginationParameters,
+                searchOptions.Filter,
                 selectors,
                 false,
                 cancellationToken
@@ -181,7 +192,7 @@ public class PostController(
     [HttpGet("{postId}")]
     public async Task<PostReadDto> FindPostAsync(Guid topicId, Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -192,10 +203,10 @@ public class PostController(
     
     [Authorize]
     [HttpGet("{postId}/media")]
-    public async Task<FileResult> GetCommentMediaAsync(
+    public async Task<FileResult> GetPostMediaAsync(
         Guid postId, Guid topicId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -214,7 +225,7 @@ public class PostController(
     public async Task AddInteractionAsync(
         [FromBody] InteractionType interactionType, Guid topicId, Guid postId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -234,7 +245,7 @@ public class PostController(
     public async Task RemoveInteractionAsync(
         Guid topicId, Guid postId, Guid interactionId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -258,7 +269,7 @@ public class PostController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -294,4 +305,21 @@ public class PostController(
 
     protected override (Expression<Func<Post, object>> selector, bool ascending) DefaultSortOptions =>
         (post => post.Title, true);
+
+    private List<Notification> CreatePostNotifications(Guid topicId, Guid postId, IEnumerable<Guid> userIds)
+    {
+        return userIds.Select(uid => 
+            new Notification
+            {
+                UserId = uid,
+                EntityType = EntityType.Post,
+                EntityId = postId,
+                Parent = new ParentEntity
+                {
+                    Id = topicId,
+                    Type = EntityType.Topic
+                }
+            }
+        ).ToList();
+    }
 }

@@ -9,4 +9,6 @@ public interface IUserGRpcClient
     Task<bool> HasStatusAsync(Guid userId, Guid topicId, UserTopicRelationStatus status);
     
     Task<Guid> FindUserIdByAuth0IdAsync(string auth0Id);
+
+    Task<List<Guid>> FindUserIdsByTopicIdAsync(Guid topicId, UserTopicRelationStatus status);
 }

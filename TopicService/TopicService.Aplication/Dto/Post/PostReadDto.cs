@@ -4,6 +4,8 @@ public class PostReadDto
 {
     public Guid Id { get; set; }
     
+    public Guid AuthorId { get; set; }
+    
     public required string Text { get; set; }
     
     public required string Title { get; set; }

@@ -1,18 +1,21 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using Domain.Contracts.GRpc;
+using Domain.Contracts.MessageBroker;
 using Domain.Contracts.RepositoryContracts;
 using Domain.Entities;
 using Domain.Entities.Interactions;
 using Domain.Exceptions;
+using Messages.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MinIoService;
 using Shared.Enums;
 using Shared.Exceptions;
 using Shared.Extensions;
-using Shared.Filters.Comment;
 using Shared.PagedList;
+using Shared.Search.Comment;
 using TopicService.API.Dto.Comment;
 using ILogger = Serilog.ILogger;
 
@@ -21,21 +24,22 @@ namespace TopicService.API.Controllers;
 [ApiController]
 [Route("api/topics/{topicId}/posts/{postId}/comments")]
 public class CommentController(
-    IGenericRepository<Topic> postTopicRepository,
-    IGenericReadOnlyRepository<Comment> commentRepository,
+    ITopicRepository topicRepository,
+    ICommentRepository commentRepository,
     IUserGRpcClient userGRpcClient,
     IMinioService minioService,
+    IMessageSender messageSender,
     IMapper mapper,
-    ILogger logger) : BaseController<Comment, CommentSortOptions>(postTopicRepository, userGRpcClient, mapper, logger)
+    ILogger logger) : BaseController<Comment, CommentSortOptions>(topicRepository, userGRpcClient, mapper, logger)
 {
     [HttpPost]
     [Authorize]
     public async Task<CommentReadDto> CreateCommentAsync(
         Guid topicId, Guid postId, [FromBody] string text, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
-
+        
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId) 
                    ?? throw new EntityNotFoundException<Post>(postId);
         
@@ -43,11 +47,14 @@ public class CommentController(
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
-        var comment = post.AddComment(text, senderUserId);
+        var createdComment = post.AddComment(text, senderUserId);
 
         await TopicRepository.UpdateAsync(cancellationToken);
         
-        return mapper.Map<CommentReadDto>(comment);
+        await messageSender.SendNotificationsCreateMessagesAsync(
+            CreateCommentNotification(topicId, postId, createdComment.Id, post.AuthorId), cancellationToken);
+        
+        return Mapper.Map<CommentReadDto>(createdComment);
     }
     
     [Authorize]
@@ -55,7 +62,7 @@ public class CommentController(
     public async Task DeleteCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -75,7 +82,7 @@ public class CommentController(
     public async Task RemoveCommentMediaAsync(
         Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -104,7 +111,7 @@ public class CommentController(
     public async Task<CommentReadDto> UpdateCommentAsync(
         Guid topicId, Guid postId, Guid commentId, [FromBody] string text, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -121,7 +128,7 @@ public class CommentController(
 
         await TopicRepository.UpdateAsync(cancellationToken);
         
-        return mapper.Map<CommentReadDto>(comment);
+        return Mapper.Map<CommentReadDto>(comment);
     }
 
     [Authorize]
@@ -129,7 +136,7 @@ public class CommentController(
     public async Task UpdateCommentMediaAsync(
         IFormFile file, Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -157,7 +164,7 @@ public class CommentController(
     public async Task<CommentReadDto> FindCommentAsync(
         Guid topicId, Guid postId, Guid commentId, CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -166,12 +173,12 @@ public class CommentController(
         var comment = post.Comments.SingleOrDefault(comm => comm.Id == commentId) 
                       ?? throw new EntityNotFoundException<Comment>(commentId);
         
-        return mapper.Map<CommentReadDto>(comment);
+        return Mapper.Map<CommentReadDto>(comment);
     }
 
     [Authorize]
     [HttpGet("{commentId}/media")]
-    public async Task<FileResult> GetCommentMediaAsync(
+    public async Task<FileResult> FindTopicWithPostsAndThenCommentsAsync(
         Guid postId, Guid topicId, Guid commentId, CancellationToken cancellationToken)
     {
         var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
@@ -195,36 +202,31 @@ public class CommentController(
     public async Task<PagedList<CommentReadDto>> FindCommentsAsync(
         Guid topicId,
         Guid postId,
-        [FromQuery] CommentSearchParameters searchParameters,
-        [FromQuery] PaginationParameters paginationParameters,
+        [FromQuery] CommentSearchOptions searchOptions,
+        [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
                    ?? throw new EntityNotFoundException<Post>(postId);
         
-        Expression<Func<Comment, bool>> predicate = comm => comm.PostId == postId;
+        paginationParameters ??= new();
 
-        if (!string.IsNullOrEmpty(searchParameters.SearchTerm))
-        {
-            predicate = predicate.And(s => 
-                s.Text.Contains(searchParameters.SearchTerm, StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        var selectors = ParseFilters(searchParameters.Filters);
+        var selectors = ParseSortOptions(searchOptions.SortEntries);
         
         var pagedComments = commentRepository.FindByConditionAsync
         (
-            predicate,
+            postId,
             paginationParameters,
+            searchOptions.Filter,
             selectors,
             false,
             cancellationToken
         );
         
-        return mapper.Map<PagedList<CommentReadDto>>(pagedComments);
+        return Mapper.Map<PagedList<CommentReadDto>>(pagedComments);
     }
     
     [Authorize]
@@ -236,7 +238,7 @@ public class CommentController(
         Guid commentId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -263,7 +265,7 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -291,7 +293,7 @@ public class CommentController(
         Guid interactionId,
         CancellationToken cancellationToken)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, true, cancellationToken) 
+        var topic = await TopicRepository.FindTopicWithPostsAndThenCommentsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
         var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
@@ -329,4 +331,27 @@ public class CommentController(
 
     protected override (Expression<Func<Comment, object>> selector, bool ascending) DefaultSortOptions =>
         (comm => comm.CreatedAt, true);
+
+    private List<Notification> CreateCommentNotification(Guid postId, Guid topicId, Guid commentId, Guid userId)
+    {
+        return
+        [
+            new Notification
+            {
+                UserId = userId,
+                EntityType = EntityType.Comment,
+                EntityId = commentId,
+                Parent = new ParentEntity
+                {
+                    Type = EntityType.Post,
+                    Id = postId,
+                    Parent = new ParentEntity
+                    {
+                        Type = EntityType.Topic,
+                        Id = topicId
+                    }
+                }
+            }
+        ];
+    }
 }

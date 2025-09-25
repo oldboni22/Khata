@@ -1,10 +1,10 @@
-using NotificationService.Domain.Models;
+using Messages.Models;
 
-namespace NotificationService.DAL.Contracts.Repos;
+namespace NotificationService.Domain.Contracts.Repos;
 
-public interface IGenericRepository<T> where T : NotificationBase
+public interface IGenericRepository<T> where T : Notification
 {
-    Task<T> CreateAsync(T notification);
+    Task CreateManyAsync(IEnumerable<T> notifications);
 
     Task<T?> FindById(Guid id);
 

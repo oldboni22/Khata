@@ -1,3 +1,6 @@
+using NotificationService.API.Extensions;
+using NotificationService.Infrastructure.Extensions;
+
 namespace NotificationService.API;
 
 public class Program
@@ -7,6 +10,9 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         builder.Services.AddAuthorization();
+
+        builder.Services.AddInfrastructureDependencies(builder.Configuration);
+        builder.Services.AddApplicationDependencies(builder.Configuration);
         
         builder.Services.AddOpenApi();
 

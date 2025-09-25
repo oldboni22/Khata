@@ -1,4 +1,4 @@
-namespace Shared.Filters.Comment;
+namespace Shared.Search.Comment;
 
 public enum CommentSortOptions
 {

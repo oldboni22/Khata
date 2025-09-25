@@ -1,13 +1,13 @@
+using Messages.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using NotificationService.DAL.Contracts.Repos;
 using NotificationService.DAL.MangoService;
-using NotificationService.Domain.Models;
+using NotificationService.Domain.Contracts.Repos;
 
 namespace NotificationService.Infrastructure.MangoService;
 
-public abstract class GenericRepository<T> : IGenericRepository<T>
-    where T : NotificationBase
+public class GenericRepository<T> : IGenericRepository<T>
+    where T : Notification
 {
     private readonly MongoClient _client;
 
@@ -22,11 +22,16 @@ public abstract class GenericRepository<T> : IGenericRepository<T>
         _collection = db.GetCollection<T>(options.Value.CollectionName);
     }
 
-    public async Task<T> CreateAsync(T notification)
+    public async Task CreateManyAsync(IEnumerable<T> notifications)
     {
-        await _collection.InsertOneAsync(notification);
-
-        return await _collection.Find(notif => notif.Id == notification.Id).FirstAsync();
+        var createdAt = DateTime.UtcNow;
+        notifications = notifications.Select(notif =>
+        {
+            notif.CreatedAt = createdAt;
+            return notif;
+        });
+        
+        await _collection.InsertManyAsync(notifications);
     }
 
     public async Task<T?> FindById(Guid id)

@@ -25,4 +25,6 @@ public static class ConfigurationKeys
     public const string ApplicationPort = "ApplicationPort";
 
     public const string SerilogFile = "SerilogSettings:LogFile";
+    
+    public const string RabbitMqHost = "RabbitMq:Host";
 }

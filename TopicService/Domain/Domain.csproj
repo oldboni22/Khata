@@ -10,4 +10,8 @@
       <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Messages" Version="1.4.2" />
+    </ItemGroup>
+
 </Project>
