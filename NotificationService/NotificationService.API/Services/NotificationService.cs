@@ -1,5 +1,6 @@
 using Messages.Models;
 using NotificationService.Domain.Contracts.Repos;
+using Shared.Exceptions;
 using Shared.PagedList;
 
 namespace NotificationService.API.Services;
@@ -19,15 +20,15 @@ public interface INotificationService
     Task MarkUnreadNotificationsAsReadAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 
-public class NotificationService(INotificationRepository repository) : INotificationService
+public class NotificationService(INotificationRepository repository, TimeProvider timeProvider) : INotificationService
 {
     public async Task CreateNotificationsAsync(IEnumerable<Notification> notifications)
     {
         await repository.CreateManyAsync(notifications);
     }
 
-    public async Task<PagedList<Notification>> FindAllNotificationsAsync(Guid userId, PaginationParameters? paginationParameters,
-        CancellationToken cancellationToken = default)
+    public async Task<PagedList<Notification>> FindAllNotificationsAsync(
+        Guid userId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default)
     {
         paginationParameters ??= new();
         
@@ -45,14 +46,14 @@ public class NotificationService(INotificationRepository repository) : INotifica
     public async Task MarkNotificationAsReadAsync(Guid notificationId, CancellationToken cancellationToken = default)
     {
         var notification = await repository.FindById(notificationId) 
-                           ?? throw new NotImplementedException();
+                           ?? throw new NotFoundException();
 
         if (notification.ReadAt is not null)
         {
-            throw new NotImplementedException();
+            throw new BadRequestException();
         }
         
-        notification.CreatedAt = DateTime.UtcNow;
+        notification.CreatedAt = timeProvider.GetUtcNow().DateTime;
         
         await repository.UpdateAsync(notification);
     }
@@ -61,7 +62,7 @@ public class NotificationService(INotificationRepository repository) : INotifica
     {
         var unreadNotifications = await repository.FindUnreadNotificationsAsync(userId, cancellationToken);
         
-        var updatedAt = DateTime.UtcNow;
+        var updatedAt = timeProvider.GetUtcNow().DateTime;
         
         var updatedNotifications = unreadNotifications.Select(notification =>
         {

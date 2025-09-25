@@ -19,14 +19,13 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         return services
+            .AddSingleton<TimeProvider>(TimeProvider.System)
             .AddMongoServices(configuration)
             .AddScoped<INotificationRepository, NotificationRepository>();
     }
 
     private static IServiceCollection AddMongoServices(this IServiceCollection services, IConfiguration configuration)
     {
-        
-        
         return services
             .Configure<MangoServiceOptions>(configuration.GetSection(MangoServiceOptions.SectionName));
     }

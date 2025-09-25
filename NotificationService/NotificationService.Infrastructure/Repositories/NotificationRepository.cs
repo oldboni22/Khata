@@ -9,8 +9,8 @@ using Shared.PagedList;
 
 namespace NotificationService.Infrastructure.Repositories;
 
-public class NotificationRepository(IOptions<MangoServiceOptions> options)
-    : GenericRepository<Notification>(options), INotificationRepository
+public class NotificationRepository(IOptions<MangoServiceOptions> options, TimeProvider timeProvider)
+    : GenericRepository<Notification>(options, timeProvider), INotificationRepository
 {
     public async Task<PagedList<Notification>> FindAllNotificationsAsync(
         Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default)
@@ -21,8 +21,8 @@ public class NotificationRepository(IOptions<MangoServiceOptions> options)
         return await GeneralizedFind(filter, sort, paginationParameters, cancellationToken);
     }
 
-    public async Task<PagedList<Notification>> FindUnreadNotificationsAsync
-        (Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default)
+    public async Task<PagedList<Notification>> FindUnreadNotificationsAsync(
+        Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default)
     {
         var idFilter = Builders<Notification>.Filter.Eq(notification => notification.UserId, userId);
         var stateFilter = Builders<Notification>.Filter.Eq(notification => notification.ReadAt, null);
