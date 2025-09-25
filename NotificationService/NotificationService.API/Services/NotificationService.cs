@@ -11,10 +11,10 @@ public interface INotificationService
     Task CreateNotificationsAsync(IEnumerable<Notification> notifications);
     
     Task<PagedList<Notification>> FindAllNotificationsAsync(
-        string senderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default);
+        string identityProviderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default);
     
     Task<PagedList<Notification>> FindUnreadNotificationsAsync(
-        string senderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default);
+        string identityProviderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default);
 
     Task MarkNotificationAsReadAsync(Guid notificationId, CancellationToken cancellationToken = default);
     
@@ -30,23 +30,23 @@ public class NotificationService(
     }
 
     public async Task<PagedList<Notification>> FindAllNotificationsAsync(
-        string senderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default)
+        string identityProviderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default)
     {
         paginationParameters ??= new();
         
-        var userId = await userGrpcService.GetUserIdAsync(senderId)??
+        var userId = await userGrpcService.GetUserIdAsync(identityProviderId)??
                      throw new NotFoundException();
         
         return await repository.FindAllNotificationsAsync(userId, paginationParameters, cancellationToken);
     }
 
     public async Task<PagedList<Notification>> FindUnreadNotificationsAsync(
-        string senderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default)
+        string identityProviderId, PaginationParameters? paginationParameters, CancellationToken cancellationToken = default)
     {
         paginationParameters ??= new();
         
-        var userId = await userGrpcService.GetUserIdAsync(senderId)??
-                     throw new NotFoundException();
+        var userId = await userGrpcService.GetUserIdAsync(identityProviderId)
+                     ?? throw new NotFoundException();
         
         return await repository.FindUnreadNotificationsAsync(userId, paginationParameters, cancellationToken);
     }

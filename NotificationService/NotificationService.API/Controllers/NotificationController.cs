@@ -14,19 +14,19 @@ public class NotificationController(INotificationService notificationService) : 
 {
     [HttpGet]
     public async Task<PagedList<Notification>> FindNotificationsAsync(
-        [FromBody] PaginationParameters? paginationParameters, CancellationToken cancellationToken, [FromRoute] bool includeRead = false)
+        [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken, [FromRoute] bool includeRead = false)
     {
-        var senderId = User.GetAuth0Id();
+        var senderIdentityProviderId = User.GetAuth0Id();
         
         if (includeRead)
         {
-            return await notificationService.FindAllNotificationsAsync(senderId!, paginationParameters, cancellationToken);
+            return await notificationService.FindAllNotificationsAsync(senderIdentityProviderId!, paginationParameters, cancellationToken);
         }
         
-        return await notificationService.FindUnreadNotificationsAsync(senderId!, paginationParameters, cancellationToken);
+        return await notificationService.FindUnreadNotificationsAsync(senderIdentityProviderId!, paginationParameters, cancellationToken);
     }
 
-    [HttpPost]
+    [HttpPost("{notificationId}")]
     public async Task MarkNotificationAsReadAsync([FromRoute] Guid notificationId, CancellationToken cancellationToken)
     {
         await notificationService.MarkNotificationAsReadAsync(notificationId, cancellationToken);
@@ -35,9 +35,9 @@ public class NotificationController(INotificationService notificationService) : 
     [HttpPost]
     public async Task MarkUnreadNotificationAsReadAsync(CancellationToken cancellationToken)
     {
-        var senderId = User.GetAuth0Id();
+        var senderIdentityProviderId = User.GetAuth0Id();
         
-        await notificationService.MarkUnreadNotificationsAsReadAsync(senderId!, cancellationToken);
+        await notificationService.MarkUnreadNotificationsAsReadAsync(senderIdentityProviderId!, cancellationToken);
     }
     
 }
