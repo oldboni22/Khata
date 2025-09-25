@@ -1,10 +1,8 @@
-using Messages.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using NotificationService.DAL.MangoService;
 using NotificationService.Domain.Contracts.Repos;
-using NotificationService.Infrastructure.MangoService;
+using NotificationService.Infrastructure.Repositories;
 
 namespace NotificationService.Infrastructure.Extensions;
 
@@ -22,7 +20,7 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddMongoServices(configuration)
-            .AddScoped<IGenericRepository<Notification>, GenericRepository<Notification>>();
+            .AddScoped<INotificationRepository, NotificationRepository>();
     }
 
     private static IServiceCollection AddMongoServices(this IServiceCollection services, IConfiguration configuration)

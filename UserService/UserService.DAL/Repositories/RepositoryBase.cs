@@ -42,16 +42,15 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
             .Skip((paginationParameters.PageNumber -1) * paginationParameters.PageSize)
             .Take(paginationParameters.PageSize);
         
-        var count = await query.CountAsync(cancellationToken);
+        var totalCount = await query.CountAsync(cancellationToken);
         
         query = trackChanges ? query : query.AsNoTracking();
 
         var list = await query.ToListAsync(cancellationToken);
 
-        var totalCount = await query.CountAsync(cancellationToken);
         var pageCount = (int)Math.Ceiling(totalCount / (double)paginationParameters.PageSize);
         
-        return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount, count);
+        return list.ToPagedList(paginationParameters.PageNumber, paginationParameters.PageSize, pageCount, totalCount);
     }
 
     public async Task<List<T>> FindAllByConditionAsync(

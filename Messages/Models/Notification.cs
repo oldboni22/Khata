@@ -19,7 +19,7 @@ public class Notification
     public DateTime CreatedAt { get; set; }
 
     [BsonRepresentation(BsonType.DateTime)]
-    public DateTime ReadAt { get; set; }
+    public DateTime? ReadAt { get; set; }
 
     public ParentEntity? Parent { get; set; }
 
