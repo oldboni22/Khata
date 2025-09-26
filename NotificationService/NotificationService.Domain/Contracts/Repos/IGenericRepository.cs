@@ -12,5 +12,7 @@ public interface IGenericRepository<T> where T : Notification
 
     Task<bool> Delete(Guid id);
 
-    Task<T?> UpdateAsync(T notification);
+    Task UpdateAsync(T notification);
+    
+    Task UpdateManyAsync(IEnumerable<T> notifications);
 }

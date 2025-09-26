@@ -9,57 +9,68 @@ namespace NotificationService.Infrastructure.MangoService;
 public class GenericRepository<T> : IGenericRepository<T>
     where T : Notification
 {
-    private readonly MongoClient _client;
+    protected IMongoCollection<T> Collection { get; }
 
-    private readonly IMongoCollection<T> _collection;
-
-    public GenericRepository(IOptions<MangoServiceOptions> options)
+    protected TimeProvider TimeProvider { get; }
+    
+    public GenericRepository(IOptions<MangoServiceOptions> options, TimeProvider timeProvider)
     {
-        _client = new(options.Value.ConnectionString);
+        var client = new MongoClient(options.Value.ConnectionString);
 
-        var db = _client.GetDatabase(options.Value.DatabaseName);
+        var db = client.GetDatabase(options.Value.DatabaseName);
 
-        _collection = db.GetCollection<T>(options.Value.CollectionName);
+        Collection = db.GetCollection<T>(options.Value.CollectionName);
+        
+        TimeProvider = timeProvider;
     }
 
     public async Task CreateManyAsync(IEnumerable<T> notifications)
     {
-        var createdAt = DateTime.UtcNow;
+        var createdAt = TimeProvider.GetUtcNow().DateTime;;
         notifications = notifications.Select(notif =>
         {
             notif.CreatedAt = createdAt;
             return notif;
         });
         
-        await _collection.InsertManyAsync(notifications);
+        await Collection.InsertManyAsync(notifications);
     }
 
     public async Task<T?> FindById(Guid id)
     {
-        return await _collection.Find(notification => notification.Id == id).FirstOrDefaultAsync();
+        return await Collection.Find(notification => notification.Id == id).FirstOrDefaultAsync();
     }
 
     public async Task<List<T>> FindAll(Guid userId)
     {
-        return await _collection.Find(notification => notification.UserId == userId).ToListAsync();
+        return await Collection.Find(notification => notification.UserId == userId).ToListAsync();
     }
 
     public async Task<bool> Delete(Guid id)
     {
-        var result = await _collection.DeleteOneAsync(notification => notification.Id == id);
+        var result = await Collection.DeleteOneAsync(notification => notification.Id == id);
 
         return result.DeletedCount > 0;
     }
 
-    public async Task<T?> UpdateAsync(T notification)
+    public async Task UpdateAsync(T notification)
     {
-        var result = await _collection.ReplaceOneAsync(notif => notif.Id == notification.Id, notification);
+        await Collection.ReplaceOneAsync(notif => notif.Id == notification.Id, notification);
+    }
 
-        if (result.ModifiedCount == 0)
+    public async Task UpdateManyAsync(IEnumerable<T> notifications)
+    {
+        var writeModels = notifications
+            .Select(notification =>
+            {
+                var filter = Builders<T>.Filter.Eq(n => n.Id, notification.Id);
+                
+                return new ReplaceOneModel<T>(filter, notification);
+            });
+
+        await Collection.BulkWriteAsync(writeModels, new BulkWriteOptions
         {
-            return null;
-        }
-        
-        return await _collection.Find(notif => notif.Id == notification.Id).FirstAsync();
+            IsOrdered = false
+        });
     }
 }

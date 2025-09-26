@@ -1,5 +1,6 @@
 using System.Reflection;
 using MassTransit;
+using NotificationService.API.Services;
 using Shared;
 
 namespace NotificationService.API.Extensions;
@@ -10,7 +11,7 @@ public static class ServiceCollectionExtensions
     {
         return 
             services
-                .AddScoped<Services.INotificationService, Services.NotificationService>()
+                .AddScoped<INotificationService, Services.NotificationService>()
                 .AddMessageBroker(configuration);
     }
     
