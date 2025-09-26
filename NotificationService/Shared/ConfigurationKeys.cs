@@ -9,4 +9,6 @@ public static class ConfigurationKeys
     public const string Auth0Domain = "Auth0:Domain";
     
     public const string SerilogFile = "SerilogFile";
+    
+    public const string UserGRpcAddress = "GRpc:UserApiAddress";
 }

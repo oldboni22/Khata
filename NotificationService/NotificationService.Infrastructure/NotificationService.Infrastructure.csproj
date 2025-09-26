@@ -7,6 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+        <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" Version="2.71.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.72.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
       <PackageReference Include="Messages" Version="1.4.3" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
@@ -16,8 +22,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NotificationService.Domain\NotificationService.Domain.csproj" />
-      <ProjectReference Include="..\Shared\Shared.csproj" />
+        <ProjectReference Include="..\NotificationService.Domain\NotificationService.Domain.csproj" />
+        <ProjectReference Include="..\Shared\Shared.csproj" />
+        <Protobuf Include="gRpc\TopicService.proto" GrpcServices="Both" />
     </ItemGroup>
 
 </Project>

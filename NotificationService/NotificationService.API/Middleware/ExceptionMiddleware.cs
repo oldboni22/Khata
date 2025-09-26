@@ -24,7 +24,7 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
         var details = exception switch
         {
             NotFoundException => new ExceptionDetails(exception.Message, 404),
-            BadRequestException or _ => new ExceptionDetails(exception.Message, 500),
+            BadRequestException or _ => new ExceptionDetails(exception.Message, 400),
         };
 
         context.Response.ContentType = "application/json";
