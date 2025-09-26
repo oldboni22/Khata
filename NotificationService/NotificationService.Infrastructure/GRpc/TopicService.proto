@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+option csharp_namespace = "Infrastructure.gRpc";
+
+package communication;
+
+message TopicUserStatusRequest {
+
+    string topic_id = 1;
+    string user_id = 2;
+
+    int32 status = 3;
+}
+
+message TopicUserResponse {
+
+    bool result = 1;
+}
+
+message BannedUserTopicsRequest{
+
+    string user_id = 1;
+}
+
+message BannedUserTopicsResponse{
+
+    repeated string topic_ids = 1;
+}
+
+message UserIdByAuth0IdRequest{
+
+    string user_auth0_id = 1;
+}
+
+message UserIdByAuth0IdResponse{
+
+    string user_id = 1;
+}
+
+message UsersWithStatusRequest{
+
+    string topic_id = 1;
+
+    int32 status = 2;
+}
+
+message UsersWithStatusResponse{
+
+    repeated string user_ids = 1;
+}
+
+service TopicGRpcApi {
+
+    rpc IsOwner(TopicUserStatusRequest) returns (TopicUserResponse);
+}
+
+service UserGRpcApi {
+
+    rpc HasStatus(TopicUserStatusRequest) returns (TopicUserResponse);
+
+    rpc FindBannedTopicsId(BannedUserTopicsRequest) returns (BannedUserTopicsResponse);
+
+    rpc FindUserIdByAuth0Id(UserIdByAuth0IdRequest) returns (UserIdByAuth0IdResponse);
+
+    rpc FindUsersWithStatus(UsersWithStatusRequest) returns (UsersWithStatusResponse);
+}
+
