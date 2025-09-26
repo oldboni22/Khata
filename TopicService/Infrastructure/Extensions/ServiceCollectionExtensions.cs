@@ -71,7 +71,6 @@ public static class ServiceCollectionExtensions
             {
                 cfg.Host(configuration[ConfigurationKeys.RabbitMqHost]);
             });
-            
         })
         .Configure<MessageSenderOptions>(configuration.GetSection(MessageSenderOptions.SectionName))
         .AddTransient<IMessageSender, MessageSender.MessageSender>();
