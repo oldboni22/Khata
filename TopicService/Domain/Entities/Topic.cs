@@ -20,7 +20,7 @@ public class Topic : EntityWithTimestamps
     public IReadOnlyCollection<Topic> SubTopics => _subTopics;
     
     public IReadOnlyCollection<Post> Posts => _posts;
-
+    
     public string Name { get; init; }
 
     public Guid? ParentTopicId { get; init; }
@@ -40,7 +40,7 @@ public class Topic : EntityWithTimestamps
     {
         if (string.IsNullOrEmpty(name) || name.Length is < NameMinLength or > NameMaxLength)
         {
-            throw new Exception(); //TODO Custom exception
+            throw new ArgumentException(); //TODO Custom exception
         }
 
         return new Topic(name, creatorId, parentTopic);
@@ -55,12 +55,12 @@ public class Topic : EntityWithTimestamps
         return subTopic;
     }
 
-    public void RemoveSubTopic(Guid subTopicId, Guid senderId)
+    public void RemoveSubTopic(Guid subTopicId, Guid senderId, bool isMod)
     {
         var subTopic = _subTopics.FirstOrDefault(p => p.Id == subTopicId)
                        ?? throw new EntityNotFoundException<Topic>(subTopicId);
 
-        if (senderId != OwnerId && senderId != subTopic.OwnerId)
+        if (senderId != OwnerId && senderId != subTopic.OwnerId && !isMod)
         {
             throw new ForbiddenException();
         }
@@ -78,12 +78,12 @@ public class Topic : EntityWithTimestamps
         return post;
     }
 
-    public void RemovePost(Guid postId, Guid senderId)
+    public void RemovePost(Guid postId, Guid senderId, bool isMod)
     {
         var post = _posts.FirstOrDefault(p => p.Id == postId)
                    ?? throw new EntityNotFoundException<Post>(postId);
 
-        if (senderId != OwnerId && senderId != post.AuthorId)
+        if (senderId != OwnerId && senderId != post.AuthorId && !isMod)
         {
             throw new ForbiddenException();
         }

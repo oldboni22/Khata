@@ -16,7 +16,7 @@ public class Post : EntityWithTimestamps
 
     private const int TextMaxLength = 1500;
 
-    private const int TextMinLength = 5;
+    private const int TextMinLength = 0;
 
     #endregion
 
@@ -139,7 +139,7 @@ public class Post : EntityWithTimestamps
     {
         if (string.IsNullOrEmpty(text) || text.Length is < TextMinLength or > TextMaxLength)
         {
-            throw new Exception(); //TODO Custom exception
+            throw new ArgumentException(); //TODO Custom exception
         }
     }
     
@@ -147,7 +147,7 @@ public class Post : EntityWithTimestamps
     {
         if (string.IsNullOrEmpty(title) || title.Length is < TitleMinLength or > TitleMaxLength)
         {
-            throw new Exception(); //TODO Custom exception
+            throw new ArgumentException(); //TODO Custom exception
         }
     }
 }
