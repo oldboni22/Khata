@@ -14,20 +14,20 @@ public class NotificationServiceTests
 {
     private readonly INotificationService _notificationService;
 
-    private readonly Mock<INotificationRepository> _repository;
+    private readonly Mock<INotificationRepository> _repositoryMock;
     
-    private readonly Mock<TimeProvider> _timeProvider;
+    private readonly Mock<TimeProvider> _timeProviderMock;
     
-    private readonly Mock<IUserGrpcService> _userGrpcService;
+    private readonly Mock<IUserGrpcService> _userGrpcServiceMock;
 
     public NotificationServiceTests()
     {
-        _repository = new();
-        _timeProvider = new();
-        _userGrpcService = new();
+        _repositoryMock = new();
+        _timeProviderMock = new();
+        _userGrpcServiceMock = new();
         
         _notificationService = new API.Services.NotificationService(
-            _repository.Object, _timeProvider.Object, _userGrpcService.Object);
+            _repositoryMock.Object, _timeProviderMock.Object, _userGrpcServiceMock.Object);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class NotificationServiceTests
         
         await _notificationService.CreateNotificationsAsync(notifications);
         
-        _repository.Verify(repo => repo.CreateManyAsync(notifications), Times.Once);
+        _repositoryMock.Verify(repo => repo.CreateManyAsync(notifications), Times.Once);
     }
     
     [Fact]
@@ -47,7 +47,7 @@ public class NotificationServiceTests
         
         await _notificationService.CreateNotificationsAsync(notifications);
         
-        _repository.Verify(repo => repo.CreateManyAsync(notifications), Times.Once);
+        _repositoryMock.Verify(repo => repo.CreateManyAsync(notifications), Times.Once);
     }
     
     [Fact]
@@ -55,7 +55,7 @@ public class NotificationServiceTests
     {
         var userId = Guid.NewGuid();
         
-        _userGrpcService
+        _userGrpcServiceMock
             .Setup(x => x.GetUserIdAsync(It.IsAny<string>()))
             .ReturnsAsync(userId);
 
@@ -69,7 +69,7 @@ public class NotificationServiceTests
             }
         }.ToPagedList(1,10,1,1);
         
-        _repository
+        _repositoryMock
             .Setup(x =>
                 x.FindAllNotificationsAsync(userId, paginationParameters, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedNotifications);
@@ -86,7 +86,7 @@ public class NotificationServiceTests
     {
         var userId = Guid.NewGuid();
         
-        _userGrpcService
+        _userGrpcServiceMock
             .Setup(x => x.GetUserIdAsync(It.IsAny<string>()))
             .ReturnsAsync(userId);
 
@@ -95,7 +95,7 @@ public class NotificationServiceTests
         var pagedNotifications = new List<Notification>{}
             .ToPagedList(1,10,1,1);
         
-        _repository
+        _repositoryMock
             .Setup(x =>
                 x.FindAllNotificationsAsync(userId, paginationParameters, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedNotifications);
@@ -112,7 +112,7 @@ public class NotificationServiceTests
     {
         var userId = Guid.NewGuid();
         
-        _userGrpcService
+        _userGrpcServiceMock
             .Setup(x => x.GetUserIdAsync(It.IsAny<string>()))
             .ReturnsAsync(userId);
 
@@ -127,7 +127,7 @@ public class NotificationServiceTests
             }
         }.ToPagedList(1,10,1,1);
         
-        _repository
+        _repositoryMock
             .Setup(x =>
                 x.FindUnreadNotificationsAsync(userId, paginationParameters, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedNotifications);
@@ -144,7 +144,7 @@ public class NotificationServiceTests
     {
         var userId = Guid.NewGuid();
         
-        _userGrpcService
+        _userGrpcServiceMock
             .Setup(x => x.GetUserIdAsync(It.IsAny<string>()))
             .ReturnsAsync(userId);
 
@@ -153,7 +153,7 @@ public class NotificationServiceTests
         var pagedNotifications = new List<Notification>{}
             .ToPagedList(1,10,1,1);
         
-        _repository
+        _repositoryMock
             .Setup(x =>
                 x.FindUnreadNotificationsAsync(userId, paginationParameters, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedNotifications);
@@ -187,7 +187,7 @@ public class NotificationServiceTests
             ReadAt = DateTime.UtcNow
         };
         
-        _repository
+        _repositoryMock
             .Setup(x => x.FindById(notificationId))
             .ReturnsAsync(notification);
 
@@ -207,13 +207,13 @@ public class NotificationServiceTests
             ReadAt = null
         };
         
-        _repository
+        _repositoryMock
             .Setup(x => x.FindById(notificationId))
             .ReturnsAsync(notification);
 
         await _notificationService.MarkNotificationAsReadAsync(notificationId);
         
-        _repository.Verify(repo => repo.UpdateAsync(notification), Times.Once);
+        _repositoryMock.Verify(repo => repo.UpdateAsync(notification), Times.Once);
     }
 
     [Fact]
@@ -223,18 +223,18 @@ public class NotificationServiceTests
         
         var notifications = new List<Notification>();
         
-        _userGrpcService
+        _userGrpcServiceMock
             .Setup(x => x.GetUserIdAsync(It.IsAny<string>()))
             .ReturnsAsync(userId);
 
-        _repository
+        _repositoryMock
             .Setup(x => x.FindUnreadNotificationsAsync(userId,It.IsAny<CancellationToken>()))
             .ReturnsAsync(notifications);
         
         await _notificationService.MarkUnreadNotificationsAsReadAsync("");
         
-        _repository.Verify(repo => repo.UpdateManyAsync(notifications), Times.Once);
-        _timeProvider.Verify(timeProvider => timeProvider.GetUtcNow(), Times.Once);
+        _repositoryMock.Verify(repo => repo.UpdateManyAsync(notifications), Times.Once);
+        _timeProviderMock.Verify(timeProvider => timeProvider.GetUtcNow(), Times.Once);
     }
     
 }
