@@ -99,9 +99,9 @@ public class TopicController(
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
 
-        var isMod = await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator);
+        var isModerator = await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator);
 
-        parentTopic!.RemoveSubTopic(topicId, senderUserId, isMod);
+        parentTopic!.RemoveSubTopic(topicId, senderUserId, isModerator);
         
         await TopicRepository.UpdateAsync(cancellationToken);
     }

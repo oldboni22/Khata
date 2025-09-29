@@ -56,7 +56,7 @@ public class TopicEntityTests
     
     [Theory]
     [AutoDomainData]
-    public void RemoveSubTopic_TopicExistsAndModUser_RemovesSubTopic(Topic parentTopic)
+    public void RemoveSubTopic_TopicExistsAndModerator_RemovesSubTopic(Topic parentTopic)
     {
         // Arrange
         var senderId = parentTopic.OwnerId;
@@ -184,7 +184,7 @@ public class TopicEntityTests
     
     [Theory]
     [AutoDomainData]
-    public void RemovePost_TopicExistsAndMod_RemovesPost(Topic topic, Guid authorId)
+    public void RemovePost_TopicExistsAndModerator_RemovesPost(Topic topic, Guid authorId)
     {
         // Arrange
         var post = topic.AddPost("Post Title", "Post Text", authorId);

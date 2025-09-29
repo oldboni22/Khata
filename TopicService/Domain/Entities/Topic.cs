@@ -55,12 +55,12 @@ public class Topic : EntityWithTimestamps
         return subTopic;
     }
 
-    public void RemoveSubTopic(Guid subTopicId, Guid senderId, bool isMod)
+    public void RemoveSubTopic(Guid subTopicId, Guid senderId, bool isModerator)
     {
         var subTopic = _subTopics.FirstOrDefault(p => p.Id == subTopicId)
                        ?? throw new EntityNotFoundException<Topic>(subTopicId);
 
-        if (senderId != OwnerId && senderId != subTopic.OwnerId && !isMod)
+        if (senderId != OwnerId && senderId != subTopic.OwnerId && !isModerator)
         {
             throw new ForbiddenException();
         }
@@ -78,12 +78,12 @@ public class Topic : EntityWithTimestamps
         return post;
     }
 
-    public void RemovePost(Guid postId, Guid senderId, bool isMod)
+    public void RemovePost(Guid postId, Guid senderId, bool isModerator)
     {
         var post = _posts.FirstOrDefault(p => p.Id == postId)
                    ?? throw new EntityNotFoundException<Post>(postId);
 
-        if (senderId != OwnerId && senderId != post.AuthorId && !isMod)
+        if (senderId != OwnerId && senderId != post.AuthorId && !isModerator)
         {
             throw new ForbiddenException();
         }
