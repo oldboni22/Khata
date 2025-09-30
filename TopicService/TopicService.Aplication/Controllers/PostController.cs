@@ -78,9 +78,9 @@ public class PostController(
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
         
-        var isMod = await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator);
+        var isModerator = await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator);
         
-        topic.RemovePost(postId, senderUserId, isMod);
+        topic.RemovePost(postId, senderUserId, isModerator);
         
         await TopicRepository.UpdateAsync(cancellationToken);
     }
