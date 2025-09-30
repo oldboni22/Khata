@@ -20,7 +20,6 @@ public static class ServiceCollectionExtensions
     {
         return collection.AddAutoMapper(cfg =>
         {
-            
         }, Assembly.GetExecutingAssembly());
     }
     
