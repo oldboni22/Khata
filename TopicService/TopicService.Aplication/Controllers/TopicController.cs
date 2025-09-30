@@ -98,13 +98,10 @@ public class TopicController(
         var senderId = User.GetAuth0Id();
         
         var senderUserId = await UserGRpcClient.FindUserIdByAuth0IdAsync(senderId!);
-        
-        if (!await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator))
-        {
-            throw new ForbiddenException();
-        }
 
-        parentTopic!.RemoveSubTopic(topicId, senderUserId);
+        var isModerator = await UserGRpcClient.HasStatusAsync(senderUserId, topicId, UserTopicRelationStatus.Moderator);
+
+        parentTopic!.RemoveSubTopic(topicId, senderUserId, isModerator);
         
         await TopicRepository.UpdateAsync(cancellationToken);
     }
