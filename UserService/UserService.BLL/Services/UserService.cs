@@ -81,7 +81,8 @@ public class UserService(
         return await UpdateAsync(userId, updateModel, cancellationToken);
     }
 
-    public async Task UpdatePictureAsync(string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default)
+    public async Task UpdatePictureAsync(
+        string senderId, Guid userId, IFormFile file, CancellationToken cancellationToken = default)
     {
         await ValidateSenderIdAsync(senderId, userId, cancellationToken);
 
@@ -397,9 +398,10 @@ public class UserService(
     
     private async Task ValidateSenderIdAsync(string senderId, Guid userId, CancellationToken cancellationToken)
     {
-        var userEntity = await FindUserByAuth0IdAsync(senderId, cancellationToken);
+        var userEntity = await userRepository.FindByIdAsync(userId,false, cancellationToken)
+            ?? throw new EntityNotFoundException<User>(userId);
 
-        if (userEntity.Id != userId)
+        if (userEntity.Auth0Id != senderId)
         {
             throw new ForbiddenException(userEntity.Id);
         }
