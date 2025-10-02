@@ -44,8 +44,8 @@ jobs:
           GRpc__TopicApiAddress: "https://localhost:5200"
           
           Minio__Endpoint: "localhost:9000"
-          Minio__AccessKey: "aboltus"
-          Minio__SecretKey: "loshara"
+          Minio__AccessKey: "fake_key"
+          Minio__SecretKey: "fake_key"
 
           SerilogSettings__LogFile: "log.txt"
           ApplicationPort: "7082"
