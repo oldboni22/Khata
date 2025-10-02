@@ -9,8 +9,6 @@ jobs:
   build:
     name: Build and analyze
     runs-on: windows-latest
-    env:
-      PROJECT_PATH: ./UserService
     steps:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -45,5 +43,5 @@ jobs:
         shell: powershell
         run: |
           ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"oldboni22_Khata" /o:"oldboni22" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-          dotnet build ${{PROJECT_PATH}}
+          dotnet build ./UserService
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
