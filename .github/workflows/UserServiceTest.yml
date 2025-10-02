@@ -33,8 +33,8 @@ jobs:
         run: dotnet restore ${{env.project_dir}}
 
       - name: Build 
-        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore
+        run: dotnet build ${{ env.project_dir }} --no-restore
 
       - name: RunTests
-        run: dotnet test ${{ env.PROJECT_PATH }} --no-build
+        run: dotnet test ${{ env.project_dir }} --no-build
     
