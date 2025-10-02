@@ -180,7 +180,7 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
             {ConfigurationKeys.MinioSecretKey, "Fake_Key"},
             {ConfigurationKeys.MinioEndpoint, "fakeHost:1111"},
             
-            {ConfigurationKeys.TopicGRpcPort, "1234"},
+            {ConfigurationKeys.TopicGRpcPort, "1111"},
             {ConfigurationKeys.UserGRpcPort, "1234"},
             {ConfigurationKeys.TopicGRpcAddress, "https://fakehost:1111"},
             {ConfigurationKeys.UserGRpcAddress, "https://fakehost:1111"},
