@@ -24,7 +24,7 @@
     <ItemGroup>
         <ProjectReference Include="..\NotificationService.Domain\NotificationService.Domain.csproj" />
         <ProjectReference Include="..\Shared\Shared.csproj" />
-        <Protobuf Include="gRpc\TopicService.proto" GrpcServices="Both" />
+        <Protobuf Include="GRpc\TopicService.proto" GrpcServices="Both" />
     </ItemGroup>
 
 </Project>
