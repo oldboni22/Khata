@@ -182,8 +182,8 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
             
             {ConfigurationKeys.TopicGRpcPort, "1234"},
             {ConfigurationKeys.UserGRpcPort, "1234"},
-            {ConfigurationKeys.TopicGRpcAddress, "https://fakehost:1234"},
-            {ConfigurationKeys.UserGRpcAddress, "https://fakehost:1234"},
+            {ConfigurationKeys.TopicGRpcAddress, "https://fakehost:1111"},
+            {ConfigurationKeys.UserGRpcAddress, "https://fakehost:1111"},
             
             {ConfigurationKeys.ApplicationPort, "1234"},
         };
