@@ -37,4 +37,16 @@ jobs:
 
       - name: RunTests
         run: dotnet test ${{ env.project_dir }} --no-build
+        env:
+          GRpc__UserApiPort: "5100"
+          GRpc__TopicApiPort: "5200"
+          GRpc__UserApiAddress: "https://localhost:5100"
+          GRpc__TopicApiAddress: "https://localhost:5200"
+          
+          Minio__Endpoint: "localhost:9000"
+          Minio__AccessKey: "aboltus"
+          Minio__SecretKey: "loshara"
+
+          SerilogSettings__LogFile: "log.txt"
+          ApplicationPort: "7082"
     
