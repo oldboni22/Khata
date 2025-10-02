@@ -38,12 +38,12 @@ jobs:
       - name: RunTests
         run: dotnet test ${{ env.project_dir }} --no-build
         env:
-          GRpc__UserApiPort: "5100"
-          GRpc__TopicApiPort: "5200"
-          GRpc__UserApiAddress: "https://localhost:5100"
-          GRpc__TopicApiAddress: "https://localhost:5200"
+          GRpc__UserApiPort: ${{secrets.GRPC_USER_PORT}}
+          GRpc__TopicApiPort: ${{secrets.GRPC_TOPIC_PORT}}
+          GRpc__UserApiAddress: ${{secrets.GRPC_USER_ADDRESS}}
+          GRpc__TopicApiAddress: ${{secrets.GRPC_TOPIC_ADDRESS}}
           
-          Minio__Endpoint: "localhost:9000"
+          Minio__Endpoint: ${{secrets.MINIO_ENDPOINT}}
           Minio__AccessKey: "fake_key"
           Minio__SecretKey: "fake_key"
 
