@@ -46,6 +46,6 @@ jobs:
         shell: powershell
         run: |
           ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"oldboni22_Khata" /o:"oldboni22" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-          dotnet nuget add source https://nuget.pkg.github.com/oldboni22/index.json -p ${{ secrets.GITHUB_TOKEN }}
+          dotnet nuget add source https://nuget.pkg.github.com/oldboni22/index.json -u oldboni22 -p ${{ secrets.GITHUB_TOKEN }}
           dotnet build ./UserService
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
