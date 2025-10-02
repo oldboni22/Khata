@@ -5,7 +5,6 @@ using Domain.Exceptions;
 using Shared.Exceptions;
 using Shouldly;
 using TopicService.Tests.AutoData;
-using TopicService.Tests.AutoData.Customizations;
 using Xunit;
 using Xunit.Sdk;
 

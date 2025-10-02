@@ -4,6 +4,7 @@ using System.Text.Json;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
 using MinIoService;
+using Shared;
 using UserService.API.DTO;
 using UserService.BLL.gRpc;
 using Shouldly;
@@ -31,6 +32,8 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
     
     public UserControllerTests(UserServiceTestFactory factory, AutoFixtureContainer fixtureContainer, ITestOutputHelper output)
     {
+        SetConfiguration();
+        
         _output = output;
         
         _fixture = fixtureContainer.Fixture;
@@ -167,5 +170,27 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private void SetConfiguration()
+    {
+        Dictionary<string,string> envVariables = new()
+        {
+            {ConfigurationKeys.MinioAccessKey, "Fake_Key"},
+            {ConfigurationKeys.MinioSecretKey, "Fake_Key"},
+            {ConfigurationKeys.MinioEndpoint, "fakeHost:1111"},
+            
+            {ConfigurationKeys.TopicGRpcPort, "1111"},
+            {ConfigurationKeys.UserGRpcPort, "1234"},
+            {ConfigurationKeys.TopicGRpcAddress, "https://fakehost:1111"},
+            {ConfigurationKeys.UserGRpcAddress, "https://fakehost:1111"},
+            
+            {ConfigurationKeys.ApplicationPort, "1234"},
+        };
+
+        foreach (var (key, value) in envVariables)
+        {
+            Environment.SetEnvironmentVariable(key, value);
+        }
     }
 }
