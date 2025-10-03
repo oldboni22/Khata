@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using UserService.DAL.Models.Entities;
+using UserService.DAL.CacheService;
 using UserService.DAL.Repositories;
 
 namespace UserService.DAL.Extensions;
@@ -11,6 +11,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddDataLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         services
+            .AddRedis(configuration)
             .AddContext(configuration)
             .AddRepositories();
 
@@ -31,5 +32,12 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IUserRepository, UserRepository>()
                 .AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>))
                 .AddScoped<IUserTopicRelationRepository, UserTopicRelationRepository>();
+    }
+
+    private static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services
+            .Configure<CacheServiceOptions>(configuration.GetSection("CacheService"))
+            .AddSingleton<IUserAuth0IdCacheService, UserAuth0IdCacheService>();
     }
 }
