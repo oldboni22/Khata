@@ -36,7 +36,7 @@ public class TopicEntityTests
         var subTopicName = fixture.CreateString(30);
         
         // Act & Assert
-        Should.Throw<ArgumentException>(() => parentTopic.AddSubTopic(subTopicName, creatorId));
+        Should.Throw<InvalidStringInputException>(() => parentTopic.AddSubTopic(subTopicName, creatorId));
     }
     
     [Theory]
@@ -133,7 +133,7 @@ public class TopicEntityTests
         var text = fixture.CreateString(30);
         
         // Act & Assert
-        Should.Throw<ArgumentException>(() => topic.AddPost(title, text, authorId));
+        Should.Throw<InvalidStringInputException>(() => topic.AddPost(title, text, authorId));
     }
     
     [Theory]
@@ -144,7 +144,7 @@ public class TopicEntityTests
         var text = fixture.CreateString(1501);
         
         // Act & Assert
-        Should.Throw<ArgumentException>(() => topic.AddPost(title, text, authorId));
+        Should.Throw<InvalidStringInputException>(() => topic.AddPost(title, text, authorId));
     }
     
     [Theory]
