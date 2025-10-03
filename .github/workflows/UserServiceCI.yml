@@ -1,0 +1,82 @@
+name: UserServiceCI
+
+on: 
+  push: 
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  run_user_service_tests:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: read
+      
+    env:
+      project_dir: ./UserService 
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+          source-url : https://nuget.pkg.github.com/oldboni22/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore
+        run: dotnet restore ${{env.project_dir}}
+
+      - name: Build 
+        run: dotnet build ${{ env.project_dir }} --no-restore
+
+      - name: RunTests
+        run: dotnet test ${{ env.project_dir }} --no-build
+        
+  Sonar:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu' # Alternative distribution options are available.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Cache SonarQube Cloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache SonarQube Cloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}\scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+      - name: Install SonarQube Cloud scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        shell: powershell
+        run: |
+          New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
+          dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"oldboni22_Khata" /o:"oldboni22" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet nuget add source https://nuget.pkg.github.com/oldboni22/index.json -u oldboni22 -p ${{ secrets.GITHUB_TOKEN }}
+          dotnet build ./UserService
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
