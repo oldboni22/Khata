@@ -4,7 +4,7 @@ using NotificationService.Infrastructure.Extensions;
 
 namespace NotificationService.API;
 
-public static class Program
+public class Program
 {
     public static void Main(string[] args)
     {
