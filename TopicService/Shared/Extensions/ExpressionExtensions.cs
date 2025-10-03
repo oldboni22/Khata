@@ -17,7 +17,7 @@ public static class ExpressionExtensions
         return Expression.Lambda<Func<T, bool>>(newBody, parameter);
     }
 
-    private class ReplaceParameterVisitor(
+    private sealed class ReplaceParameterVisitor(
         ParameterExpression oldParameter, ParameterExpression newParameter) : ExpressionVisitor
     {
         protected override Expression VisitParameter(ParameterExpression node)

@@ -48,7 +48,7 @@ public class GenericReadOnlyRepository<T>(TopicServiceContext context) : IGeneri
         return await query.SingleOrDefaultAsync(cancellationToken);
     }
     
-    private IQueryable<T> ApplyKeySelectors(
+    private static IQueryable<T> ApplyKeySelectors(
         IQueryable<T> query, (Expression<Func<T, object>> predicate, bool isAscending)[] selectors)
     {
         var ordered = ApplyPrimarySelector(query, selectors[0]);
@@ -61,7 +61,7 @@ public class GenericReadOnlyRepository<T>(TopicServiceContext context) : IGeneri
         return ordered;
     }
 
-    private IOrderedQueryable<T> ApplyPrimarySelector(
+    private static IOrderedQueryable<T> ApplyPrimarySelector(
         IQueryable<T> query ,(Expression<Func<T, object>> predicate, bool isAscending) selector)
     {
         return selector.isAscending ?
@@ -69,7 +69,7 @@ public class GenericReadOnlyRepository<T>(TopicServiceContext context) : IGeneri
             query.OrderByDescending(selector.predicate);
     }
     
-    private IOrderedQueryable<T> ApplySelector(
+    private static IOrderedQueryable<T> ApplySelector(
         IOrderedQueryable<T> query ,(Expression<Func<T, object>> predicate, bool isAscending) selector)
     {
         return selector.isAscending ?

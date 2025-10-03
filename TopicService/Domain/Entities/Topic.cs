@@ -40,7 +40,7 @@ public class Topic : EntityWithTimestamps
     {
         if (string.IsNullOrEmpty(name) || name.Length is < NameMinLength or > NameMaxLength)
         {
-            throw new ArgumentException(); //TODO Custom exception
+            throw new InvalidStringInputException(NameMaxLength, NameMaxLength);
         }
 
         return new Topic(name, creatorId, parentTopic);

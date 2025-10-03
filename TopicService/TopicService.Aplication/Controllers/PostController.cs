@@ -71,8 +71,10 @@ public class PostController(
         var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, true, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
-                   ?? throw new EntityNotFoundException<Post>(postId);
+        if (topic.Posts.All(p => p.Id != postId))
+        {
+            throw new EntityNotFoundException<Post>(postId);
+        }
         
         var senderId = User.GetAuth0Id();
         
@@ -164,8 +166,10 @@ public class PostController(
         [FromQuery] PaginationParameters? paginationParameters,
         CancellationToken cancellationToken = default)
     {
-        var topic = await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) 
-                    ?? throw new EntityNotFoundException<Topic>(topicId);
+        if (await TopicRepository.FindByIdAsync(topicId, false, cancellationToken) is null)
+        {
+            throw new EntityNotFoundException<Topic>(topicId);
+        } 
 
         paginationParameters ??= new PaginationParameters();
         
@@ -205,13 +209,15 @@ public class PostController(
         var topic = await TopicRepository.FindTopicWithPostsAsync(topicId, false, cancellationToken) 
                     ?? throw new EntityNotFoundException<Topic>(topicId);
 
-        var post = topic.Posts.SingleOrDefault(p => p.Id == postId)
-                   ?? throw new EntityNotFoundException<Post>(postId);
+        if (topic.Posts.All(p => p.Id != postId))
+        {
+            throw new EntityNotFoundException<Post>(postId);
+        }
         
         var minioKey = postId.ToString();
 
-        var (stream, stats) = await minioService.GetFileAsync(minioKey) 
-                              ?? throw new Exception();
+        var (stream, stats) = await minioService.GetFileAsync(minioKey)
+                              ?? throw new MediaNotFoundException(postId);
 
         return File(stream, stats.ContentType, stats.ObjectName);
     }

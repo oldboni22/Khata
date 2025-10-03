@@ -29,7 +29,7 @@ public class PostRepository(TopicServiceContext context) : GenericRepository<Pos
         return await FindByConditionAsync(predicate, paginationParameters, keySelectors, trackChanges, cancellationToken);
     }
     
-    private Expression<Func<Post, bool>>? ParseFilter(PostFilter? filter)
+    private static Expression<Func<Post, bool>>? ParseFilter(PostFilter? filter)
     {
         if (filter is null)
         {

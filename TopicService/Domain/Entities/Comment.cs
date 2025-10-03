@@ -11,7 +11,7 @@ public class Comment : EntityWithTimestamps
     
     private const int TextMaxLength = 500;
     
-    private const int TextMinLength = 5;
+    private const int TextMinLength = 1;
         
     #endregion
 
@@ -102,7 +102,7 @@ public class Comment : EntityWithTimestamps
     {
         if(string.IsNullOrEmpty(text) || text.Length is < TextMinLength or > TextMaxLength)
         {
-            throw new Exception(); //TODO Custom exception
+            throw new InvalidStringInputException(TextMinLength, TextMaxLength);
         }
     }
 }
