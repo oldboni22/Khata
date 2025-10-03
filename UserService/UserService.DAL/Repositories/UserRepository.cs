@@ -13,7 +13,7 @@ public class UserRepository(UserServiceContext context) : GenericRepository<User
     public Task<User?> FindUserByAuth0IdAsync(string auth0Id, CancellationToken cancellationToken = default)
     {
         return Context
-            .Set<User>()
+            .Users
             .AsNoTracking()
             .SingleOrDefaultAsync(u => u.Auth0Id == auth0Id, cancellationToken);
     }

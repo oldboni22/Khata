@@ -7,7 +7,7 @@ using UserService.BLL.Services;
 namespace UserService.API.ActionFilters;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
-public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter 
+public class ApiKeyFilterAttribute(ApiType apiType) : Attribute, IAsyncActionFilter 
 {
     private const string HeaderPath = "X-API-KEY";
     
@@ -30,7 +30,7 @@ public class ApiKeyFilter(ApiType apiType) : Attribute, IAsyncActionFilter
         var path = apiType switch
         {
             ApiType.Auth0 => ConfigurationKeys.Auth0ApiKey,
-            _ => throw new ArgumentException(),
+            _ => throw new InvalidConfigurationKeyException(),
         };
         
         return configuration[path]!;

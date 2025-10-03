@@ -62,7 +62,7 @@ public class GenericRepository<T>(UserServiceContext context) : IGenericReposito
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<T?> FindByIdAsync(Guid id, bool trackChanges, CancellationToken cancellationToken = default)
+    public async Task<T?> FindByIdAsync(Guid id, bool trackChanges = true, CancellationToken cancellationToken = default)
     {
         var query = Context.Set<T>().Where(ent => ent.Id == id);
         query = trackChanges ? query : query.AsNoTracking();

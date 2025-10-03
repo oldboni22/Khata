@@ -29,7 +29,7 @@ public class CommentRepository(TopicServiceContext context) : GenericReadOnlyRep
         return FindByConditionAsync(predicate, paginationParameters, keySelectors, trackChanges, cancellationToken);
     }
     
-    private Expression<Func<Comment, bool>>? ParseFilter(CommentFilter? filter)
+    private static Expression<Func<Comment, bool>>? ParseFilter(CommentFilter? filter)
     {
         if (filter is null)
         {

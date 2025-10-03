@@ -16,8 +16,6 @@ public class Post : EntityWithTimestamps
 
     private const int TextMaxLength = 1500;
 
-    private const int TextMinLength = 0;
-
     #endregion
 
     private readonly List<Comment> _comments = [];
@@ -137,9 +135,9 @@ public class Post : EntityWithTimestamps
     
     private static void ValidateText(string text)
     {
-        if (string.IsNullOrEmpty(text) || text.Length is < TextMinLength or > TextMaxLength)
+        if (string.IsNullOrEmpty(text) || text.Length is > TextMaxLength)
         {
-            throw new ArgumentException(); //TODO Custom exception
+            throw new InvalidStringInputException(0, TextMaxLength);
         }
     }
     
@@ -147,7 +145,7 @@ public class Post : EntityWithTimestamps
     {
         if (string.IsNullOrEmpty(title) || title.Length is < TitleMinLength or > TitleMaxLength)
         {
-            throw new ArgumentException(); //TODO Custom exception
+            throw new InvalidStringInputException(TitleMinLength, TitleMaxLength);
         }
     }
 }

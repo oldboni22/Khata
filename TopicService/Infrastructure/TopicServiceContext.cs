@@ -29,7 +29,7 @@ public class TopicServiceContext(DbContextOptions options) : DbContext(options)
         ConfigureComment(modelBuilder);
     }
 
-    private void ConfigureTopic(ModelBuilder builder)
+    private static void ConfigureTopic(ModelBuilder builder)
     {
         builder.ApplyConfiguration(new TopicEntityConfiguration());
 
@@ -48,7 +48,7 @@ public class TopicServiceContext(DbContextOptions options) : DbContext(options)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private void ConfigurePost(ModelBuilder builder)
+    private static void ConfigurePost(ModelBuilder builder)
     {
         builder.ApplyConfiguration(new PostEntityConfiguration());
 
@@ -67,7 +67,7 @@ public class TopicServiceContext(DbContextOptions options) : DbContext(options)
             .OnDelete(DeleteBehavior.Cascade);
     }
     
-    private void ConfigureComment(ModelBuilder builder)
+    private static void ConfigureComment(ModelBuilder builder)
     {
         builder.ApplyConfiguration(new CommentEntityConfiguration());
 
@@ -79,7 +79,7 @@ public class TopicServiceContext(DbContextOptions options) : DbContext(options)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private void AddInterceptors(DbContextOptionsBuilder optionsBuilder)
+    private static void AddInterceptors(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.AddInterceptors(new TimeStampsInterceptor());
     }

@@ -116,7 +116,7 @@ public class UserService(
 
         if (minioResult is null)
         {
-            throw new Exception();
+            throw new MediaNotFoundException(userId);
         }
 
         return minioResult.Value;
@@ -221,8 +221,6 @@ public class UserService(
                     throw new UserBannedException(userId, topicId);
             }
         }
-
-        var userModel = await FindByIdAsync(userId, cancellationToken);
 
         var relationEntity = new UserTopicRelation
         {

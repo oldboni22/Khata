@@ -21,7 +21,7 @@ public class TimeStampsInterceptor : ISaveChangesInterceptor
         return new ValueTask<InterceptionResult<int>>(result);
     }
 
-    private int SetTimeStamps(DbContextEventData eventData)
+    private static void SetTimeStamps(DbContextEventData eventData)
     {
         var entities = eventData!.Context!.ChangeTracker
             .Entries()
@@ -43,7 +43,5 @@ public class TimeStampsInterceptor : ISaveChangesInterceptor
                 entity.CreatedAt = DateTime.UtcNow;
             }
         }
-        
-        return entities.Count;
     }
 }

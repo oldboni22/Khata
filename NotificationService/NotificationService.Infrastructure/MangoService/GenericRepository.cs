@@ -26,7 +26,7 @@ public class GenericRepository<T> : IGenericRepository<T>
 
     public async Task CreateManyAsync(IEnumerable<T> notifications)
     {
-        var createdAt = TimeProvider.GetUtcNow().DateTime;;
+        var createdAt = TimeProvider.GetUtcNow().DateTime;
         notifications = notifications.Select(notif =>
         {
             notif.CreatedAt = createdAt;

@@ -5,9 +5,9 @@ namespace UserService.DAL;
 
 public class UserServiceContext(DbContextOptions options) : DbContext(options)
 {
-    private DbSet<User> Users { get; set; }
+    public DbSet<User> Users { get; set; }
     
-    private DbSet<UserTopicRelation> UserTopics { get; set; }
+    public DbSet<UserTopicRelation> UserTopics { get; set; }
 
     public override int SaveChanges()
     {
@@ -53,7 +53,7 @@ public class UserServiceContext(DbContextOptions options) : DbContext(options)
         ConfigureUser(modelBuilder);
     }
 
-    private void ConfigureUser(ModelBuilder modelBuilder)
+    private static void ConfigureUser(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>()
             .HasIndex(user => user.Name)
