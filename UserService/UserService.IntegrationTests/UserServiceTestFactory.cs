@@ -8,6 +8,7 @@ using NSubstitute.ClearExtensions;
 using Shared;
 using UserService.API;
 using UserService.BLL.gRpc;
+using UserService.DAL.CacheService;
 using UserService.IntegrationTests.Extensions;
 
 namespace UserService.IntegrationTests;
@@ -20,6 +21,8 @@ public class UserServiceTestFactory : WebApplicationFactory<Program>
 
     public ITopicGRpcClient TopicGRpcClientMock { get; init; } = Substitute.For<ITopicGRpcClient>();
 
+    public IUserAuth0IdCacheService  UserAuth0IdCacheServiceMock { get; init; } = Substitute.For<IUserAuth0IdCacheService>();
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureAppConfiguration(configuration =>
@@ -36,6 +39,7 @@ public class UserServiceTestFactory : WebApplicationFactory<Program>
             services
                 .GenericReplace<IMinioService>(MinioServiceMock)
                 .GenericReplace<ITopicGRpcClient>(TopicGRpcClientMock)
+                .GenericReplace<IUserAuth0IdCacheService>(UserAuth0IdCacheServiceMock)
                 .ReplaceDependencies();
         });
     }
@@ -44,8 +48,10 @@ public class UserServiceTestFactory : WebApplicationFactory<Program>
     {
         MinioServiceMock.ClearReceivedCalls();
         MinioServiceMock.ClearSubstitute();
+        UserAuth0IdCacheServiceMock.ClearReceivedCalls();
         
         TopicGRpcClientMock.ClearReceivedCalls();
         TopicGRpcClientMock.ClearSubstitute();
+        UserAuth0IdCacheServiceMock.ClearReceivedCalls();
     }
 }
