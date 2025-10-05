@@ -121,7 +121,7 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
     }
     
     [Fact]
-    public async Task UploadPictureAsync_NotMatchingAuth0Id_Forbidden()
+    public async Task UploadPictureAsync_NotMatchingAuth0Id_ReturnsForbidden()
     {
         // Arrange
         var userId = _seededUser.Id;
@@ -146,7 +146,7 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
     }
     
     [Fact]
-    public async Task UploadPictureAsync_UserDoesNotExist_NotFound()
+    public async Task UploadPictureAsync_UserDoesNotExist_ReturnsNotFound()
     {
         // Arrange
         var userId = Guid.NewGuid();

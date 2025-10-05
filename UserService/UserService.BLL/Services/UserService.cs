@@ -59,7 +59,7 @@ public interface IUserService : IGenericService<User, UserModel, UserCreateModel
     Task RemoveModerationStatusAsync(string senderId, Guid userId, Guid topicId, CancellationToken cancellationToken = default);
 }
 
-public class UserService(
+public class UserRepository(
     IUserRepository userRepository,
     IUserTopicRelationRepository userTopicRelationRepository,
     ITopicGRpcClient topicGRpcClient,

@@ -67,6 +67,6 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
-        return services.AddScoped<IUserService, Services.UserService>();
+        return services.AddScoped<IUserService, Services.UserRepository>();
     }
 }
