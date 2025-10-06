@@ -26,7 +26,8 @@ public static class ServiceCollectionExtensions
     {
         return services
             .ReplaceDbContext()
-            .ReplaceAuthentication();
+            .ReplaceAuthentication()
+            .ReplaceCache();
     }
     
     private static IServiceCollection ReplaceDbContext(this IServiceCollection services)
