@@ -51,7 +51,7 @@ public class UserServiceContext(DbContextOptions options) : DbContext(options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureUser(modelBuilder);
-    }   
+    }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
     {

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
@@ -11,49 +12,39 @@ public interface IGenericCacheService<T> where T : class
     Task<T?> TryGetValueAsync(string id);
 }
 
-public abstract class GenericCacheService<T> : IGenericCacheService<T> where T : class
+public abstract class GenericCacheService<T>(IOptions<CacheServiceOptions> options, IDistributedCache cache)
+    : IGenericCacheService<T> where T : class
 {
     protected abstract string Prefix { get; }
 
-    protected IDatabase Database { get; }
+    protected IDistributedCache Cache { get; } = cache;
 
-    protected int Lifetime { get; }
-
-    protected GenericCacheService(IOptions<CacheServiceOptions> options)
-    {
-        var muxer = ConnectionMultiplexer.Connect(options.Value.Connection);
-
-        if (!int.TryParse(options.Value.Lifetime, out var lifetime) || lifetime <= 0)
-        {
-            throw new ArgumentException("Lifetime must be a positive integer");
-        }
-
-        Lifetime = lifetime;
-        
-        Database = muxer.GetDatabase();
-    }
+    protected int Lifetime { get; } = Convert.ToInt32(options.Value.Lifetime);
     
     public async Task SetValueAsync(T value)
     {
+        var entryOptions = new DistributedCacheEntryOptions();
+        entryOptions.SetAbsoluteExpiration(TimeSpan.FromMinutes(Lifetime));
+        
         var key = $"{Prefix}_{CreateKey(value)}";
         
         var userJson = JsonSerializer.Serialize(value);
         
-        await Database.StringSetAsync(key,userJson, TimeSpan.FromSeconds(Lifetime));
+        await Cache.SetStringAsync(key,userJson, entryOptions);
     }
 
     public async Task<T?> TryGetValueAsync(string id)
     {
         var key = $"{Prefix}_{id}";
         
-        var redisValue = await Database.StringGetAsync(key);
+        var cacheValue = await Cache.GetStringAsync(key);
 
-        if (redisValue.IsNullOrEmpty)
+        if (string.IsNullOrEmpty(cacheValue))
         {
             return null;
         }
         
-        return JsonSerializer.Deserialize<T>(redisValue!.ToString());
+        return JsonSerializer.Deserialize<T>(cacheValue!.ToString());
     }
 
     protected abstract string CreateKey(T value);

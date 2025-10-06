@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared;
 using UserService.DAL.CacheService;
 using UserService.DAL.Repositories;
 
@@ -37,7 +38,11 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
     {
         return services
-            .Configure<CacheServiceOptions>(configuration.GetSection("CacheService"))
+            .Configure<CacheServiceOptions>(configuration.GetSection(CacheServiceOptions.ConfigurationSection))
+            .AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration[ConfigurationKeys.RedisConnection];
+            })
             .AddSingleton<IUserAuth0IdCacheService, UserAuth0IdCacheService>();
     }
 }
