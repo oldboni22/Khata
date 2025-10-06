@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <UserSecretsId>6590fd6e-d370-4c64-b07c-f9ff5571c54f</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,7 +13,12 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.9" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+      <PackageReference Include="NRedisStack" Version="1.1.1" />
     </ItemGroup>
 
     <ItemGroup>

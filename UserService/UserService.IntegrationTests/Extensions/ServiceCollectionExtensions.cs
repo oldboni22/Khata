@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NSubstitute;
 using UserService.DAL;
+using UserService.DAL.CacheService;
 using UserService.DAL.Models.Entities;
 using UserService.IntegrationTests.Utils;
 
@@ -24,7 +26,8 @@ public static class ServiceCollectionExtensions
     {
         return services
             .ReplaceDbContext()
-            .ReplaceAuthentication();
+            .ReplaceAuthentication()
+            .ReplaceCache();
     }
     
     private static IServiceCollection ReplaceDbContext(this IServiceCollection services)
@@ -60,6 +63,20 @@ public static class ServiceCollectionExtensions
             });
     }
 
+    private static IServiceCollection ReplaceCache(this IServiceCollection services)
+    {
+        services
+            .RemoveAll<IDistributedCache>()
+            .RemoveAll<IUserAuth0IdCacheService>()
+            .RemoveAll<CacheServiceOptions>();
+
+        return services
+            .AddDistributedMemoryCache()
+            .Configure<CacheServiceOptions>(options => options.Lifetime = "5")
+            .AddSingleton<IUserAuth0IdCacheService, UserAuth0IdCacheService>();
+            
+    }
+    
     private static IServiceCollection ReplaceAuthentication(this IServiceCollection services)
     {
         services.RemoveAll<IAuthenticationService>();

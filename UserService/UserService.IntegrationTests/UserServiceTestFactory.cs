@@ -8,6 +8,7 @@ using NSubstitute.ClearExtensions;
 using Shared;
 using UserService.API;
 using UserService.BLL.gRpc;
+using UserService.DAL.CacheService;
 using UserService.IntegrationTests.Extensions;
 
 namespace UserService.IntegrationTests;
@@ -19,7 +20,7 @@ public class UserServiceTestFactory : WebApplicationFactory<Program>
     public IMinioService MinioServiceMock { get; init; } = Substitute.For<IMinioService>();
 
     public ITopicGRpcClient TopicGRpcClientMock { get; init; } = Substitute.For<ITopicGRpcClient>();
-
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureAppConfiguration(configuration =>

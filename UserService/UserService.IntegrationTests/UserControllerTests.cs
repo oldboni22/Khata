@@ -2,17 +2,22 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using AutoFixture;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using MinIoService;
+using NSubstitute;
 using Shared;
 using UserService.API.DTO;
 using UserService.BLL.gRpc;
 using Shouldly;
 using UserService.DAL;
+using UserService.DAL.CacheService;
 using UserService.DAL.Models.Entities;
 using UserService.IntegrationTests.Extensions;
 using UserService.IntegrationTests.Utils;
 using Xunit.Abstractions;
+using Program = UserService.API.Program;
 
 namespace UserService.IntegrationTests;
 
@@ -45,19 +50,8 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
         _minioServiceMock = factory.MinioServiceMock;
         _topicGRpcClientMock = factory.TopicGRpcClientMock;
         
-        var scope = factory.Services.CreateScope();
-        
-        var context = scope.ServiceProvider.GetRequiredService<UserServiceContext>();
-        
-        context.Database.EnsureDeleted();
-        context.Database.EnsureCreated();
-        
         _seededUser = _fixture.CreateUser();
-        context.Set<User>().Add(_seededUser);
-        
-        context.SaveChanges();
-        
-        scope.Dispose();
+        SeedDatabase(factory, _seededUser);
     }
 
     [Fact]
@@ -120,10 +114,11 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _minioServiceMock.Received(1).UploadFileAsync(Arg.Any<IFormFile>(), userId.ToString());
     }
     
     [Fact]
-    public async Task UploadPictureAsync_NotMatchingAuth0Id_Forbidden()
+    public async Task UploadPictureAsync_NotMatchingAuth0Id_ReturnsForbidden()
     {
         // Arrange
         var userId = _seededUser.Id;
@@ -148,7 +143,7 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
     }
     
     [Fact]
-    public async Task UploadPictureAsync_UserDoesNotExist_NotFound()
+    public async Task UploadPictureAsync_UserDoesNotExist_ReturnsNotFound()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -172,7 +167,23 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    private void SetConfiguration()
+    private static void SeedDatabase(WebApplicationFactory<Program> factory, User user)
+    {
+        var scope = factory.Services.CreateScope();
+        
+        var context = scope.ServiceProvider.GetRequiredService<UserServiceContext>();
+        
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+        
+        context.Set<User>().Add(user);
+        
+        context.SaveChanges();
+        
+        scope.Dispose();
+    }
+    
+    private static void SetConfiguration()
     {
         Dictionary<string,string> envVariables = new()
         {
