@@ -31,8 +31,6 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
     
     private readonly ITopicGRpcClient _topicGRpcClientMock;
     
-    private readonly IUserAuth0IdCacheService _userAuth0IdCacheServiceMock;
-    
     private readonly IFixture _fixture;
 
     private readonly User _seededUser;
@@ -51,7 +49,6 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
 
         _minioServiceMock = factory.MinioServiceMock;
         _topicGRpcClientMock = factory.TopicGRpcClientMock;
-        _userAuth0IdCacheServiceMock = factory.UserAuth0IdCacheServiceMock;
         
         _seededUser = _fixture.CreateUser();
         SeedDatabase(factory, _seededUser);

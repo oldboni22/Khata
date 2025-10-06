@@ -20,8 +20,6 @@ public class UserServiceTestFactory : WebApplicationFactory<Program>
     public IMinioService MinioServiceMock { get; init; } = Substitute.For<IMinioService>();
 
     public ITopicGRpcClient TopicGRpcClientMock { get; init; } = Substitute.For<ITopicGRpcClient>();
-
-    public IUserAuth0IdCacheService  UserAuth0IdCacheServiceMock { get; init; } = Substitute.For<IUserAuth0IdCacheService>();
     
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -39,7 +37,6 @@ public class UserServiceTestFactory : WebApplicationFactory<Program>
             services
                 .GenericReplace<IMinioService>(MinioServiceMock)
                 .GenericReplace<ITopicGRpcClient>(TopicGRpcClientMock)
-                .GenericReplace<IUserAuth0IdCacheService>(UserAuth0IdCacheServiceMock)
                 .ReplaceDependencies();
         });
     }
@@ -48,10 +45,8 @@ public class UserServiceTestFactory : WebApplicationFactory<Program>
     {
         MinioServiceMock.ClearReceivedCalls();
         MinioServiceMock.ClearSubstitute();
-        UserAuth0IdCacheServiceMock.ClearReceivedCalls();
         
         TopicGRpcClientMock.ClearReceivedCalls();
         TopicGRpcClientMock.ClearSubstitute();
-        UserAuth0IdCacheServiceMock.ClearReceivedCalls();
     }
 }
