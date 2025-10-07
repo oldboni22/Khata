@@ -86,8 +86,8 @@ services:
       - redis
       - rabbitmq
     ports:
-      - "${USER_SERVICE_HTTP_PORT}:80"
-      - "${USER_SERVICE_GRPC_PORT}:${GRPC_USER_API_PORT}"
+      - "${USER_SERVICE_HTTP_PORT}:${USER_SERVICE_HTTP_PORT}"
+      - "${GRPC_USER_API_PORT}:${GRPC_USER_API_PORT}"
     environment:
       - ConnectionStrings__Postgres_user=${POSTGRES_USER_CONNECTION_STRING}
       
@@ -122,8 +122,8 @@ services:
       - rabbitmq
       - minio
     ports:
-      - "${TOPIC_SERVICE_HTTP_PORT}:80"
-      - "${TOPIC_SERVICE_GRPC_PORT}:${GRPC_TOPIC_API_PORT}"
+      - "${TOPIC_SERVICE_HTTP_PORT}:${TOPIC_SERVICE_HTTP_PORT}"
+      - "${GRPC_TOPIC_API_PORT}:${GRPC_TOPIC_API_PORT}"
     environment:
       - ConnectionStrings__Postgres_topic=${POSTGRES_TOPIC_CONNECTION_STRING}
       
@@ -154,7 +154,7 @@ services:
       - rabbitmq
       - mongo
     ports:
-      - "${NOTIFICATION_SERVICE_HTTP_PORT}:80"
+      - "${NOTIFICATION_SERVICE_HTTP_PORT}:${NOTIFICATION_SERVICE_HTTP_PORT}"
     environment:
       - MongoDbSettings__ConnectionString=${MONGO_CONNECTION_STRING}
       
