@@ -3,6 +3,7 @@
 
 *.json
 *.xml
+.env
 
 **/obj
 **/bin

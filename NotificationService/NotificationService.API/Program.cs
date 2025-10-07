@@ -31,7 +31,7 @@ public class Program
 
         app.UseMiddleware<ExceptionMiddleware>();
         
-        app.UseHttpsRedirection();
+        //app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();

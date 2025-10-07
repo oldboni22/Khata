@@ -1,0 +1,176 @@
+# Раздел, где описываются все наши контейнеры (сервисы)
+services:
+
+  # --- Базы данных и брокер сообщений ---
+
+  mongo:
+    image: mongo
+    container_name: mongo_db
+    ports:
+      - "27017:27017"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: always
+
+  postgres_user:
+    image: postgres:15-alpine
+    container_name: postgres_user_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: db
+    volumes:
+      - postgres_user_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+  postgres_topic:
+    image: postgres:15-alpine
+    container_name: postgres_topic_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: db
+    volumes:
+      - postgres_topic_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    restart: always
+
+  rabbitmq:
+    image: masstransit/rabbitmq:latest
+    container_name: rabbitmq_bus
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+
+  # --- Ваши кастомные сервисы ---
+
+  userservice:
+    build:
+      context: ./UserService
+      dockerfile: UserService.API/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    container_name: userservice_app
+    depends_on:
+      - postgres_user
+      - minio
+      - redis
+      - rabbitmq
+    ports:
+      - "${USER_SERVICE_HTTP_PORT}:80"
+      - "${USER_SERVICE_GRPC_PORT}:${GRPC_USER_API_PORT}"
+    environment:
+      - ConnectionStrings__Postgres_user=${POSTGRES_USER_CONNECTION_STRING}
+      
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__APIKey=${AUTH0_API_KEY}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
+      
+      - GRpc__UserApiPort=${GRPC_USER_API_PORT}
+      - GRpc__TopicApiPort=${GRPC_TOPIC_API_PORT}
+      - GRpc__TopicApiAddress=${GRPC_TOPIC_API_ADDRESS}
+
+      - ApplicationPort=${USER_SERVICE_HTTP_PORT}
+      
+      - Minio__Endpoint=${MINIO_ENDPOINT}
+      - Minio__AccessKey=${MINIO_ROOT_USER}
+      - Minio__SecretKey=${MINIO_ROOT_PASSWORD}
+      
+      - Redis__Connection=${REDIS_CONNECTION_STRING}
+      
+      - RabbitMq__Host=${RABBITMQ_HOST}
+    restart: on-failure
+
+  topicservice:
+    build:
+      context: ./TopicService
+      dockerfile: TopicService.Aplication/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    container_name: topicservice_app
+    depends_on:
+      - postgres_topic
+      - rabbitmq
+      - minio
+    ports:
+      - "${TOPIC_SERVICE_HTTP_PORT}:80"
+      - "${TOPIC_SERVICE_GRPC_PORT}:${GRPC_TOPIC_API_PORT}"
+    environment:
+      - ConnectionStrings__Postgres_topic=${POSTGRES_TOPIC_CONNECTION_STRING}
+      
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__APIKey=${AUTH0_API_KEY}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
+      
+      - ApplicationPort=${TOPIC_SERVICE_HTTP_PORT}
+      
+      - GRpc__TopicApiPort=${GRPC_TOPIC_API_PORT}
+      - GRpc__UserApiAddress=${GRPC_USER_API_ADDRESS}
+    
+      - Minio__Endpoint=${MINIO_ENDPOINT}
+      - Minio__AccessKey=${MINIO_ROOT_USER}
+      - Minio__SecretKey=${MINIO_ROOT_PASSWORD}
+    
+      - RabbitMq__Host=${RABBITMQ_HOST}
+    restart: on-failure
+
+  notificationservice:
+    build:
+      context: ./NotificationService
+      dockerfile: NotificationService.API/Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    container_name: notificationservice_app
+    depends_on:
+      - rabbitmq
+      - mongo
+    ports:
+      - "${NOTIFICATION_SERVICE_HTTP_PORT}:80"
+    environment:
+      - MongoDbSettings__ConnectionString=${MONGO_CONNECTION_STRING}
+      
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__APIKey=${AUTH0_API_KEY}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
+      
+      - GRpc__UserApiAddress=${GRPC_USER_API_ADDRESS}
+      
+      - RabbitMq__Host=${RABBITMQ_HOST}
+    restart: on-failure
+
+# Раздел для именованных томов (volumes)
+volumes:
+  postgres_user_data:
+  postgres_topic_data:
+  minio_data:
+  redis_data:
+  mongo_data:
