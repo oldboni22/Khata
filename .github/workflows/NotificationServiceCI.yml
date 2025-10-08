@@ -80,8 +80,8 @@ jobs:
           /k:"oldboni22_Khata" `
           /o:"oldboni22" `
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-          /d:sonar.exclusions="*.yml"
-          /d:sonar.coverage.exclusions="**/Program.cs,**/Extensions/**/*,**/Middleware/**/*,**/Utilities/**/*,**/DTO/**/*" 
+          /d:sonar.exclusions="*.yml" `
+          /d:sonar.coverage.exclusions="**/Program.cs,**/Extensions/**/*,**/Middleware/**/*,**/Utilities/**/*" 
           dotnet nuget add source https://nuget.pkg.github.com/oldboni22/index.json -u oldboni22 -p ${{ secrets.GITHUB_TOKEN }}
           dotnet build ./NotificationService
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
