@@ -6,9 +6,9 @@ EXPOSE 5200
 
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG GITHUB_TOKEN
 WORKDIR /src
 
-ARG GITHUB_TOKEN
 
 COPY ["TopicService.Aplication/TopicService.Aplication.csproj", "TopicService.Aplication/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
@@ -20,12 +20,12 @@ RUN dotnet restore "TopicService.Aplication/TopicService.Aplication.csproj"
 
 COPY . .
 WORKDIR "/src/TopicService.Aplication"
-RUN dotnet build "./TopicService.Aplication.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./TopicService.Aplication.csproj" -c ${BUILD_CONFIGURATION} -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 
-RUN dotnet publish "./TopicService.Aplication.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./TopicService.Aplication.csproj" -c ${BUILD_CONFIGURATION} -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
