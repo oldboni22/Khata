@@ -79,7 +79,7 @@ jobs:
           /k:"oldboni22_Khata" `
           /o:"oldboni22" `
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
-          /d:sonar.exclusions="**/Migrations/**/*.cs" `
+          /d:sonar.exclusions="**/Migrations/**/*.cs,*.yml" `
           /d:sonar.coverage.exclusions="**/Program.cs,**/Extensions/**/*.cs,**/Middleware/**/*.cs,**/Utilities/**/*.cs" 
           dotnet nuget add source https://nuget.pkg.github.com/oldboni22/index.json -u oldboni22 -p ${{ secrets.GITHUB_TOKEN }}
           dotnet build ./TopicService
