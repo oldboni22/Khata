@@ -25,14 +25,12 @@ public class Program
             options.ListenAnyIP(appPort, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-                //listenOptions.UseHttps();
             });
             //Rest APi ^
             
             options.ListenLocalhost(grpcPort, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
-                //listenOptions.UseHttps();
             });
             //GRpc & ^
         });
@@ -49,6 +47,8 @@ public class Program
         
         app.UseMiddleware<ExceptionMiddleware>();
         
+        app.UpdateUserDb();
+        
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
@@ -56,8 +56,6 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-        
-        //app.UseHttpsRedirection();
 
         app.MapGrpcService<UserGRpcApi>();
         

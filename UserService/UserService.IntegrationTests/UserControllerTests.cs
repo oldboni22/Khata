@@ -55,7 +55,7 @@ public class UserControllerTests : IClassFixture<UserServiceTestFactory>, IClass
     }
 
     [Fact]
-    public async Task CreateUserAsync_ValidApiKey_ReturnsCreatedUser()
+    public async Task CreateUserAsync_ValidApiKeyValidUser_ReturnsCreatedUser()
     {
         // Arrange
         _client.DefaultRequestHeaders.Add("X-API-KEY", UserServiceTestFactory.Auth0ApiKey);

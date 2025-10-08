@@ -14,6 +14,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
       - mongo_data:/data/db
+    networks:
+      - my_network
 
   redis:
     image: redis:7-alpine
@@ -23,6 +25,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - my_network
 
   minio:
     image: minio/minio:latest
@@ -36,6 +40,8 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
     restart: always
+    networks:
+      - my_network
 
   postgres_user:
     image: postgres:15-alpine
@@ -49,6 +55,8 @@ services:
     ports:
       - "5432:5432"
     restart: always
+    networks:
+      - my_network
 
   postgres_topic:
     image: postgres:15-alpine
@@ -62,6 +70,8 @@ services:
     ports:
       - "5433:5432"
     restart: always
+    networks:
+      - my_network
 
   rabbitmq:
     image: masstransit/rabbitmq:latest
@@ -70,6 +80,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     restart: always
+    networks:
+      - my_network
 
   # --- Ваши кастомные сервисы ---
 
@@ -89,7 +101,7 @@ services:
       - "${USER_SERVICE_HTTP_PORT}:${USER_SERVICE_HTTP_PORT}"
       - "${GRPC_USER_API_PORT}:${GRPC_USER_API_PORT}"
     environment:
-      - ConnectionStrings__Postgres_user=${POSTGRES_USER_CONNECTION_STRING}
+      - ConnectionStrings__Postgres=${POSTGRES_USER_CONNECTION_STRING}
       
       - Auth0__Domain=${AUTH0_DOMAIN}
       - Auth0__APIKey=${AUTH0_API_KEY}
@@ -106,9 +118,12 @@ services:
       - Minio__SecretKey=${MINIO_ROOT_PASSWORD}
       
       - Redis__Connection=${REDIS_CONNECTION_STRING}
+      - Redis__Lifetime=${REDIS_LIFETIME}
       
       - RabbitMq__Host=${RABBITMQ_HOST}
     restart: on-failure
+    networks:
+      - my_network
 
   topicservice:
     build:
@@ -125,7 +140,7 @@ services:
       - "${TOPIC_SERVICE_HTTP_PORT}:${TOPIC_SERVICE_HTTP_PORT}"
       - "${GRPC_TOPIC_API_PORT}:${GRPC_TOPIC_API_PORT}"
     environment:
-      - ConnectionStrings__Postgres_topic=${POSTGRES_TOPIC_CONNECTION_STRING}
+      - ConnectionStrings__Postgres=${POSTGRES_TOPIC_CONNECTION_STRING}
       
       - Auth0__Domain=${AUTH0_DOMAIN}
       - Auth0__APIKey=${AUTH0_API_KEY}
@@ -142,6 +157,8 @@ services:
     
       - RabbitMq__Host=${RABBITMQ_HOST}
     restart: on-failure
+    networks:
+      - my_network
 
   notificationservice:
     build:
@@ -166,6 +183,8 @@ services:
       
       - RabbitMq__Host=${RABBITMQ_HOST}
     restart: on-failure
+    networks:
+      - my_network
 
 # Раздел для именованных томов (volumes)
 volumes:
@@ -174,3 +193,7 @@ volumes:
   minio_data:
   redis_data:
   mongo_data:
+    
+networks:
+  my_network:
+    driver: bridge

@@ -13,7 +13,7 @@ public class MappingProfile : Profile
     {
         CreateMap<UserCreateDto, UserCreateModel>();
 
-        CreateMap<UserTopicRelationModel, UserTopicRelationDto>()
+        CreateMap<UserTopicRelationModel, UserTopicRelationReadDto>()
             .PreserveReferences();
         
         CreateMap<UserUpdateDto, UserUpdateModel>();
