@@ -10,6 +10,10 @@ public static class WebApplicationExtensions
         using var scope = app.Services.CreateScope();
         
         var userServiceContext = scope.ServiceProvider.GetRequiredService<UserServiceContext>();
-        userServiceContext.Database.Migrate();
+
+        if(userServiceContext.Database.IsRelational())
+        {
+            userServiceContext.Database.Migrate();
+        }
     }
 }
