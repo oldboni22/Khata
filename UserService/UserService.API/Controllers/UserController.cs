@@ -81,13 +81,13 @@ public class UserController(
     }
     
     [HttpGet($"{UserIdRoute}/relations")]
-    public async Task<PagedList<UserTopicRelationDto>> FindUserRelationsAsync(
+    public async Task<PagedList<UserTopicRelationReadDto>> FindUserRelationsAsync(
         [FromQuery] PaginationParameters paginationParameters , Guid userId, CancellationToken cancellationToken)
     {
         var relations = 
             await userService.FindUserRelationsAsync(userId, paginationParameters, cancellationToken);
         
-        return mapper.Map<PagedList<UserTopicRelationDto>>(relations);
+        return mapper.Map<PagedList<UserTopicRelationReadDto>>(relations);
     }
 
     [Authorize]

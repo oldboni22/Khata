@@ -10,6 +10,6 @@ public class User : EntityBase
     
     public List<UserTopicRelation> TopicStatuses { get; set; } = [];
 
-    [MaxLength(50)]
+    [MaxLength(100)]
     public required string Auth0Id { get; set; }
 }

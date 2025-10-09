@@ -2,15 +2,9 @@ using UserService.BLL.Models;
 
 namespace UserService.API.DTO;
 
-public class UserReadDto
+public class UserReadDto : ReadDtoBase
 {
-    public Guid Id { get; set; }
-    
     public required string Name { get; init; }
     
-    public List<UserTopicRelationDto> TopicStatuses { get; init; } = [];
-
-    public DateTime CreatedAt { get; init; }
-    
-    public DateTime UpdatedAt { get; init; }
+    public List<UserTopicRelationReadDto> TopicStatuses { get; init; } = [];
 }

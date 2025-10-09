@@ -19,12 +19,18 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
     
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        if(exception.StackTrace is not null)
+        {
+            logger.Error(exception.StackTrace);
+        }
+
         logger.Error(exception.Message);
         
         var details = exception switch
         {
             NotFoundException => new ExceptionDetails(exception.Message, 404),
-            BadRequestException or _ => new ExceptionDetails(exception.Message, 400),
+            BadRequestException => new ExceptionDetails(exception.Message, 400),
+            _ => new ExceptionDetails(exception.Message, 500)
         };
 
         context.Response.ContentType = "application/json";

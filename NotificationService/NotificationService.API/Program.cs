@@ -30,8 +30,6 @@ public class Program
         }
 
         app.UseMiddleware<ExceptionMiddleware>();
-        
-        app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();

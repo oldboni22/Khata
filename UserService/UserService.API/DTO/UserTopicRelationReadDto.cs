@@ -3,7 +3,7 @@ using UserService.API.Utilities.Validation;
 
 namespace UserService.API.DTO;
 
-public class UserTopicRelationDto
+public class UserTopicRelationReadDto : ReadDtoBase
 {
     public Guid UserId { get; init; }
     

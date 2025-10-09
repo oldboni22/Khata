@@ -22,6 +22,11 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
     
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        if(exception.StackTrace is not null)
+        {
+            logger.Error(exception.StackTrace);
+        }
+        
         logger.Error(exception.Message);
 
         ExceptionDetails details = exception switch
