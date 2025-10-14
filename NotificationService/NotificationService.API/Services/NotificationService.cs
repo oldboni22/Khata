@@ -1,6 +1,7 @@
 using Messages.Models;
 using NotificationService.Domain.Contracts;
 using NotificationService.Domain.Contracts.Repos;
+using NotificationService.Infrastructure.GRpc;
 using Shared.Exceptions;
 using Shared.PagedList;
 

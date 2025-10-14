@@ -5,6 +5,7 @@ using NotificationService.DAL.MangoService;
 using NotificationService.Domain.Contracts;
 using NotificationService.Domain.Contracts.Repos;
 using NotificationService.Infrastructure.GRpc;
+using NotificationService.Infrastructure.MemoryCache;
 using NotificationService.Infrastructure.Repositories;
 using Shared;
 
@@ -17,18 +18,30 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddGRpc(configuration)
-            .AddDataLayerDependencies(configuration);
+            .AddDataDependencies(configuration);
     }
     
-    private static IServiceCollection AddDataLayerDependencies(
+    private static IServiceCollection AddDataDependencies(
         this IServiceCollection services, IConfiguration configuration)
     {
         return services
+            .AddMemoryCache()
             .AddSingleton<TimeProvider>(TimeProvider.System)
             .AddMongoServices(configuration)
             .AddScoped<INotificationRepository, NotificationRepository>();
     }
 
+    private static IServiceCollection AddMemoryCache(IServiceCollection services, IConfiguration configuration)
+    {
+        return services
+            .AddMemoryCache()
+            .Configure<MemoryCacheServiceOptions>(
+                MemoryCacheServiceOptions.UserIdMemoryCacheName,
+                configuration.GetSection(MemoryCacheServiceOptions.UserIdMemoryCacheName))
+            .AddSingleton<IMemoryCacheService<string, Guid>, UserIdMemoryCacheService>();
+
+    }
+    
     private static IServiceCollection AddMongoServices(this IServiceCollection services, IConfiguration configuration)
     {
         return services

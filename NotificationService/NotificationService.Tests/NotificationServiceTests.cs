@@ -3,6 +3,7 @@ using Moq;
 using NotificationService.API.Services;
 using NotificationService.Domain.Contracts;
 using NotificationService.Domain.Contracts.Repos;
+using NotificationService.Infrastructure.GRpc;
 using Shared.Exceptions;
 using Shared.Extensions;
 using Shared.PagedList;
