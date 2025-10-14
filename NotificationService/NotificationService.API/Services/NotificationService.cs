@@ -1,7 +1,11 @@
 using Messages.Models;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using NotificationService.Domain.Contracts;
 using NotificationService.Domain.Contracts.Repos;
 using NotificationService.Infrastructure.GRpc;
+using NotificationService.Infrastructure.MemoryCache;
+using NotificationService.Infrastructure.Socket;
 using Shared.Exceptions;
 using Shared.PagedList;
 
@@ -23,11 +27,32 @@ public interface INotificationService
 }
 
 public class NotificationService(
-    INotificationRepository repository, TimeProvider timeProvider, IUserGrpcService userGrpcService) : INotificationService
+    INotificationRepository repository, 
+    TimeProvider timeProvider, 
+    IUserGrpcService userGrpcService, 
+    IHubContext<NotificationHub> hubContext,
+    IMemoryCacheService<Guid, string> userIdMemoryCache,
+    IOptions<NotificationServiceSocketOptions> socketOptions) : INotificationService
 {
+    private readonly string _increaseNotificationsIndicatorMethodName = socketOptions.Value.IncreaseNotificationsIndicatorMethodName;
+    
     public async Task CreateNotificationsAsync(IEnumerable<Notification> notifications)
     {
-        await repository.CreateManyAsync(notifications);
+        var utcNow = timeProvider.GetUtcNow().DateTime;
+        
+        var createdNotificationsArray = notifications.Select(notif =>
+        {
+            notif.CreatedAt = utcNow;
+            return notif;
+        }).ToArray();
+        
+        var userIds = createdNotificationsArray
+            .Select(notif => userIdMemoryCache.GetValue(notif.UserId) ?? string.Empty)
+            .Where(id => !string.IsNullOrEmpty(id));
+        
+        await repository.CreateManyAsync(createdNotificationsArray);
+
+        await hubContext.Clients.Users(userIds).SendAsync(_increaseNotificationsIndicatorMethodName);
     }
 
     public async Task<PagedList<Notification>> FindAllNotificationsAsync(

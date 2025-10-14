@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
                 {
                     OnTokenValidated = async context =>
                     {
-                        var userIdMemoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCacheService<string, Guid>>();
+                        var userIdMemoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCacheService<Guid, string>>();
                         var userGRpcService = context.HttpContext.RequestServices.GetRequiredService<IUserGrpcService>();
 
                         if (context.Principal is null)
@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
                             throw new NotFoundException();
                         }
                         
-                        userIdMemoryCache.AddOrUpdate(userAuth0Id!, userId.Value);
+                        userIdMemoryCache.AddOrUpdate(userId.Value, userAuth0Id!);
                     }
                 };
             });

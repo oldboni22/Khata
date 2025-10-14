@@ -17,6 +17,8 @@ public class Program
         
         builder.Services.AddAuthenticationBearer(builder.Configuration);
         builder.Services.AddAuthorization();
+
+        builder.Services.AddSignalR();
         
         builder.Services.AddInfrastructureDependencies(builder.Configuration);
         builder.Services.AddApplicationDependencies(builder.Configuration);
@@ -24,7 +26,7 @@ public class Program
         builder.Services.AddOpenApi();
 
         builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
-        builder.Services.AddSignalR();
+        
         
         builder.Services.AddControllers();
         

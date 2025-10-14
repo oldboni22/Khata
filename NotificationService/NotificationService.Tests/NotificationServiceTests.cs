@@ -1,9 +1,13 @@
 ﻿using Messages.Models;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using Moq;
 using NotificationService.API.Services;
 using NotificationService.Domain.Contracts;
 using NotificationService.Domain.Contracts.Repos;
 using NotificationService.Infrastructure.GRpc;
+using NotificationService.Infrastructure.MemoryCache;
+using NotificationService.Infrastructure.Socket;
 using Shared.Exceptions;
 using Shared.Extensions;
 using Shared.PagedList;
@@ -21,14 +25,28 @@ public class NotificationServiceTests
     
     private readonly Mock<IUserGrpcService> _userGrpcServiceMock;
 
+    private readonly Mock<IHubContext<NotificationHub>> _hubContext;
+
+    private readonly Mock<IMemoryCacheService<Guid, string>> _userIdMemoryCacheMock;
+
+    private readonly Mock<IOptions<NotificationServiceSocketOptions>> _socketOptionsMock;
+    
     public NotificationServiceTests()
     {
         _repositoryMock = new();
         _timeProviderMock = new();
         _userGrpcServiceMock = new();
+        _hubContext = new();
+        _userIdMemoryCacheMock = new();
+        _socketOptionsMock = new();
         
         _notificationService = new API.Services.NotificationService(
-            _repositoryMock.Object, _timeProviderMock.Object, _userGrpcServiceMock.Object);
+            _repositoryMock.Object,
+            _timeProviderMock.Object,
+            _userGrpcServiceMock.Object,
+            _hubContext.Object,
+            _userIdMemoryCacheMock.Object,
+            _socketOptionsMock.Object);
     }
 
     [Fact]

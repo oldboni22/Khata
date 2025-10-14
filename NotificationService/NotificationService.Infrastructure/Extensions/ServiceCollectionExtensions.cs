@@ -25,20 +25,20 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         return services
-            .AddMemoryCache()
+            .AddInMemoryCache(configuration)
             .AddSingleton<TimeProvider>(TimeProvider.System)
             .AddMongoServices(configuration)
             .AddScoped<INotificationRepository, NotificationRepository>();
     }
 
-    private static IServiceCollection AddMemoryCache(IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddInMemoryCache(this IServiceCollection services, IConfiguration configuration)
     {
         return services
             .AddMemoryCache()
             .Configure<MemoryCacheServiceOptions>(
                 MemoryCacheServiceOptions.UserIdMemoryCacheName,
                 configuration.GetSection(MemoryCacheServiceOptions.UserIdMemoryCacheName))
-            .AddSingleton<IMemoryCacheService<string, Guid>, UserIdMemoryCacheService>();
+            .AddSingleton<IMemoryCacheService<Guid, string>, UserIdMemoryCacheService>();
 
     }
     

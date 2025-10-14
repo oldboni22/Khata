@@ -10,8 +10,8 @@ using Shared.PagedList;
 
 namespace NotificationService.Infrastructure.Repositories;
 
-public class NotificationRepository(IOptions<MangoServiceOptions> options, TimeProvider timeProvider)
-    : GenericRepository<Notification>(options, timeProvider), INotificationRepository
+public class NotificationRepository(IOptions<MangoServiceOptions> options)
+    : GenericRepository<Notification>(options), INotificationRepository
 {
     public async Task<PagedList<Notification>> FindAllNotificationsAsync(
         Guid userId, PaginationParameters paginationParameters, CancellationToken cancellationToken = default)
