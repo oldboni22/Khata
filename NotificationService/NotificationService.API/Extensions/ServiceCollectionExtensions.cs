@@ -30,31 +30,6 @@ public static class ServiceCollectionExtensions
                     ValidateIssuerSigningKey = true,
                     ValidateLifetime = true,
                 };
-
-                options.Events = new JwtBearerEvents
-                {
-                    OnTokenValidated = async context =>
-                    {
-                        var userIdMemoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCacheService<Guid, string>>();
-                        var userGRpcService = context.HttpContext.RequestServices.GetRequiredService<IUserGrpcService>();
-
-                        if (context.Principal is null)
-                        {
-                            throw new BadRequestException();
-                        }
-
-                        var userAuth0Id = context.Principal.GetAuth0Id();
-
-                        var userId = await userGRpcService.GetUserIdAsync(userAuth0Id!);
-
-                        if (userId is null)
-                        {
-                            throw new NotFoundException();
-                        }
-                        
-                        userIdMemoryCache.AddOrUpdate(userId.Value, userAuth0Id!);
-                    }
-                };
             });
     }
     

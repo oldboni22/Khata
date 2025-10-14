@@ -8,6 +8,8 @@ public interface IMemoryCacheService<TKey ,TValue>
     void AddOrUpdate(TKey key, TValue value);
     
     TValue? GetValue(TKey key);
+    
+    void RemoveValue(TKey key);
 }
 
 public abstract class MemoryCacheService<TKey, TValue> : IMemoryCacheService<TKey ,TValue>
@@ -40,6 +42,13 @@ public abstract class MemoryCacheService<TKey, TValue> : IMemoryCacheService<TKe
         var keyString = CreateKeyString(key);
         
         return Cache.Get<TValue>(keyString);
+    }
+
+    public void RemoveValue(TKey key)
+    {
+        var keyString = CreateKeyString(key);
+        
+        Cache.Remove(keyString);
     }
 
     protected abstract string OptionsName { get; }

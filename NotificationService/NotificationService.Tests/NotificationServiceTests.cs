@@ -39,6 +39,11 @@ public class NotificationServiceTests
         _hubContext = new();
         _userIdMemoryCacheMock = new();
         _socketOptionsMock = new();
+
+        _socketOptionsMock.Setup(options => options.Value).Returns(new NotificationServiceSocketOptions()
+        {
+            IncreaseNotificationsIndicatorMethodName = "aboba"
+        });
         
         _notificationService = new API.Services.NotificationService(
             _repositoryMock.Object,
@@ -52,6 +57,7 @@ public class NotificationServiceTests
     [Fact]
     public async Task CreateNotificationsAsync_EmptyList()
     {
+        //Arange
         var notifications = new List<Notification> { };
         
         await _notificationService.CreateNotificationsAsync(notifications);
