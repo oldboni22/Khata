@@ -15,7 +15,7 @@ public class NotificationHub(IUserGrpcService userGrpcService, IMemoryCacheServi
     {
         if (Context.User is null)
         {
-            throw new Exception("No claims principal"); //TODO custom ex
+            throw new NoClaimPrincipalException();
         }
         
         var auth0Id = Context.User.GetAuth0Id();
@@ -34,7 +34,7 @@ public class NotificationHub(IUserGrpcService userGrpcService, IMemoryCacheServi
     {
         if (Context.User is null)
         {
-            throw new Exception("No claims principal"); //TODO custom ex
+            throw new NoClaimPrincipalException();
         }
         
         var auth0Id = Context.User.GetAuth0Id();

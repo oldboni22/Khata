@@ -4,6 +4,7 @@ using NotificationService.API.Middleware;
 using NotificationService.API.Utilities;
 using NotificationService.Infrastructure.Extensions;
 using NotificationService.Infrastructure.Socket;
+using Shared;
 
 namespace NotificationService.API;
 
@@ -27,7 +28,6 @@ public class Program
 
         builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
         
-        
         builder.Services.AddControllers();
         
         var app = builder.Build();
@@ -42,7 +42,7 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapHub<NotificationHub>("/Notifications");
+        app.MapHub<NotificationHub>(app.Configuration[ConfigurationKeys.SocketAddress]!);
         app.MapControllers();
         
         app.Run();

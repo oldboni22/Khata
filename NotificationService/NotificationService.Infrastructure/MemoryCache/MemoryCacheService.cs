@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 namespace NotificationService.Infrastructure.MemoryCache;
 
-public interface IMemoryCacheService<TKey ,TValue>
+public interface IMemoryCacheService<in TKey ,TValue>
 {
     void AddOrUpdate(TKey key, TValue value);
     
@@ -22,7 +22,7 @@ public abstract class MemoryCacheService<TKey, TValue> : IMemoryCacheService<TKe
     {
         Cache = cache;
 
-        _lifetime = Convert.ToInt32(options.Get(OptionsName).Lifetime);
+        _lifetime = options.Get(OptionsName).Lifetime;
     }
     
     public void AddOrUpdate(TKey key,TValue value)

@@ -39,7 +39,6 @@ public static class ServiceCollectionExtensions
                 MemoryCacheServiceOptions.UserIdMemoryCacheName,
                 configuration.GetSection(MemoryCacheServiceOptions.UserIdMemoryCacheName))
             .AddSingleton<IMemoryCacheService<Guid, string>, UserIdMemoryCacheService>();
-
     }
     
     private static IServiceCollection AddMongoServices(this IServiceCollection services, IConfiguration configuration)

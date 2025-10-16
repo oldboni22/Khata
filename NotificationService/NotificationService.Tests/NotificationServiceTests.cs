@@ -24,55 +24,64 @@ public class NotificationServiceTests
     private readonly Mock<TimeProvider> _timeProviderMock;
     
     private readonly Mock<IUserGrpcService> _userGrpcServiceMock;
-
-    private readonly Mock<IHubContext<NotificationHub>> _hubContext;
-
+    
     private readonly Mock<IMemoryCacheService<Guid, string>> _userIdMemoryCacheMock;
 
     private readonly Mock<IOptions<NotificationServiceSocketOptions>> _socketOptionsMock;
+    
+    private readonly Mock<IHubContext<NotificationHub>> _hubContextMock;
+    
+    private readonly Mock<IHubClients> _hubClientsMock;
+    
+    private readonly Mock<IClientProxy> _clientProxyMock;
     
     public NotificationServiceTests()
     {
         _repositoryMock = new();
         _timeProviderMock = new();
         _userGrpcServiceMock = new();
-        _hubContext = new();
-        _userIdMemoryCacheMock = new();
-        _socketOptionsMock = new();
 
+        _userIdMemoryCacheMock = new();
+        
+        _socketOptionsMock = new();
         _socketOptionsMock.Setup(options => options.Value).Returns(new NotificationServiceSocketOptions()
         {
             IncreaseNotificationsIndicatorMethodName = "aboba"
         });
         
+        _hubClientsMock = new();
+        _clientProxyMock = new();
+        _hubContextMock = new();
+
+        _hubClientsMock.Setup(clients => clients.All).Returns(_clientProxyMock.Object);
+        _hubClientsMock.Setup(clients => clients.Users(It.IsAny<IReadOnlyList<string>>())).Returns(_clientProxyMock.Object);
+
+        _hubContextMock.Setup(context => context.Clients).Returns(_hubClientsMock.Object);
+        
         _notificationService = new API.Services.NotificationService(
             _repositoryMock.Object,
             _timeProviderMock.Object,
             _userGrpcServiceMock.Object,
-            _hubContext.Object,
+            _hubContextMock.Object,
             _userIdMemoryCacheMock.Object,
             _socketOptionsMock.Object);
-    }
-
-    [Fact]
-    public async Task CreateNotificationsAsync_EmptyList()
-    {
-        //Arange
-        var notifications = new List<Notification> { };
-        
-        await _notificationService.CreateNotificationsAsync(notifications);
-        
-        _repositoryMock.Verify(repo => repo.CreateManyAsync(notifications), Times.Once);
     }
     
     [Fact]
     public async Task CreateNotificationsAsync_NotEmptyList()
     {
-        var notifications = new List<Notification> { new Notification() };
+        var guid = Guid.NewGuid();
+        var notifications = new List<Notification> { new Notification
+        {
+            UserId = guid
+        } };
+        
+        _userIdMemoryCacheMock.Setup(cache => cache.GetValue(guid)).Returns(guid.ToString());
         
         await _notificationService.CreateNotificationsAsync(notifications);
         
         _repositoryMock.Verify(repo => repo.CreateManyAsync(notifications), Times.Once);
+        _hubClientsMock.Verify(clients => clients.Users(It.Is<IReadOnlyList<string>>(list => list[0] == guid.ToString())), Times.Once);
     }
     
     [Fact]

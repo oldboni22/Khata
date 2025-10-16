@@ -30,6 +30,7 @@ public class ExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
         {
             NotFoundException => new ExceptionDetails(exception.Message, 404),
             BadRequestException => new ExceptionDetails(exception.Message, 400),
+            NoClaimPrincipalException => new ExceptionDetails(exception.Message, 401),
             _ => new ExceptionDetails(exception.Message, 500)
         };
 

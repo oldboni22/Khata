@@ -182,7 +182,8 @@ services:
       - GRpc__UserApiAddress=${GRPC_USER_API_ADDRESS}
       
       - RabbitMq__Host=${RABBITMQ_HOST}
-      - NotificationServiceSocket__IncreaseNotificationsIndicatorMethodName=%{NOTIFICATION_SERVICE_SOCKET_IncreaseNotificationsIndicatorMethodName}
+      - Socket__IncreaseNotificationsIndicatorMethodName=%{NOTIFICATION_SERVICE_SOCKET_IncreaseNotificationsIndicatorMethodName}
+      - Socket__Address=${NOTIFICATION_SERVICE_SOCKET_ADDRESS}
       - InMemoryCache__UserId__Lifetime=${NOTIFICATION_SERVICE_MEMORY_CACHE_USER_ID_LIFETIME}
     restart: on-failure
     networks:

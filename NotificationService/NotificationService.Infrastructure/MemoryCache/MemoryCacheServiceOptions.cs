@@ -6,5 +6,5 @@ public class MemoryCacheServiceOptions
 
     public const string UserIdMemoryCacheName = "UserId";
 
-    public string Lifetime { get; set; } = "60";
+    public int Lifetime { get; set; } = 60;
 }
