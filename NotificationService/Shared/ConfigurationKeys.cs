@@ -11,4 +11,6 @@ public static class ConfigurationKeys
     public const string SerilogFile = "SerilogFile";
     
     public const string UserGRpcAddress = "GRpc:UserApiAddress";
+    
+    public const string SocketAddress = "Socket:Address";
 }

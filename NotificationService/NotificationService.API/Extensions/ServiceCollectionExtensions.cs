@@ -2,8 +2,14 @@ using System.Reflection;
 using System.Security.Claims;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Caching.Memory;
 using NotificationService.API.Services;
+using NotificationService.Domain.Contracts;
+using NotificationService.Infrastructure.GRpc;
+using NotificationService.Infrastructure.MemoryCache;
 using Shared;
+using Shared.Exceptions;
+using Shared.Extensions;
 
 namespace NotificationService.API.Extensions;
 

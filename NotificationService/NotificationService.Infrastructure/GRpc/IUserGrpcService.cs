@@ -1,6 +1,4 @@
-using System.Security.Claims;
-
-namespace NotificationService.Domain.Contracts;
+namespace NotificationService.Infrastructure.GRpc;
 
 public interface IUserGrpcService
 {

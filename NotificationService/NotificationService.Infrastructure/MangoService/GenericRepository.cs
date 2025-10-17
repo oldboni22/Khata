@@ -10,29 +10,18 @@ public class GenericRepository<T> : IGenericRepository<T>
     where T : Notification
 {
     protected IMongoCollection<T> Collection { get; }
-
-    protected TimeProvider TimeProvider { get; }
     
-    public GenericRepository(IOptions<MangoServiceOptions> options, TimeProvider timeProvider)
+    public GenericRepository(IOptions<MangoServiceOptions> options)
     {
         var client = new MongoClient(options.Value.ConnectionString);
 
         var db = client.GetDatabase(options.Value.DatabaseName);
 
         Collection = db.GetCollection<T>(options.Value.CollectionName);
-        
-        TimeProvider = timeProvider;
     }
 
     public async Task CreateManyAsync(IEnumerable<T> notifications)
     {
-        var createdAt = TimeProvider.GetUtcNow().DateTime;
-        notifications = notifications.Select(notif =>
-        {
-            notif.CreatedAt = createdAt;
-            return notif;
-        });
-        
         await Collection.InsertManyAsync(notifications);
     }
 
